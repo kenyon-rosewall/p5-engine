@@ -375,5 +375,8 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 		}
 	}
 
-	Entity->Sword.Ptr->FacingDirection = Entity->FacingDirection;
+	if (Entity->Sword.Ptr)
+	{
+		Entity->Sword.Ptr->FacingDirection = Entity->FacingDirection;
+	}
 }

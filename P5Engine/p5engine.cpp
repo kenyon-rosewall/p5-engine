@@ -712,7 +712,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	entity_visible_piece_group PieceGroup = {};
 	PieceGroup.GameState = GameState;
 	sim_entity* Entity = SimRegion->Entities;
-	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
+	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex, ++Entity)
 	{
 		PieceGroup.PieceCount = 0;
 		real32 dt = Input->dtForFrame;

@@ -19,8 +19,9 @@ UpdateFamiliar(sim_region* SimRegion, sim_entity* Entity, real32 dt)
 	real32 ClosestHeroDSq = Square(17.0f); // NOTE: Ten meter maximum search
 
 	// TODO: Make spatial queries easy for things
-	for (sim_entity* TestEntity = SimRegion->Entities; TestEntity; ++TestEntity)
+	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 	{
+		sim_entity* TestEntity = SimRegion->Entities + EntityIndex;
 		if (TestEntity->Type == entity_type::Hero)
 		{
 			real32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
