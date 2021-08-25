@@ -1,6 +1,6 @@
 #include "p5engine.h"
 #include "p5engine_world.cpp"
-#include "p5engine_simulation_region.cpp"
+#include "p5engine_sim_region.cpp"
 #include "p5engine_entity.cpp"
 #include "p5engine_random.h"
 
@@ -225,7 +225,7 @@ struct add_low_entity_result
 };
 
 internal add_low_entity_result
-AddLowEntity(game_state* GameState, entity_type Type, world_position* Pos)
+AddLowEntity(game_state* GameState, entity_type Type, world_position Pos)
 {
 	Assert(GameState->LowEntityCount < ArrayCount(GameState->LowEntities));
 	uint32 EntityIndex = GameState->LowEntityCount++;
@@ -233,8 +233,9 @@ AddLowEntity(game_state* GameState, entity_type Type, world_position* Pos)
 	low_entity* EntityLow = GameState->LowEntities + EntityIndex;
 	*EntityLow = {};
 	EntityLow->Sim.Type = Type;
+	EntityLow->Pos = NullPosition();
 
-	ChangeEntityLocation(&GameState->WorldArena, GameState->World, EntityIndex, EntityLow, 0, Pos);
+	ChangeEntityLocation(&GameState->WorldArena, GameState->World, EntityIndex, EntityLow, Pos);
 
 	add_low_entity_result Result = {};
 	Result.Low = EntityLow;
@@ -251,11 +252,11 @@ internal add_low_entity_result
 AddWall(world* World, game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
 {
 	world_position Pos = ChunkPositionFromTilePosition(World, AbsTileX, AbsTileY, AbsTileZ);
-	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Wall, &Pos);
+	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Wall, Pos);
 	
 	Entity.Low->Sim.Height = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Width = Entity.Low->Sim.Height;
-	Entity.Low->Sim.Collides = true;
+	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
 }
@@ -277,11 +278,10 @@ InitHitPoints(low_entity* EntityLow, uint32 HitPointCount)
 internal add_low_entity_result
 AddSword(game_state* GameState)
 {
-	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Sword, 0);
+	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Sword, NullPosition());
 
 	Entity.Low->Sim.Height = 0.0f;
 	Entity.Low->Sim.Width = 0.0f;
-	Entity.Low->Sim.Collides = false;
 
 	return(Entity);
 }
@@ -290,11 +290,11 @@ internal add_low_entity_result
 AddPlayer(game_state* GameState)
 {
 	world_position Pos = GameState->CameraP;
-	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Hero, &Pos);
+	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Hero, Pos);
 
 	Entity.Low->Sim.Height = 0.5f;
 	Entity.Low->Sim.Width = 1.0f;
-	Entity.Low->Sim.Collides = true;
+	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	InitHitPoints(Entity.Low, 3);
 
@@ -313,13 +313,13 @@ internal add_low_entity_result
 AddMonstar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
 {
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
-	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Monstar, &Pos);
+	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Monstar, Pos);
 
 	InitHitPoints(Entity.Low, 3);
 
 	Entity.Low->Sim.Height = 0.5f;
 	Entity.Low->Sim.Width = 1.0f;
-	Entity.Low->Sim.Collides = true;
+	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
 }
@@ -328,11 +328,10 @@ internal add_low_entity_result
 AddFamiliar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
 {
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
-	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Familiar, &Pos);
+	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Familiar, Pos);
 
 	Entity.Low->Sim.Height = 0.5f;
 	Entity.Low->Sim.Width = 1.0f;
-	Entity.Low->Sim.Collides = false;
 
 	return(Entity);
 }
@@ -404,7 +403,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	if (!Memory->IsInitialized)
 	{
 		// NOTE: Reserve entity slot 0 for the null entity
-		AddLowEntity(GameState, entity_type::Null, 0);
+		AddLowEntity(GameState, entity_type::Null, NullPosition());
 
 		GameState->Backdrop = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/bg.bmp");
 		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/shadow.bmp");
@@ -596,6 +595,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 													CameraTileX,
 													CameraTileY,
 													CameraTileZ);
+		GameState->CameraP = NewCameraP;
+
 		AddMonstar(GameState, CameraTileX + 2, CameraTileY + 2, CameraTileZ);
 		AddFamiliar(GameState, CameraTileX - 2, CameraTileY + 2, CameraTileZ);
 
@@ -616,12 +617,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				*ConHero = {};
 				ConHero->EntityIndex = AddPlayer(GameState).LowIndex;
-				ConHero->SpeedMultiplier = 1.0f;
 			}
 		}
 		else
 		{
 			ConHero->ddP = {};
+			ConHero->SpeedMultiplier = 1.0f;
+			ConHero->dZ = 0.0f;
 
 			if (Controller->IsAnalogL)
 			{
@@ -737,7 +739,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					if (Entity->StorageIndex == ConHero->EntityIndex)
 					{
-						Entity->dZ = ConHero->dZ;
+						if (ConHero->dZ != 0.0f)
+						{
+							Entity->dZ = ConHero->dZ;
+						}
 						move_spec Spec = DefaultMoveSpec();
 						Spec.UnitMaxAccelVector = true;
 						Spec.Speed = 65.0f;

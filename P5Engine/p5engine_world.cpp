@@ -15,9 +15,9 @@ NullPosition(void)
 }
 
 inline bool32
-IsValid(world_position* Pos)
+IsValid(world_position Pos)
 {
-	bool32 Result = (Pos->ChunkX != TILE_CHUNK_UNINITALIZED);
+	bool32 Result = (Pos.ChunkX != TILE_CHUNK_UNINITALIZED);
 
 	return(Result);
 }
@@ -209,8 +209,8 @@ ChangeEntityLocationRaw(memory_arena* Arena, world* World, uint32 LowEntityIndex
 	// TODO: If this moves an entity into the camera bound, should it automatically
 	// go into the high set immediately?
 
-	Assert(!OldPos || IsValid(OldPos));
-	Assert(!NewPos || IsValid(NewPos));
+	Assert(!OldPos || IsValid(*OldPos));
+	Assert(!NewPos || IsValid(*NewPos));
 
 	if (OldPos && NewPos && AreInSameChunk(World, OldPos, NewPos))
 	{
@@ -293,16 +293,31 @@ ChangeEntityLocationRaw(memory_arena* Arena, world* World, uint32 LowEntityIndex
 }
 
 internal void
-ChangeEntityLocation(memory_arena* Arena, world* World, uint32 LowEntityIndex, low_entity* LowEntity,
-	world_position* OldPos, world_position* NewPos)
+ChangeEntityLocation(memory_arena* Arena, world* World, uint32 LowEntityIndex, low_entity* LowEntity, world_position NewPosInit)
 {
+	world_position* OldPos = 0;
+	world_position* NewPos = 0;
+
+	if (!HasFlag(&LowEntity->Sim, entity_flag::Nonspatial) && IsValid(LowEntity->Pos))
+	{
+		OldPos = &LowEntity->Pos;
+	}
+
+	if (IsValid(NewPosInit))
+	{
+		NewPos = &NewPosInit;
+	}
+
 	ChangeEntityLocationRaw(Arena, World, LowEntityIndex, OldPos, NewPos);
+
 	if (NewPos)
 	{
 		LowEntity->Pos = *NewPos;
+		ClearFlag(&LowEntity->Sim, entity_flag::Nonspatial);
 	}
 	else
 	{
 		LowEntity->Pos = NullPosition();
+		AddFlag(&LowEntity->Sim, entity_flag::Nonspatial);
 	}
 }

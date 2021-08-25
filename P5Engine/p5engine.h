@@ -59,7 +59,7 @@ ZeroSize(memory_index Size, void* Ptr)
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
 #include "p5engine_world.h"
-#include "p5engine_simulation_region.h"
+#include "p5engine_sim_region.h"
 #include "p5engine_entity.h"
 
 struct loaded_bitmap

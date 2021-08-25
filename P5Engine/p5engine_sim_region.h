@@ -38,26 +38,34 @@ union entity_reference
 	uint32 Index;
 };
 
+enum class entity_flag
+{
+	Collides = (1 << 1),
+	Nonspatial = (1 << 2),
+
+	Simming = (1 << 30),
+};
+
 struct sim_entity
 {
 	uint32 StorageIndex;
 
 	entity_type Type;
+	uint32 Flags;
 
 	v2 Pos;
-	uint32 ChunkZ;
-
+	v2 dPos;
 	real32 Z;
 	real32 dZ;
 
-	v2 dPos;
+	uint32 ChunkZ;
+
 	real32 Width, Height;
 
 	uint32 FacingDirection;
 	real32 tBob;
 
 	// NOTE: This is for "stairs"
-	bool32 Collides;
 	int32 dAbsTileZ;
 
 	// TODO: Should hitpoints themselves be entities?
