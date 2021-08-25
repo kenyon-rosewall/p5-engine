@@ -78,6 +78,9 @@ struct hero_bitmaps
 
 struct low_entity
 {
+	// TODO: It's kind of busted that Pos's can be invalid here, 
+	// AND we store whether they would be invalid in the flags field...
+	// Can we do something better here?
 	world_position Pos;
 	sim_entity Sim;
 };

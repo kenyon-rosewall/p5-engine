@@ -22,12 +22,6 @@ GetHashFromStorageIndex(sim_region* SimRegion, uint32 StorageIndex)
 	return(Result);
 }
 
-inline void
-MapStorageIndexToEntety(sim_region* SimRegion, uint32 StorageIndex, sim_entity* Entity)
-{
-
-}
-
 inline sim_entity*
 GetEntityByStorageIndex(sim_region* SimRegion, uint32 StorageIndex)
 {
@@ -69,25 +63,33 @@ AddEntityRaw(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, 
 	Assert(StorageIndex);
 	sim_entity* Entity = 0;
 
-	if (SimRegion->EntityCount < SimRegion->MaxEntityCount)
+	sim_entity_hash* Entry = GetHashFromStorageIndex(SimRegion, StorageIndex);
+	if (Entry->Ptr == 0)
 	{
-		Entity = SimRegion->Entities + SimRegion->EntityCount++;
-			
-		MapStorageIndexToEntety(SimRegion, StorageIndex, Entity);
-
-		if (Source)
+		if (SimRegion->EntityCount < SimRegion->MaxEntityCount)
 		{
-			// TODO: This should really be a decompression step, not
-			// a copy
-			*Entity = Source->Sim;
-			LoadEntityReference(GameState, SimRegion, &Entity->Sword);
-		}
+			Entity = SimRegion->Entities + SimRegion->EntityCount++;
 
-		Entity->StorageIndex = StorageIndex;
-	}
-	else
-	{
-		InvalidCodePath;
+			Entry->Index = StorageIndex;
+			Entry->Ptr = Entity;
+
+			if (Source)
+			{
+				// TODO: This should really be a decompression step, not
+				// a copy
+				*Entity = Source->Sim;
+				LoadEntityReference(GameState, SimRegion, &Entity->Sword);
+
+				Assert(!HasFlag(&Source->Sim, entity_flag::Simming));
+				AddFlag(&Source->Sim, entity_flag::Simming);
+			}
+
+			Entity->StorageIndex = StorageIndex;
+		}
+		else
+		{
+			InvalidCodePath;
+		}
 	}
 
 	return(Entity);
@@ -195,9 +197,9 @@ EndSim(sim_region* SimRegion, game_state* GameState)
 	{
 		low_entity* Stored = GameState->LowEntities + Entity->StorageIndex;
 
-		//Assert(HasFlag(&Stored->Sim, entity_flag::Simming));
+		Assert(HasFlag(&Stored->Sim, entity_flag::Simming));
 		Stored->Sim = *Entity;
-		//Assert(!HasFlag(&Stored->Sim, entity_flag::Simming));
+		Assert(!HasFlag(&Stored->Sim, entity_flag::Simming));
 
 		StoreEntityReference(&Stored->Sim.Sword);
 

@@ -754,12 +754,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
 						{
 							sim_entity* Sword = Entity->Sword.Ptr;
-							if (Sword)
+							if (Sword && HasFlag(Sword, entity_flag::Nonspatial))
 							{
-								Sword->Pos = Entity->Pos;
 								Sword->DistanceRemaining = 5.0f;
-								Sword->FacingDirection = Entity->FacingDirection;
-								Sword->dPos = 20.0f * ConHero->dSword;
+								MakeEntitySpatial(Sword, Entity->Pos, 20.0f * ConHero->dSword);
 							}
 						}
 					}
