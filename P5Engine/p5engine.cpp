@@ -716,18 +716,20 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	sim_entity* Entity = SimRegion->Entities;
 	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex, ++Entity)
 	{
-		PieceGroup.PieceCount = 0;
-		real32 dt = Input->dtForFrame;
-
-		// TODO: This is incorrect, should be computed after update
-		real32 ShadowAlpha = 1.0f - 0.5f * Entity->Z;
-		if (ShadowAlpha < 0)
+		if (Entity->Updatable)
 		{
-			ShadowAlpha = 0;
-		}
+			PieceGroup.PieceCount = 0;
+			real32 dt = Input->dtForFrame;
 
-		switch (Entity->Type)
-		{
+			// TODO: This is incorrect, should be computed after update
+			real32 ShadowAlpha = 1.0f - 0.5f * Entity->Z;
+			if (ShadowAlpha < 0)
+			{
+				ShadowAlpha = 0;
+			}
+
+			switch (Entity->Type)
+			{
 			case entity_type::Hero:
 			{
 				// TODO: Now that we have some real usage examples, let's solidify
@@ -748,7 +750,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						Spec.Speed = 65.0f;
 						Spec.Drag = 6.0f;
 						Spec.SpeedMult = ConHero->SpeedMultiplier;
-						
+
 						MoveEntity(SimRegion, Entity, dt, &Spec, ConHero->ddP);
 
 						if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
@@ -787,7 +789,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			case entity_type::Monstar:
 			{
 				UpdateMonster(SimRegion, Entity, dt);
-				
+
 				PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
 				PushBitmap(&PieceGroup, &GameState->Monstar, V2(0, 0), 0, V2(32, 64));
 
@@ -797,9 +799,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			case entity_type::Familiar:
 			{
 				UpdateFamiliar(SimRegion, Entity, dt);
-				
+
 				real32 BobSin = Sin(2.0f * Entity->tBob);
-				
+
 				PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), (0.5f * ShadowAlpha + 0.2f * BobSin), 0.0f);
 				PushBitmap(&PieceGroup, &GameState->Familiar, V2(0, 0), 0.25f * BobSin, V2(32, 75));
 			} break;
@@ -808,44 +810,45 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				InvalidCodePath;
 			} break;
-		}
+			}
 
-		real32 ddZ = -30.0f;
-		Entity->Z = 0.5f * ddZ * Square(dt) + Entity->dZ * dt + Entity->Z;
-		Entity->dZ = ddZ * dt + Entity->dZ;
-		if (Entity->Z < 0)
-		{
-			Entity->Z = 0;
-		}
+			real32 ddZ = -30.0f;
+			Entity->Z = 0.5f * ddZ * Square(dt) + Entity->dZ * dt + Entity->Z;
+			Entity->dZ = ddZ * dt + Entity->dZ;
+			if (Entity->Z < 0)
+			{
+				Entity->Z = 0;
+			}
 
-		real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->Pos.X;
-		real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * Entity->Pos.Y;
-		real32 EntityZ = -MetersToPixels * Entity->Z;
+			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->Pos.X;
+			real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * Entity->Pos.Y;
+			real32 EntityZ = -MetersToPixels * Entity->Z;
 
 #if 0
-		v2 EntityLeftTop = V2(EntityGroundPointX - 0.5f * MetersToPixels * EntityLow->Width, 
-							  EntityGroundPointY - 0.5f * MetersToPixels * EntityLow->Height);
-		v2 EntityWidthHeight = V2(EntityLow->Width, 
-								  EntityLow->Height);
-		DrawRectangle(Buffer, EntityLeftTop, EntityLeftTop + MetersToPixels * EntityWidthHeight, 0.0f, 1.0f, 1.0f);
+			v2 EntityLeftTop = V2(EntityGroundPointX - 0.5f * MetersToPixels * EntityLow->Width,
+				EntityGroundPointY - 0.5f * MetersToPixels * EntityLow->Height);
+			v2 EntityWidthHeight = V2(EntityLow->Width,
+				EntityLow->Height);
+			DrawRectangle(Buffer, EntityLeftTop, EntityLeftTop + MetersToPixels * EntityWidthHeight, 0.0f, 1.0f, 1.0f);
 #endif
 
-		for (uint32 PieceIndex = 0; PieceIndex < PieceGroup.PieceCount; ++PieceIndex)
-		{
-			entity_visible_piece* Piece = PieceGroup.Pieces + PieceIndex;
-			v2 Center = V2(EntityGroundPointX + Piece->Offset.X,
-						   EntityGroundPointY + Piece->Offset.Y + Piece->OffsetZ + Piece->EntityZC * EntityZ);
+			for (uint32 PieceIndex = 0; PieceIndex < PieceGroup.PieceCount; ++PieceIndex)
+			{
+				entity_visible_piece* Piece = PieceGroup.Pieces + PieceIndex;
+				v2 Center = V2(EntityGroundPointX + Piece->Offset.X,
+					EntityGroundPointY + Piece->Offset.Y + Piece->OffsetZ + Piece->EntityZC * EntityZ);
 
-			if (Piece->Bitmap)
-			{
-				DrawBitmap(Buffer, Piece->Bitmap, Center.X, Center.Y, Piece->A);
-			}
-			else
-			{
-				v2 HalfDim = 0.5f * MetersToPixels * Piece->Dim;
-				v2 Min = Center - HalfDim;
-				v2 Max = Center + HalfDim;
-				DrawRectangle(Buffer, Min, Max, Piece->R, Piece->G, Piece->B);
+				if (Piece->Bitmap)
+				{
+					DrawBitmap(Buffer, Piece->Bitmap, Center.X, Center.Y, Piece->A);
+				}
+				else
+				{
+					v2 HalfDim = 0.5f * MetersToPixels * Piece->Dim;
+					v2 Min = Center - HalfDim;
+					v2 Max = Center + HalfDim;
+					DrawRectangle(Buffer, Min, Max, Piece->R, Piece->G, Piece->B);
+				}
 			}
 		}
 	}

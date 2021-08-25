@@ -85,6 +85,7 @@ AddEntityRaw(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, 
 			}
 
 			Entity->StorageIndex = StorageIndex;
+			Entity->Updatable = false; // IsInRectangle(SimRegion->UpdatableBounds);
 		}
 		else
 		{
@@ -123,6 +124,7 @@ AddEntity(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, low
 		if (SimPos)
 		{
 			Dest->Pos = *SimPos;
+			Dest->Updatable = IsInRectangle(SimRegion->UpdatableBounds, Dest->Pos);
 		}
 		else
 		{
@@ -143,9 +145,14 @@ BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_posi
 	sim_region* SimRegion = PushStruct(SimArena, sim_region);
 	ZeroStruct(SimRegion->Hash);
 
+	// TODO: IMPORTANT Calculate this eventually from the maximum value of
+	// all entities radius plus their speed
+	real32 UpdateSafetyMargin = 1.0f;
+
 	SimRegion->World = World;
 	SimRegion->Origin = Origin;
-	SimRegion->Bounds = Bounds;
+	SimRegion->UpdatableBounds = Bounds;
+	SimRegion->Bounds = AddRadiusTo(SimRegion->UpdatableBounds, UpdateSafetyMargin, UpdateSafetyMargin);
 
 	// TODO: Need to be more specific about entity counts
 	SimRegion->MaxEntityCount = 4096;

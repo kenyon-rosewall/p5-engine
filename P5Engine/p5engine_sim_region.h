@@ -48,7 +48,11 @@ enum class entity_flag
 
 struct sim_entity
 {
+	// NOTE: These are only for the sim region
 	uint32 StorageIndex;
+	bool32 Updatable;
+
+	// 
 
 	entity_type Type;
 	uint32 Flags;
@@ -65,7 +69,6 @@ struct sim_entity
 	uint32 FacingDirection;
 	real32 tBob;
 
-	// NOTE: This is for "stairs"
 	int32 dAbsTileZ;
 
 	// TODO: Should hitpoints themselves be entities?
@@ -93,6 +96,7 @@ struct sim_region
 
 	world_position Origin;
 	rectangle2 Bounds;
+	rectangle2 UpdatableBounds;
 
 	uint32 MaxEntityCount;
 	uint32 EntityCount;
