@@ -30,6 +30,25 @@ GetEntityByStorageIndex(sim_region* SimRegion, uint32 StorageIndex)
 	return(Result);
 }
 
+inline v2
+GetSimSpacePos(sim_region* SimRegion, low_entity* Stored)
+{
+	// NOTE: Map the entity into camera space
+	// TODO: Do we want to set this to signaling NaN in
+	// debug mode to make sure nobody ever uses the position
+	// of a nonspatial entity
+	v2 Result = InvalidPos;
+
+	if (!HasFlag(&Stored->Sim, entity_flag::Nonspatial))
+	{
+		v3 Diff = Subtract(SimRegion->World, &Stored->Pos, &SimRegion->Origin);
+		Result.X = Diff.X;
+		Result.Y = Diff.Y;
+	}
+
+	return(Result);
+}
+
 internal sim_entity*
 AddEntity(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, low_entity* Source, v2* SimPos);
 inline void
@@ -41,7 +60,9 @@ LoadEntityReference(game_state* GameState, sim_region* SimRegion, entity_referen
 		if (Entry->Ptr == 0)
 		{
 			Entry->Index = Ref->Index;
-			Entry->Ptr = AddEntity(GameState, SimRegion, Ref->Index, GetLowEntity(GameState, Ref->Index), 0);
+			low_entity* EntityLow = GetLowEntity(GameState, Ref->Index);
+			v2 Pos = GetSimSpacePos(SimRegion, EntityLow);
+			Entry->Ptr = AddEntity(GameState, SimRegion, Ref->Index, EntityLow, &Pos);
 		}
 
 		Ref->Ptr = Entry->Ptr;
@@ -94,25 +115,6 @@ AddEntityRaw(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, 
 	}
 
 	return(Entity);
-}
-
-inline v2
-GetSimSpacePos(sim_region* SimRegion, low_entity* Stored)
-{
-	// NOTE: Map the entity into camera space
-	// TODO: Do we want to set this to signaling NaN in
-	// debug mode to make sure nobody ever uses the position
-	// of a nonspatial entity
-	v2 Result = InvalidPos;
-
-	if (!HasFlag(&Stored->Sim, entity_flag::Nonspatial))
-	{
-		v3 Diff = Subtract(SimRegion->World, &Stored->Pos, &SimRegion->Origin);
-		Result.X = Diff.X;
-		Result.Y = Diff.Y;
-	}
-
-	return(Result);
 }
 
 internal sim_entity*
@@ -296,6 +298,14 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 	Entity->dPos = ddP * dt + Entity->dPos;
 	v2 NewPlayerP = OldPlayerP + PlayerDelta;
 
+	real32 ddZ = -30.0f;
+	Entity->Z = 0.5f * ddZ * Square(dt) + Entity->dZ * dt + Entity->Z;
+	Entity->dZ = ddZ * dt + Entity->dZ;
+	if (Entity->Z < 0)
+	{
+		Entity->Z = 0;
+	}
+
 	for (uint32 Iteration = 0; Iteration < 4; ++Iteration)
 	{
 		real32 tMin = 1.0f;
@@ -362,7 +372,7 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 			PlayerDelta -= 1 * Inner(PlayerDelta, WallNormal) * WallNormal;
 
 			// TODO: Stairs
-			//Entity->AbsTileZ += HitLow->dAbsTileZ;
+			//EntityLow->AbsTileZ += HitLow->dAbsTileZ;
 		}
 		else
 		{

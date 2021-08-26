@@ -711,6 +711,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	real32 ScreenCenterX = 0.5f * (real32)Buffer->Width;
 	real32 ScreenCenterY = 0.5f * (real32)Buffer->Height;
 
+	// TODO: Move this out into p5engien_entity.cpp
 	entity_visible_piece_group PieceGroup = {};
 	PieceGroup.GameState = GameState;
 	sim_entity* Entity = SimRegion->Entities;
@@ -728,98 +729,151 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				ShadowAlpha = 0;
 			}
 
+			move_spec MoveSpec = DefaultMoveSpec();
+			v2 ddPos = {};
+
 			switch (Entity->Type)
 			{
-			case entity_type::Hero:
-			{
-				// TODO: Now that we have some real usage examples, let's solidify
-				// the positioning system
-
-				for (uint32 ControlIndex = 0; ControlIndex < ArrayCount(GameState->ControlledHeroes); ++ControlIndex)
+				case entity_type::Hero:
 				{
-					controlled_hero* ConHero = GameState->ControlledHeroes + ControlIndex;
+					// TODO: Now that we have some real usage examples, let's solidify
+					// the positioning system
 
-					if (Entity->StorageIndex == ConHero->EntityIndex)
+					for (uint32 ControlIndex = 0; ControlIndex < ArrayCount(GameState->ControlledHeroes); ++ControlIndex)
 					{
-						if (ConHero->dZ != 0.0f)
-						{
-							Entity->dZ = ConHero->dZ;
-						}
-						move_spec Spec = DefaultMoveSpec();
-						Spec.UnitMaxAccelVector = true;
-						Spec.Speed = 65.0f;
-						Spec.Drag = 6.0f;
-						Spec.SpeedMult = ConHero->SpeedMultiplier;
+						controlled_hero* ConHero = GameState->ControlledHeroes + ControlIndex;
 
-						MoveEntity(SimRegion, Entity, dt, &Spec, ConHero->ddP);
-
-						if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
+						if (Entity->StorageIndex == ConHero->EntityIndex)
 						{
-							sim_entity* Sword = Entity->Sword.Ptr;
-							if (Sword && HasFlag(Sword, entity_flag::Nonspatial))
+							if (ConHero->dZ != 0.0f)
 							{
-								Sword->DistanceRemaining = 5.0f;
-								MakeEntitySpatial(Sword, Entity->Pos, 20.0f * ConHero->dSword);
+								Entity->dZ = ConHero->dZ;
+							}
+
+							MoveSpec.UnitMaxAccelVector = true;
+							MoveSpec.Speed = 65.0f;
+							MoveSpec.Drag = 6.0f;
+							MoveSpec.SpeedMult = ConHero->SpeedMultiplier;
+							ddPos = ConHero->ddP;
+
+							if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
+							{
+								sim_entity* Sword = Entity->Sword.Ptr;
+								if (Sword && HasFlag(Sword, entity_flag::Nonspatial))
+								{
+									Sword->DistanceRemaining = 5.0f;
+									MakeEntitySpatial(Sword, Entity->Pos, 20.0f * ConHero->dSword);
+								}
 							}
 						}
 					}
-				}
 
-				hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
-				PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-				PushBitmap(&PieceGroup, &HeroBitmaps->Character, V2(0, 0), 0, HeroBitmaps->Align);
+					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
+					PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
+					PushBitmap(&PieceGroup, &HeroBitmaps->Character, V2(0, 0), 0, HeroBitmaps->Align);
 
-				DrawHitpoints(Entity, &PieceGroup);
-			} break;
+					DrawHitpoints(Entity, &PieceGroup);
+				} break;
 
-			case entity_type::Wall:
-			{
-				PushBitmap(&PieceGroup, &GameState->Tree, V2(0, 0), 0, V2(32, 64));
-			} break;
+				case entity_type::Wall:
+				{
+					PushBitmap(&PieceGroup, &GameState->Tree, V2(0, 0), 0, V2(32, 64));
+				} break;
 
-			case entity_type::Sword:
-			{
-				UpdateSword(SimRegion, Entity, dt);
+				case entity_type::Sword:
+				{
+					MoveSpec.UnitMaxAccelVector = false;
+					MoveSpec.Speed = 0.0f;
+					MoveSpec.Drag = 0.0f;
 
-				loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
-				// PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-				PushBitmap(&PieceGroup, Sword, V2(0, 0), 0, V2(32, 10));
-			} break;
+					ddPos = V2(0, 0);
 
-			case entity_type::Monstar:
-			{
-				UpdateMonster(SimRegion, Entity, dt);
+					// TODO: Add the ability in the collision routines to understand a movement
+					// limit for an entity, and then update this routine to use that to know when 
+					// to kill the sword
+					// TODO: Need to handle the fact that DistanceTraveled
+					// might not have enough distance for the total entity move
+					// for the frame
+					v2 OldPos = Entity->Pos;
+					real32 DistanceTraveled = Length(Entity->Pos - OldPos);
 
-				PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-				PushBitmap(&PieceGroup, &GameState->Monstar, V2(0, 0), 0, V2(32, 64));
+					Entity->DistanceRemaining -= DistanceTraveled;
+					if (Entity->DistanceRemaining < 0.0f)
+					{
+						MakeEntityNonSpatial(Entity);
+					}
 
-				DrawHitpoints(Entity, &PieceGroup);
-			} break;
+					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
+					// PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
+					PushBitmap(&PieceGroup, Sword, V2(0, 0), 0, V2(32, 10));
+				} break;
 
-			case entity_type::Familiar:
-			{
-				UpdateFamiliar(SimRegion, Entity, dt);
+				case entity_type::Monstar:
+				{
+					PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
+					PushBitmap(&PieceGroup, &GameState->Monstar, V2(0, 0), 0, V2(32, 64));
 
-				real32 BobSin = Sin(2.0f * Entity->tBob);
+					DrawHitpoints(Entity, &PieceGroup);
+				} break;
 
-				PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), (0.5f * ShadowAlpha + 0.2f * BobSin), 0.0f);
-				PushBitmap(&PieceGroup, &GameState->Familiar, V2(0, 0), 0.25f * BobSin, V2(32, 75));
-			} break;
+				case entity_type::Familiar:
+				{
+					sim_entity* ClosestHero = 0;
+					real32 ClosestHeroDSq = Square(17.0f); // NOTE: Ten meter maximum search
 
-			default:
-			{
-				InvalidCodePath;
-			} break;
+					// TODO: Make spatial queries easy for things
+					for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
+					{
+						sim_entity* TestEntity = SimRegion->Entities + EntityIndex;
+						if (TestEntity->Type == entity_type::Hero)
+						{
+							real32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
+							TestDSq *= 0.75f;
+
+							if (ClosestHeroDSq > TestDSq)
+							{
+								ClosestHero = TestEntity;
+								ClosestHeroDSq = TestDSq;
+							}
+						}
+					}
+
+					if (ClosestHero && (ClosestHeroDSq > Square(1.5f)))
+					{
+						real32 Acceleration = 0.5f;
+						real32 OneOverLength = Acceleration / SquareRoot(ClosestHeroDSq);
+						ddPos = OneOverLength * (ClosestHero->Pos - Entity->Pos);
+					}
+
+					MoveSpec.UnitMaxAccelVector = true;
+					MoveSpec.SpeedMult = 1.0f;
+					MoveSpec.Speed = 65.0f;
+					MoveSpec.Drag = 6.0;
+
+
+					Entity->tBob += dt;
+					if (Entity->tBob > 2.0f * Pi32)
+					{
+						Entity->tBob -= 2.0f * Pi32;
+					}
+
+					real32 BobSin = Sin(2.0f * Entity->tBob);
+
+					PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), (0.5f * ShadowAlpha + 0.2f * BobSin), 0.0f);
+					PushBitmap(&PieceGroup, &GameState->Familiar, V2(0, 0), 0.25f * BobSin, V2(32, 75));
+				} break;
+
+				default:
+				{
+					InvalidCodePath;
+				} break;
 			}
 
-			real32 ddZ = -30.0f;
-			Entity->Z = 0.5f * ddZ * Square(dt) + Entity->dZ * dt + Entity->Z;
-			Entity->dZ = ddZ * dt + Entity->dZ;
-			if (Entity->Z < 0)
+			if (!HasFlag(Entity, entity_flag::Nonspatial))
 			{
-				Entity->Z = 0;
+				MoveEntity(SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
-
+			
 			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->Pos.X;
 			real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * Entity->Pos.Y;
 			real32 EntityZ = -MetersToPixels * Entity->Z;
