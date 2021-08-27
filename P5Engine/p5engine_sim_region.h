@@ -59,8 +59,11 @@ struct sim_entity
 
 	v2 Pos;
 	v2 dPos;
+
 	real32 Z;
 	real32 dZ;
+
+	real32 DistanceLimit;
 
 	uint32 ChunkZ;
 
@@ -76,7 +79,6 @@ struct sim_entity
 	hit_point HitPoint[16];
 
 	entity_reference Sword;
-	real32 DistanceRemaining;
 
 	// TODO: Generation index so we know how "up to date" this entity is
 };

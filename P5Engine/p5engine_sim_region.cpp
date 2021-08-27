@@ -306,78 +306,108 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 		Entity->Z = 0;
 	}
 
+	real32 DistanceRemaining = Entity->DistanceLimit;
+	if (DistanceRemaining == 0.0f)
+	{
+		// TODO: Do we want to formalize this number?
+		DistanceRemaining = 10000.0f;
+	}
+
 	for (uint32 Iteration = 0; Iteration < 4; ++Iteration)
 	{
 		real32 tMin = 1.0f;
-		v2 WallNormal = {};
-		sim_entity* HitEntity = 0;
 
-		v2 DesiredPosition = Entity->Pos + PlayerDelta;
-
-		if (HasFlag(Entity, entity_flag::Collides) && !HasFlag(Entity, entity_flag::Nonspatial))
+		real32 PlayerDeltaLength = Length(PlayerDelta);
+		// TODO: What do we want to do for epsilons here?
+		// Think this through for the final collision code
+		if (PlayerDeltaLength > 0.0f)
 		{
-			// TODO: Spatial partition here
-			for (uint32 TestEntityIndex = 0; TestEntityIndex < SimRegion->EntityCount; ++TestEntityIndex)
+			if (PlayerDeltaLength > DistanceRemaining)
 			{
-				sim_entity* TestEntity = SimRegion->Entities + TestEntityIndex;
-				if (Entity != TestEntity)
+				tMin = DistanceRemaining / PlayerDeltaLength;
+			}
+
+			v2 WallNormal = {};
+			sim_entity* HitEntity = 0;
+
+			v2 DesiredPosition = Entity->Pos + PlayerDelta;
+
+			if (HasFlag(Entity, entity_flag::Collides) && !HasFlag(Entity, entity_flag::Nonspatial))
+			{
+				// TODO: Spatial partition here
+				for (uint32 TestEntityIndex = 0; TestEntityIndex < SimRegion->EntityCount; ++TestEntityIndex)
 				{
-					if (HasFlag(TestEntity, entity_flag::Collides) && !HasFlag(TestEntity, entity_flag::Nonspatial))
+					sim_entity* TestEntity = SimRegion->Entities + TestEntityIndex;
+					if (Entity != TestEntity)
 					{
-						real32 DiameterW = TestEntity->Width + Entity->Width;
-						real32 DiameterH = TestEntity->Height + Entity->Height;
-
-						v2 MinCorner = -0.5f * V2(DiameterW, DiameterH);
-						v2 MaxCorner = 0.5f * V2(DiameterW, DiameterH);
-
-						v2 Rel = Entity->Pos - TestEntity->Pos;
-
-						// Right Wall
-						if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
+						if (HasFlag(TestEntity, entity_flag::Collides) && !HasFlag(TestEntity, entity_flag::Nonspatial))
 						{
-							WallNormal = V2(-1, 0);
-							HitEntity = TestEntity;
-						}
+							real32 DiameterW = TestEntity->Width + Entity->Width;
+							real32 DiameterH = TestEntity->Height + Entity->Height;
 
-						// Left Wall
-						if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
-						{
-							WallNormal = V2(1, 0);
-							HitEntity = TestEntity;
-						}
+							v2 MinCorner = -0.5f * V2(DiameterW, DiameterH);
+							v2 MaxCorner = 0.5f * V2(DiameterW, DiameterH);
 
-						// Top Wall
-						if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
-						{
-							WallNormal = V2(0, -1);
-							HitEntity = TestEntity;
-						}
+							v2 Rel = Entity->Pos - TestEntity->Pos;
 
-						// Bottom Wall
-						if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
-						{
-							WallNormal = V2(0, 1);
-							HitEntity = TestEntity;
+							// Right Wall
+							if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
+							{
+								WallNormal = V2(-1, 0);
+								HitEntity = TestEntity;
+							}
+
+							// Left Wall
+							if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
+							{
+								WallNormal = V2(1, 0);
+								HitEntity = TestEntity;
+							}
+
+							// Top Wall
+							if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
+							{
+								WallNormal = V2(0, -1);
+								HitEntity = TestEntity;
+							}
+
+							// Bottom Wall
+							if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
+							{
+								WallNormal = V2(0, 1);
+								HitEntity = TestEntity;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		Entity->Pos += tMin * PlayerDelta;
-		if (HitEntity)
-		{
-			Entity->dPos -= 1 * Inner(Entity->dPos, WallNormal) * WallNormal;
-			PlayerDelta = DesiredPosition - Entity->Pos;
-			PlayerDelta -= 1 * Inner(PlayerDelta, WallNormal) * WallNormal;
+			Entity->Pos += tMin * PlayerDelta;
+			DistanceRemaining -= tMin * PlayerDeltaLength;
 
-			// TODO: Stairs
-			//EntityLow->AbsTileZ += HitLow->dAbsTileZ;
+			if (HitEntity)
+			{
+				Entity->dPos -= 1 * Inner(Entity->dPos, WallNormal) * WallNormal;
+				PlayerDelta = DesiredPosition - Entity->Pos;
+				PlayerDelta -= 1 * Inner(PlayerDelta, WallNormal) * WallNormal;
+
+				// TODO: Stairs
+				//EntityLow->AbsTileZ += HitLow->dAbsTileZ;
+			}
+			else
+			{
+				break;
+			}
 		}
 		else
 		{
 			break;
 		}
+	}
+
+	if (Entity->DistanceLimit != 0.0f)
+	{
+		Entity->DistanceLimit = DistanceRemaining;
 	}
 
 	// TODO: Change to using the acceleration vector
@@ -410,6 +440,6 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 
 	if (Entity->Sword.Ptr)
 	{
-		Entity->Sword.Ptr->FacingDirection = Entity->FacingDirection;
+		//Entity->Sword.Ptr->FacingDirection = Entity->FacingDirection;
 	}
 }

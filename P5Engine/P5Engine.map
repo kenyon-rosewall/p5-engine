@@ -1,6 +1,6 @@
  P5Engine
 
- Timestamp is 61273488 (Wed Aug 25 23:28:24 2021)
+ Timestamp is 6128898e (Thu Aug 26 23:43:26 2021)
 
  Preferred load address is 0000000180000000
 
@@ -48,16 +48,16 @@
  0000:00000000       __AbsoluteZero             0000000000000000     <absolute>
  0000:00000000       __guard_fids_count         0000000000000000     <absolute>
  0000:00000000       __hybrid_auxiliary_iat_copy 0000000000000000     <absolute>
- 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
  0000:00000000       __arm64x_extra_rfe_table   0000000000000000     <absolute>
  0000:00000000       __hybrid_code_map          0000000000000000     <absolute>
  0000:00000000       __volatile_metadata        0000000000000000     <absolute>
+ 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
  0000:00000000       __guard_iat_table          0000000000000000     <absolute>
  0000:00000000       __hybrid_code_map_count    0000000000000000     <absolute>
  0000:00000000       __arm64x_extra_rfe_table_size 0000000000000000     <absolute>
- 0000:00000000       __hybrid_auxiliary_iat     0000000000000000     <absolute>
- 0000:00000000       __arm64x_redirection_metadata 0000000000000000     <absolute>
  0000:00000000       __guard_check_icall_a64n_fptr 0000000000000000     <absolute>
+ 0000:00000000       __arm64x_redirection_metadata 0000000000000000     <absolute>
+ 0000:00000000       __hybrid_auxiliary_iat     0000000000000000     <absolute>
  0000:00000000       __guard_iat_count          0000000000000000     <absolute>
  0000:00000000       __guard_longjmp_count      0000000000000000     <absolute>
  0000:00000000       ___safe_se_handler_count   0000000000000000     <absolute>
@@ -65,10 +65,10 @@
  0000:00000000       __arm64x_native_entrypoint 0000000000000000     <absolute>
  0000:00000000       ___safe_se_handler_table   0000000000000000     <absolute>
  0000:00000000       __x64_code_ranges_to_entry_points_count 0000000000000000     <absolute>
- 0000:00000000       __arm64x_redirection_metadata_count 0000000000000000     <absolute>
+ 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
  0000:00000000       __guard_eh_cont_table      0000000000000000     <absolute>
  0000:00000000       __guard_eh_cont_count      0000000000000000     <absolute>
- 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
+ 0000:00000000       __arm64x_redirection_metadata_count 0000000000000000     <absolute>
  0000:00000000       __enclave_config           0000000000000000     <absolute>
  0000:00000100       __guard_flags              0000000000000100     <absolute>
  0000:00000000       __ImageBase                0000000180000000     <linker-defined>
@@ -200,8 +200,8 @@
  0002:0000c700       __scrt_initialize_winrt    000000018001d700 f   MSVCRTD:utility_desktop.obj
  0002:0000c710       __scrt_is_managed_app      000000018001d710 f   MSVCRTD:utility_desktop.obj
  0002:0000c7e0       __scrt_set_unhandled_exception_filter 000000018001d7e0 f   MSVCRTD:utility_desktop.obj
- 0002:0000c800       __scrt_stub_for_initialize_mta 000000018001d800 f   MSVCRTD:utility_desktop.obj
  0002:0000c800       __scrt_exe_initialize_mta  000000018001d800 f   MSVCRTD:utility_desktop.obj
+ 0002:0000c800       __scrt_stub_for_initialize_mta 000000018001d800 f   MSVCRTD:utility_desktop.obj
  0002:0000c810       __scrt_unhandled_exception_filter 000000018001d810 f   MSVCRTD:utility_desktop.obj
  0002:0000c8d0       _RTC_Initialize            000000018001d8d0 f   MSVCRTD:initsect.obj
  0002:0000c930       _RTC_Terminate             000000018001d930 f   MSVCRTD:initsect.obj
@@ -285,20 +285,20 @@
  0002:0000ded0       __scrt_stub_for_acrt_initialize 000000018001eed0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000ded0       __acrt_initialize          000000018001eed0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000ded0       __vcrt_initialize          000000018001eed0 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000dee0       __scrt_stub_for_acrt_thread_attach 000000018001eee0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000dee0       __acrt_thread_attach       000000018001eee0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000dee0       __vcrt_thread_attach       000000018001eee0 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000dee0       __scrt_stub_for_acrt_thread_attach 000000018001eee0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000def0       __vcrt_thread_detach       000000018001eef0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000def0       __scrt_stub_for_acrt_thread_detach 000000018001eef0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000def0       __acrt_thread_detach       000000018001eef0 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000df00       __acrt_uninitialize        000000018001ef00 f   MSVCRTD:ucrt_stubs.obj
  0002:0000df00       __scrt_stub_for_acrt_uninitialize 000000018001ef00 f   MSVCRTD:ucrt_stubs.obj
  0002:0000df00       __vcrt_uninitialize        000000018001ef00 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000df00       __acrt_uninitialize        000000018001ef00 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000df10       __vcrt_uninitialize_critical 000000018001ef10 f   MSVCRTD:ucrt_stubs.obj
  0002:0000df10       __acrt_uninitialize_critical 000000018001ef10 f   MSVCRTD:ucrt_stubs.obj
  0002:0000df10       __scrt_stub_for_acrt_uninitialize_critical 000000018001ef10 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000df10       __vcrt_uninitialize_critical 000000018001ef10 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000df20       _is_c_termination_complete 000000018001ef20 f   MSVCRTD:ucrt_stubs.obj
  0002:0000df20       __scrt_stub_for_is_c_termination_complete 000000018001ef20 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000df20       _is_c_termination_complete 000000018001ef20 f   MSVCRTD:ucrt_stubs.obj
  0002:0000f3b0       _guard_dispatch_icall_nop  00000001800203b0 f   MSVCRTD:guard_dispatch.obj
  0002:0000f3d0       _guard_xfg_dispatch_icall_nop 00000001800203d0 f   MSVCRTD:guard_xfg_dispatch.obj
  0003:00000000       __xc_a                     0000000180023000     MSVCRTD:initializers.obj
@@ -309,6 +309,7 @@
  0003:00000550       __xp_z                     0000000180023550     MSVCRTD:initializers.obj
  0003:00000660       __xt_a                     0000000180023660     MSVCRTD:initializers.obj
  0003:00000770       __xt_z                     0000000180023770     MSVCRTD:initializers.obj
+ 0003:000008e0       __real@c1f00000            00000001800238e0     p5engine.obj
  0003:00002600       ??_C@_0BA@NMEIMCEK@InvalidCodePath@ 0000000180025600     p5engine.obj
  0003:00002618       ??_C@_0BF@HOIOEMCL@P5Engine?1data?1bg?4bmp@ 0000000180025618     p5engine.obj
  0003:00002638       ??_C@_0BJ@EPENJOEL@P5Engine?1data?1shadow?4bmp@ 0000000180025638     p5engine.obj
@@ -350,11 +351,11 @@
  0003:00002854       __real@42820000            0000000180025854     p5engine.obj
  0003:00002858       __real@42960000            0000000180025858     p5engine.obj
  0003:0000285c       __real@437f0000            000000018002585c     p5engine.obj
- 0003:00002860       __real@47c35000            0000000180025860     p5engine.obj
- 0003:00002864       __real@becccccd            0000000180025864     p5engine.obj
- 0003:00002868       __real@bf000000            0000000180025868     p5engine.obj
- 0003:0000286c       __real@bf800000            000000018002586c     p5engine.obj
- 0003:00002870       __real@c1f00000            0000000180025870     p5engine.obj
+ 0003:00002860       __real@461c4000            0000000180025860     p5engine.obj
+ 0003:00002864       __real@47c35000            0000000180025864     p5engine.obj
+ 0003:00002868       __real@becccccd            0000000180025868     p5engine.obj
+ 0003:0000286c       __real@bf000000            000000018002586c     p5engine.obj
+ 0003:00002870       __real@bf800000            0000000180025870     p5engine.obj
  0003:00002880       __xmm@80000000800000008000000080000000 0000000180025880     p5engine.obj
  0003:00002898       _pRawDllMain               0000000180025898     MSVCRTD:dll_dllmain.obj
  0003:00002898       _pDefaultRawDllMain        0000000180025898     MSVCRTD:dll_dllmain.obj
