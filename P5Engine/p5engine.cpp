@@ -394,6 +394,85 @@ DrawHitpoints(sim_entity* Entity, entity_visible_piece_group* PieceGroup)
 	}
 }
 
+internal void
+ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex)
+{
+	// TODO: Need to make a better data structure that allows
+	// removal of collision rules without searching the entire table
+	for (uint32 HashBucket = 0; HashBucket < ArrayCount(GameState->CollisionRuleHash); ++HashBucket)
+	{
+		pairwise_collision_rule** Rule = &GameState->CollisionRuleHash[HashBucket];
+		while ((*Rule))
+		{
+			if (((*Rule)->StorageIndexA == StorageIndex) ||
+				((*Rule)->StorageIndexB == StorageIndex))
+			{
+				pairwise_collision_rule* RemovedRule = *Rule;
+				*Rule = (*Rule)->NextInHash;
+
+				RemovedRule->NextInHash = GameState->FirstFreeCollisionRule;
+				GameState->FirstFreeCollisionRule = RemovedRule;
+			}
+			else
+			{
+				Rule = &(*Rule)->NextInHash;
+			}
+		}
+	}
+}
+
+internal void
+AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide)
+{
+	// TODO: Collapse this with ShouldCollide
+	if (StorageIndexA > StorageIndexB)
+	{
+		uint32 Temp = StorageIndexA;
+		StorageIndexA = StorageIndexB;
+		StorageIndexB = Temp;
+	}
+
+	// TODO: Better hash function
+	pairwise_collision_rule* Found = 0;
+	uint32 ArrayHash = (ArrayCount(GameState->CollisionRuleHash) - 1);
+	uint32 HashBucket = StorageIndexA & ArrayHash;
+	pairwise_collision_rule* Rule = GameState->CollisionRuleHash[HashBucket];
+	while (Rule)
+	{
+		if ((Rule->StorageIndexA == StorageIndexA) &&
+			(Rule->StorageIndexB == StorageIndexB))
+		{
+			Found = Rule;
+			break;
+		}
+
+		Rule = Rule->NextInHash;
+	}
+
+	if (!Found)
+	{
+		Found = GameState->FirstFreeCollisionRule;
+		if (Found)
+		{
+			GameState->FirstFreeCollisionRule = Found->NextInHash;
+		}
+		else
+		{
+			Found = PushStruct(&GameState->WorldArena, pairwise_collision_rule);
+		}
+
+		Found->NextInHash = GameState->CollisionRuleHash[HashBucket];
+		GameState->CollisionRuleHash[HashBucket] = Found;
+	}
+
+	if (Found)
+	{
+		Found->StorageIndexA = StorageIndexA;
+		Found->StorageIndexB = StorageIndexB;
+		Found->ShouldCollide = ShouldCollide;
+	}
+}
+
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)));
@@ -762,6 +841,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 								{
 									Sword->DistanceLimit = 5.0f;
 									MakeEntitySpatial(Sword, Entity->Pos, 20.0f * ConHero->dSword);
+									AddCollisionRule(GameState, Sword->StorageIndex, Entity->StorageIndex, false);
 								}
 							}
 						}
@@ -796,6 +876,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					v2 OldPos = Entity->Pos;
 					if (Entity->DistanceLimit == 0.0f)
 					{
+						ClearCollisionRulesFor(GameState, Entity->StorageIndex);
 						MakeEntityNonSpatial(Entity);
 					}
 
@@ -834,7 +915,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						}
 					}
 
-					if (ClosestHero && (ClosestHeroDSq > Square(1.5f)))
+					if (ClosestHero && (ClosestHeroDSq > Square(3.0f)))
 					{
 						real32 Acceleration = 0.5f;
 						real32 OneOverLength = Acceleration / SquareRoot(ClosestHeroDSq);
@@ -867,7 +948,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			if (!HasFlag(Entity, entity_flag::Nonspatial))
 			{
-				MoveEntity(SimRegion, Entity, dt, &MoveSpec, ddPos);
+				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
 			
 			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->Pos.X;

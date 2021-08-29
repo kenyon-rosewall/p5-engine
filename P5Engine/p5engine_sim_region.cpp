@@ -272,8 +272,84 @@ TestWall(real32 WallX, real32 RelX, real32 RelY, real32 PlayerDeltaX, real32 Pla
 	return(Hit);
 }
 
+internal bool32
+ShouldCollide(game_state* GameState, sim_entity* A, sim_entity* B)
+{
+	bool32 Result = false;
+
+	if (A->StorageIndex > B->StorageIndex)
+	{
+		sim_entity* Temp = A;
+		A = B;
+		B = Temp;
+	}
+
+	if (!HasFlag(A, entity_flag::Nonspatial) &&
+		!HasFlag(B, entity_flag::Nonspatial))
+	{
+		// TODO: Property-based logic goes here
+		Result = true;
+	}
+
+	// TODO: Better hash function
+	uint32 StorageIndexA = A->StorageIndex;
+	uint32 ArrayHash = (ArrayCount(GameState->CollisionRuleHash) - 1);
+	uint32 HashBucket = StorageIndexA & ArrayHash;
+	pairwise_collision_rule* Rule = GameState->CollisionRuleHash[HashBucket];
+	while (Rule)
+	{
+		if ((Rule->StorageIndexA == A->StorageIndex) &&
+			(Rule->StorageIndexB == B->StorageIndex))
+		{
+			Result = Rule->ShouldCollide;
+			break;
+		}
+
+		Rule = Rule->NextInHash;
+	}
+
+	return(Result);
+}
+
+internal bool32
+HandleCollision(sim_entity* A, sim_entity* B)
+{
+	bool32 StopsOnCollision = false;
+
+	if (A->Type == entity_type::Sword)
+	{
+		StopsOnCollision = false;
+	}
+	else
+	{
+		StopsOnCollision = true;
+	}
+
+	if (A->Type > B->Type)
+	{
+		sim_entity* Temp = A;
+		A = B;
+		B = Temp;
+	}
+
+	if ((A->Type == entity_type::Monstar) &&
+		(B->Type == entity_type::Sword))
+	{
+		if (A->HitPointMax > 0)
+		{
+			--A->HitPointMax;
+		}
+	}
+
+	// TODO: Stairs
+	//EntityLow->AbsTileZ += HitLow->dAbsTileZ;
+
+	// TODO: Real "stops on collision"
+	return(StopsOnCollision);
+}
+
 internal void
-MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* MoveSpec, v2 ddP)
+MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* MoveSpec, v2 ddP)
 {
 	Assert(!HasFlag(Entity, entity_flag::Nonspatial));
 
@@ -332,51 +408,50 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 
 			v2 DesiredPosition = Entity->Pos + PlayerDelta;
 
-			if (HasFlag(Entity, entity_flag::Collides) && !HasFlag(Entity, entity_flag::Nonspatial))
+			// NOTE: This is just an optimization to avoid entering the
+			// loop in the case where the test entity is non-spatial
+			if (!HasFlag(Entity, entity_flag::Nonspatial))
 			{
 				// TODO: Spatial partition here
 				for (uint32 TestEntityIndex = 0; TestEntityIndex < SimRegion->EntityCount; ++TestEntityIndex)
 				{
 					sim_entity* TestEntity = SimRegion->Entities + TestEntityIndex;
-					if (Entity != TestEntity)
+					if (ShouldCollide(GameState, Entity, TestEntity))
 					{
-						if (HasFlag(TestEntity, entity_flag::Collides) && !HasFlag(TestEntity, entity_flag::Nonspatial))
+						real32 DiameterW = TestEntity->Width + Entity->Width;
+						real32 DiameterH = TestEntity->Height + Entity->Height;
+
+						v2 MinCorner = -0.5f * V2(DiameterW, DiameterH);
+						v2 MaxCorner = 0.5f * V2(DiameterW, DiameterH);
+
+						v2 Rel = Entity->Pos - TestEntity->Pos;
+
+						// Right Wall
+						if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
 						{
-							real32 DiameterW = TestEntity->Width + Entity->Width;
-							real32 DiameterH = TestEntity->Height + Entity->Height;
+							WallNormal = V2(-1, 0);
+							HitEntity = TestEntity;
+						}
 
-							v2 MinCorner = -0.5f * V2(DiameterW, DiameterH);
-							v2 MaxCorner = 0.5f * V2(DiameterW, DiameterH);
+						// Left Wall
+						if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
+						{
+							WallNormal = V2(1, 0);
+							HitEntity = TestEntity;
+						}
 
-							v2 Rel = Entity->Pos - TestEntity->Pos;
+						// Top Wall
+						if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
+						{
+							WallNormal = V2(0, -1);
+							HitEntity = TestEntity;
+						}
 
-							// Right Wall
-							if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
-							{
-								WallNormal = V2(-1, 0);
-								HitEntity = TestEntity;
-							}
-
-							// Left Wall
-							if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMin, MinCorner.Y, MaxCorner.Y))
-							{
-								WallNormal = V2(1, 0);
-								HitEntity = TestEntity;
-							}
-
-							// Top Wall
-							if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
-							{
-								WallNormal = V2(0, -1);
-								HitEntity = TestEntity;
-							}
-
-							// Bottom Wall
-							if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
-							{
-								WallNormal = V2(0, 1);
-								HitEntity = TestEntity;
-							}
+						// Bottom Wall
+						if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMin, MinCorner.X, MaxCorner.X))
+						{
+							WallNormal = V2(0, 1);
+							HitEntity = TestEntity;
 						}
 					}
 				}
@@ -387,12 +462,19 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 
 			if (HitEntity)
 			{
-				Entity->dPos -= 1 * Inner(Entity->dPos, WallNormal) * WallNormal;
 				PlayerDelta = DesiredPosition - Entity->Pos;
-				PlayerDelta -= 1 * Inner(PlayerDelta, WallNormal) * WallNormal;
 
-				// TODO: Stairs
-				//EntityLow->AbsTileZ += HitLow->dAbsTileZ;
+				bool32 StopsOnCollision = HandleCollision(Entity, HitEntity);
+
+				if (StopsOnCollision)
+				{
+					PlayerDelta -= 1 * Inner(PlayerDelta, WallNormal) * WallNormal;
+					Entity->dPos -= 1 * Inner(Entity->dPos, WallNormal) * WallNormal;
+				}
+				else
+				{
+					AddCollisionRule(GameState, Entity->StorageIndex, HitEntity->StorageIndex, false);
+				}
 			}
 			else
 			{
@@ -436,10 +518,5 @@ MoveEntity(sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* Move
 		{
 			Entity->FacingDirection = 3;
 		}
-	}
-
-	if (Entity->Sword.Ptr)
-	{
-		//Entity->Sword.Ptr->FacingDirection = Entity->FacingDirection;
 	}
 }

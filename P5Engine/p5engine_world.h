@@ -5,7 +5,7 @@
 
 struct world_position
 {
-	// TODO: Puzzler! How can we get rid of abstil* here,
+	// TODO: Puzzler! How can we get rid of abstile* here,
 	// and still allow references to entities to be able to figure
 	// out _where they are_ (or rather, which world_chunk they are in?)
 
