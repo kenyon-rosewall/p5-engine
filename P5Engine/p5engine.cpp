@@ -254,8 +254,8 @@ AddWall(world* World, game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, u
 	world_position Pos = ChunkPositionFromTilePosition(World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Wall, Pos);
 	
-	Entity.Low->Sim.Height = GameState->World->TileSideInMeters;
-	Entity.Low->Sim.Width = Entity.Low->Sim.Height;
+	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
+	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
 	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
@@ -280,8 +280,8 @@ AddSword(game_state* GameState)
 {
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Sword, NullPosition());
 
-	Entity.Low->Sim.Height = 0.0f;
-	Entity.Low->Sim.Width = 0.0f;
+	Entity.Low->Sim.Dim.Y = 0.0f;
+	Entity.Low->Sim.Dim.X = 0.0f;
 
 	return(Entity);
 }
@@ -292,8 +292,8 @@ AddPlayer(game_state* GameState)
 	world_position Pos = GameState->CameraP;
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Hero, Pos);
 
-	Entity.Low->Sim.Height = 0.5f;
-	Entity.Low->Sim.Width = 1.0f;
+	Entity.Low->Sim.Dim.Y = 0.5f;
+	Entity.Low->Sim.Dim.X = 1.0f;
 	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	InitHitPoints(Entity.Low, 3);
@@ -317,8 +317,8 @@ AddMonstar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTi
 
 	InitHitPoints(Entity.Low, 3);
 
-	Entity.Low->Sim.Height = 0.5f;
-	Entity.Low->Sim.Width = 1.0f;
+	Entity.Low->Sim.Dim.Y = 0.5f;
+	Entity.Low->Sim.Dim.X = 1.0f;
 	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
@@ -330,8 +330,8 @@ AddFamiliar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsT
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Familiar, Pos);
 
-	Entity.Low->Sim.Height = 0.5f;
-	Entity.Low->Sim.Width = 1.0f;
+	Entity.Low->Sim.Dim.Y = 0.5f;
+	Entity.Low->Sim.Dim.X = 1.0f;
 
 	return(Entity);
 }
@@ -788,7 +788,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	memory_arena SimArena;
 	InitializeArena(&SimArena, Memory->TransientStorageSize, Memory->TransientStorage);
-	sim_region* SimRegion = BeginSim(&SimArena, GameState, GameState->World, GameState->CameraP, CameraBounds);
+	sim_region* SimRegion = BeginSim(&SimArena, GameState, GameState->World, GameState->CameraP, CameraBounds, Input->dtForFrame);
 
 	//
 	// NOTE: Render

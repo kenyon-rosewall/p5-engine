@@ -115,6 +115,17 @@ AddEntityRaw(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, 
 	return(Entity);
 }
 
+inline bool32
+EntityOverlapsRectangle(v3 Pos, v3 Dim, rectangle3 Rect)
+{
+	bool32 Result = false;
+
+	rectangle3 Grown = AddRadiusTo(Rect, 0.5f * Dim);
+	Result = IsInRectangle(Grown, Pos);
+
+	return(Result);
+}
+
 internal sim_entity*
 AddEntity(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, low_entity* Source, v3* SimPos)
 {
@@ -124,7 +135,7 @@ AddEntity(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, low
 		if (SimPos)
 		{
 			Dest->Pos = *SimPos;
-			Dest->Updatable = IsInRectangle(SimRegion->UpdatableBounds, Dest->Pos);
+			Dest->Updatable = EntityOverlapsRectangle(Dest->Pos, Dest->Dim, SimRegion->UpdatableBounds);
 		}
 		else
 		{
@@ -136,23 +147,24 @@ AddEntity(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, low
 }
 
 internal sim_region*
-BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_position Origin, rectangle3 Bounds)
+BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_position Origin, rectangle3 Bounds, real32 dt)
 {
-	// TODO: If entities were stored in the world, we wouldn't nede the game state here
-
-	// TODO: IMPORTANT Notion of active vs inactive entities for the apron
+	// TODO: If entities were stored in the world, we wouldn't nede the game state 
 
 	sim_region* SimRegion = PushStruct(SimArena, sim_region);
 	ZeroStruct(SimRegion->Hash);
-
-	// TODO: IMPORTANT Calculate this eventually from the maximum value of
-	// all entities radius plus their speed
-	real32 UpdateSafetyMargin = 1.0f;
+	
+	// TODO: Try to make these get enforced more rigorously
+	SimRegion->MaxEntityRadius = 5.0f;
+	SimRegion->MaxEntityVelocity = 30.0f;
+	real32 UpdateSafetyMargin = SimRegion->MaxEntityRadius + dt * SimRegion->MaxEntityVelocity;
 	real32 UpdateSafetyMarginZ = 1.0f;
 
 	SimRegion->World = World;
 	SimRegion->Origin = Origin;
-	SimRegion->UpdatableBounds = Bounds;
+	SimRegion->UpdatableBounds = AddRadiusTo(Bounds, V3(SimRegion->MaxEntityRadius, 
+														SimRegion->MaxEntityRadius, 
+														SimRegion->MaxEntityRadius));
 	SimRegion->Bounds = AddRadiusTo(SimRegion->UpdatableBounds, V3(UpdateSafetyMargin, UpdateSafetyMargin, UpdateSafetyMarginZ));
 
 	// TODO: Need to be more specific about entity counts
@@ -179,7 +191,7 @@ BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_posi
 						if (!HasFlag(&EntityLow->Sim, entity_flag::Nonspatial))
 						{
 							v3 SimSpacePos = GetSimSpacePos(SimRegion, EntityLow);
-							if (IsInRectangle(SimRegion->Bounds, SimSpacePos))
+							if (EntityOverlapsRectangle(SimSpacePos, EntityLow->Sim.Dim, SimRegion->Bounds))
 							{
 								// TODO: Check a second rectangle to set the entity to be "movable" or not
 								AddEntity(GameState, SimRegion, LowEntityIndex, EntityLow, &SimSpacePos);
@@ -377,6 +389,9 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 	v3 OldPlayerP = Entity->Pos;
 	v3 PlayerDelta = (0.5f * ddP * Square(dt) + Entity->dPos * dt);
 	Entity->dPos = ddP * dt + Entity->dPos;
+	// TODO: Upgrade physical motion routines to handle capping the
+	// maximum velocity
+	Assert(LengthSq(Entity->dPos) <= Square(SimRegion->MaxEntityVelocity));
 	v3 NewPlayerP = OldPlayerP + PlayerDelta;
 
 	real32 DistanceRemaining = Entity->DistanceLimit;
@@ -416,9 +431,9 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 					if (ShouldCollide(GameState, Entity, TestEntity))
 					{
 						// TODO: Entities have height
-						v3 MinkowskiDiameter = V3(TestEntity->Width + Entity->Width,
-												  TestEntity->Height + Entity->Height,
-												  2.0f * World->TileDepthInMeters);
+						v3 MinkowskiDiameter = V3(TestEntity->Dim.X + Entity->Dim.X,
+												  TestEntity->Dim.Y + Entity->Dim.Y,
+												  TestEntity->Dim.Z + Entity->Dim.Z);
 
 						v3 MinCorner = -0.5f * MinkowskiDiameter;
 						v3 MaxCorner = 0.5f * MinkowskiDiameter;
@@ -490,6 +505,7 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 	if (Entity->Pos.Z < 0)
 	{
 		Entity->Pos.Z = 0;
+		Entity->dPos.Z = 0;
 	}
 
 	if (Entity->DistanceLimit != 0.0f)

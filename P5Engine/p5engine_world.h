@@ -5,9 +5,11 @@
 
 struct world_position
 {
-	// TODO: Puzzler! How can we get rid of abstile* here,
-	// and still allow references to entities to be able to figure
-	// out _where they are_ (or rather, which world_chunk they are in?)
+	// TODO: It seems like we have to store Chunk* with each
+	// entity beacuse even though the sim region gather doesn't need it
+	// at first, and we could get by without it, entity references pull
+	// in entities WITHOUT going through their word_chunk, and thus
+	// still need to know the Chunk*
 
 	int32 ChunkX;
 	int32 ChunkY;
