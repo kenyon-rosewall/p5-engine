@@ -14,7 +14,7 @@ struct world_position
 	int32 ChunkZ;
 
 	// NOTE: These are offsets from the chunk center
-	v2 Offset;
+	v3 Offset;
 };
 
 
@@ -38,7 +38,8 @@ struct world_chunk
 struct world
 {
 	real32 TileSideInMeters;
-	real32 ChunkSideInMeters;
+	v3 ChunkDimInMeters;
+	real32 TileDepthInMeters;
 
 	world_entity_block* FirstFree;
 

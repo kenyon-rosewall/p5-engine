@@ -3,7 +3,7 @@
 #ifndef P5ENGINE_ENTITY_H
 #define P5ENGINE_ENTITY_H
 
-#define InvalidPos V2(100000.0f, 100000.0f)
+#define InvalidPos V3(100000.0f, 100000.0f, 100000.0f)
 
 inline bool32
 HasFlag(sim_entity* Entity, entity_flag Flag)
@@ -33,7 +33,7 @@ MakeEntityNonSpatial(sim_entity* Entity)
 }
 
 inline void
-MakeEntitySpatial(sim_entity* Entity, v2 Pos, v2 dPos)
+MakeEntitySpatial(sim_entity* Entity, v3 Pos, v3 dPos)
 {
 	ClearFlag(Entity, entity_flag::Nonspatial);
 	Entity->Pos = Pos;

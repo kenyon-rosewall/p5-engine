@@ -399,6 +399,15 @@ ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex)
 {
 	// TODO: Need to make a better data structure that allows
 	// removal of collision rules without searching the entire table
+	
+	// NOTE: One way to make removal easy would be to always
+	// add _both_ orders of the pairs of storage indices to the 
+	// hash table, so no matter which position the entity is in,
+	// you can always find it. Then, when you do your first pass 
+	// through for removal, you just remember the original top
+	// of the free list, and when you're done, do a pass through all
+	// the new things on the free list, and remove the reverse of
+	// those pairs.
 	for (uint32 HashBucket = 0; HashBucket < ArrayCount(GameState->CollisionRuleHash); ++HashBucket)
 	{
 		pairwise_collision_rule** Rule = &GameState->CollisionRuleHash[HashBucket];
@@ -706,7 +715,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			if (Controller->IsAnalogL)
 			{
 				// NOTE: Use analog movement tuning
-				ConHero->ddP = V2(Controller->StickAverageLX, Controller->StickAverageLY);
+				ConHero->ddP = V3(Controller->StickAverageLX, Controller->StickAverageLY, 0);
 			}
 			else
 			{
@@ -746,22 +755,22 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				{
 					case 0:
 					{
-						ConHero->dSword = V2(1.0f, 0.0f);
+						ConHero->dSword = V3(1.0f, 0.0f, 0.0f);
 					} break;
 
 					case 1:
 					{
-						ConHero->dSword = V2(0.0f, 1.0f);
+						ConHero->dSword = V3(0.0f, 1.0f, 0.0f);
 					} break;
 
 					case 2:
 					{
-						ConHero->dSword = V2(-1.0f, 0.0f);
+						ConHero->dSword = V3(-1.0f, 0.0f, 0.0f);
 					} break;
 
 					case 3:
 					{
-						ConHero->dSword = V2(0.0f, -1.0f);
+						ConHero->dSword = V3(0.0f, -1.0f, 0.0f);
 					} break;
 				}
 			}
@@ -771,7 +780,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	// TODO: I am totally picking these numbers readonly
 	uint32 TileSpanX = 17 * 3;
 	uint32 TileSpanY = 9 * 3;
-	rectangle2 CameraBounds = RectCenterDim(V2(0, 0), World->TileSideInMeters * V2((real32)TileSpanX, (real32)TileSpanY));
+	uint32 TileSpanZ = 1;
+	rectangle3 CameraBounds = RectCenterDim(V3(0, 0, 0), 
+											World->TileSideInMeters * V3((real32)TileSpanX, 
+																		 (real32)TileSpanY, 
+																		 (real32)TileSpanZ));
 
 	memory_arena SimArena;
 	InitializeArena(&SimArena, Memory->TransientStorageSize, Memory->TransientStorage);
@@ -801,14 +814,14 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			real32 dt = Input->dtForFrame;
 
 			// TODO: This is incorrect, should be computed after update
-			real32 ShadowAlpha = 1.0f - 0.5f * Entity->Z;
+			real32 ShadowAlpha = 1.0f - 0.5f * Entity->Pos.Z;
 			if (ShadowAlpha < 0)
 			{
 				ShadowAlpha = 0;
 			}
 
 			move_spec MoveSpec = DefaultMoveSpec();
-			v2 ddPos = {};
+			v3 ddPos = {};
 
 			switch (Entity->Type)
 			{
@@ -825,7 +838,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						{
 							if (ConHero->dZ != 0.0f)
 							{
-								Entity->dZ = ConHero->dZ;
+								Entity->dPos.Z = ConHero->dZ;
 							}
 
 							MoveSpec.UnitMaxAccelVector = true;
@@ -865,7 +878,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					MoveSpec.Speed = 0.0f;
 					MoveSpec.Drag = 0.0f;
 
-					ddPos = V2(0, 0);
+					ddPos = V3(0, 0, 0);
 
 					// TODO: Add the ability in the collision routines to understand a movement
 					// limit for an entity, and then update this routine to use that to know when 
@@ -873,7 +886,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					// TODO: Need to handle the fact that DistanceTraveled
 					// might not have enough distance for the total entity move
 					// for the frame
-					v2 OldPos = Entity->Pos;
 					if (Entity->DistanceLimit == 0.0f)
 					{
 						ClearCollisionRulesFor(GameState, Entity->StorageIndex);
@@ -905,7 +917,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						if (TestEntity->Type == entity_type::Hero)
 						{
 							real32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
-							TestDSq *= 0.75f;
 
 							if (ClosestHeroDSq > TestDSq)
 							{
@@ -915,7 +926,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						}
 					}
 
-					if (ClosestHero && (ClosestHeroDSq > Square(3.0f)))
+					if (ClosestHero && (ClosestHeroDSq > Square(1.5f)))
 					{
 						real32 Acceleration = 0.5f;
 						real32 OneOverLength = Acceleration / SquareRoot(ClosestHeroDSq);
@@ -953,7 +964,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			
 			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->Pos.X;
 			real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * Entity->Pos.Y;
-			real32 EntityZ = -MetersToPixels * Entity->Z;
+			real32 EntityZ = -MetersToPixels * Entity->Pos.Z;
 
 #if 0
 			v2 EntityLeftTop = V2(EntityGroundPointX - 0.5f * MetersToPixels * EntityLow->Width,
@@ -983,6 +994,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			}
 		}
 	}
+
+	world_position WorldOrigin = {};
+	v3 Diff = Subtract(SimRegion->World, &WorldOrigin, &SimRegion->Origin);
+	DrawRectangle(Buffer, Diff.XY, V2(10.0f, 10.0f), 1.0, 1.0f, 1.0f);
 
 	EndSim(SimRegion, GameState);
 }
