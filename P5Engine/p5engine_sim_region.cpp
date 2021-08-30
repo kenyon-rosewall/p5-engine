@@ -241,7 +241,9 @@ EndSim(sim_region* SimRegion, game_state* GameState)
 				NewCameraP.ChunkY -= 9;
 			}
 #else
+			real32 CamZOffset = NewCameraP.Offset.Z;
 			NewCameraP = Stored->Pos;
+			NewCameraP.Offset.Z = CamZOffset;
 #endif
 			GameState->CameraP = NewCameraP;
 		}
@@ -370,6 +372,7 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 
 	// TODO: ODE here
 	ddP += -MoveSpec->Drag * Entity->dPos;
+	ddP += V3(0, 0, -9.8f);
 
 	v3 OldPlayerP = Entity->Pos;
 	v3 PlayerDelta = (0.5f * ddP * Square(dt) + Entity->dPos * dt);

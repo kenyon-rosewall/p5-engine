@@ -12,10 +12,9 @@
   TODO: 
 
   ARCHITECTURE EXPLORATION
-   - Z
-	- Clean up things by using v3
+  - Z
+    - Minkowski inclusion test for sim region begin / updatable bounds
 	- Figure out how you go "up" and "down", and how is this rendered?
-	- SOLVE THE PUZZLER from world_position
   - Collision detection?
     - Entry/exit
 	- What's the plan for robustness / shape definition

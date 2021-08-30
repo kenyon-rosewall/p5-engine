@@ -1,6 +1,6 @@
  P5Engine
 
- Timestamp is 612c2bbd (Sun Aug 29 17:52:13 2021)
+ Timestamp is 612c4489 (Sun Aug 29 19:38:01 2021)
 
  Preferred load address is 0000000180000000
 
@@ -44,31 +44,31 @@
 
   Address         Publics by Value              Rva+Base               Lib:Object
 
- 0000:00000000       __guard_fids_table         0000000000000000     <absolute>
- 0000:00000000       __guard_eh_cont_count      0000000000000000     <absolute>
- 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
+ 0000:00000000       __x64_code_ranges_to_entry_points_count 0000000000000000     <absolute>
  0000:00000000       __hybrid_auxiliary_iat_copy 0000000000000000     <absolute>
- 0000:00000000       __arm64x_redirection_metadata 0000000000000000     <absolute>
- 0000:00000000       __guard_longjmp_table      0000000000000000     <absolute>
  0000:00000000       __hybrid_auxiliary_iat     0000000000000000     <absolute>
- 0000:00000000       __guard_fids_count         0000000000000000     <absolute>
- 0000:00000000       __arm64x_redirection_metadata_count 0000000000000000     <absolute>
- 0000:00000000       __hybrid_code_map_count    0000000000000000     <absolute>
- 0000:00000000       __arm64x_extra_rfe_table   0000000000000000     <absolute>
+ 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
+ 0000:00000000       __guard_longjmp_count      0000000000000000     <absolute>
+ 0000:00000000       __guard_iat_count          0000000000000000     <absolute>
  0000:00000000       __guard_iat_table          0000000000000000     <absolute>
+ 0000:00000000       __arm64x_redirection_metadata 0000000000000000     <absolute>
+ 0000:00000000       ___safe_se_handler_table   0000000000000000     <absolute>
+ 0000:00000000       __hybrid_code_map_count    0000000000000000     <absolute>
+ 0000:00000000       __AbsoluteZero             0000000000000000     <absolute>
+ 0000:00000000       __guard_check_icall_a64n_fptr 0000000000000000     <absolute>
+ 0000:00000000       __guard_longjmp_table      0000000000000000     <absolute>
+ 0000:00000000       __guard_fids_table         0000000000000000     <absolute>
+ 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
+ 0000:00000000       __guard_fids_count         0000000000000000     <absolute>
+ 0000:00000000       __guard_eh_cont_count      0000000000000000     <absolute>
+ 0000:00000000       __arm64x_extra_rfe_table   0000000000000000     <absolute>
+ 0000:00000000       __arm64x_native_entrypoint 0000000000000000     <absolute>
  0000:00000000       __hybrid_code_map          0000000000000000     <absolute>
  0000:00000000       __volatile_metadata        0000000000000000     <absolute>
  0000:00000000       __arm64x_extra_rfe_table_size 0000000000000000     <absolute>
- 0000:00000000       ___safe_se_handler_table   0000000000000000     <absolute>
- 0000:00000000       __x64_code_ranges_to_entry_points_count 0000000000000000     <absolute>
- 0000:00000000       ___safe_se_handler_count   0000000000000000     <absolute>
- 0000:00000000       __arm64x_native_entrypoint 0000000000000000     <absolute>
- 0000:00000000       __AbsoluteZero             0000000000000000     <absolute>
- 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
- 0000:00000000       __guard_longjmp_count      0000000000000000     <absolute>
  0000:00000000       __guard_eh_cont_table      0000000000000000     <absolute>
- 0000:00000000       __guard_check_icall_a64n_fptr 0000000000000000     <absolute>
- 0000:00000000       __guard_iat_count          0000000000000000     <absolute>
+ 0000:00000000       ___safe_se_handler_count   0000000000000000     <absolute>
+ 0000:00000000       __arm64x_redirection_metadata_count 0000000000000000     <absolute>
  0000:00000000       __enclave_config           0000000000000000     <absolute>
  0000:00000100       __guard_flags              0000000000000100     <absolute>
  0000:00000000       __ImageBase                0000000180000000     <linker-defined>
@@ -146,8 +146,8 @@
  0002:0000bed0       __CheckForDebuggerJustMyCode 000000018001ced0 f   MSVCRTD:debugger_jmc.obj
  0002:0000bf20       __GSHandlerCheck           000000018001cf20 f   MSVCRTD:gshandler.obj
  0002:0000bf70       __GSHandlerCheckCommon     000000018001cf70 f   MSVCRTD:gshandler.obj
- 0002:0000c0c0       _alloca_probe              000000018001d0c0 f   MSVCRTD:chkstk.obj
  0002:0000c0c0       __chkstk                   000000018001d0c0 f   MSVCRTD:chkstk.obj
+ 0002:0000c0c0       _alloca_probe              000000018001d0c0 f   MSVCRTD:chkstk.obj
  0002:0000c140       __security_check_cookie    000000018001d140 f   MSVCRTD:amdsecgs.obj
  0002:0000c670       _CRT_INIT                  000000018001d670 f   MSVCRTD:dll_dllmain.obj
  0002:0000c6b0       _DllMainCRTStartup         000000018001d6b0 f   MSVCRTD:dll_dllmain.obj
@@ -286,22 +286,22 @@
  0002:0000fc4c       FreeLibrary                0000000180020c4c f   kernel32:KERNEL32.dll
  0002:0000fc52       GetProcAddress             0000000180020c52 f   kernel32:KERNEL32.dll
  0002:0000fc60       __scrt_stub_for_acrt_initialize 0000000180020c60 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000fc60       __acrt_initialize          0000000180020c60 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc60       __vcrt_initialize          0000000180020c60 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000fc60       __acrt_initialize          0000000180020c60 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc70       __acrt_thread_attach       0000000180020c70 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000fc70       __vcrt_thread_attach       0000000180020c70 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc70       __scrt_stub_for_acrt_thread_attach 0000000180020c70 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000fc70       __vcrt_thread_attach       0000000180020c70 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc80       __scrt_stub_for_acrt_thread_detach 0000000180020c80 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000fc80       __acrt_thread_detach       0000000180020c80 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc80       __vcrt_thread_detach       0000000180020c80 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000fc80       __acrt_thread_detach       0000000180020c80 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc90       __vcrt_uninitialize        0000000180020c90 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000fc90       __scrt_stub_for_acrt_uninitialize 0000000180020c90 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fc90       __acrt_uninitialize        0000000180020c90 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000fc90       __scrt_stub_for_acrt_uninitialize 0000000180020c90 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fca0       __acrt_uninitialize_critical 0000000180020ca0 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000fca0       __scrt_stub_for_acrt_uninitialize_critical 0000000180020ca0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fca0       __vcrt_uninitialize_critical 0000000180020ca0 f   MSVCRTD:ucrt_stubs.obj
- 0002:0000fcb0       __scrt_stub_for_is_c_termination_complete 0000000180020cb0 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000fca0       __scrt_stub_for_acrt_uninitialize_critical 0000000180020ca0 f   MSVCRTD:ucrt_stubs.obj
  0002:0000fcb0       _is_c_termination_complete 0000000180020cb0 f   MSVCRTD:ucrt_stubs.obj
+ 0002:0000fcb0       __scrt_stub_for_is_c_termination_complete 0000000180020cb0 f   MSVCRTD:ucrt_stubs.obj
  0002:00011150       _guard_dispatch_icall_nop  0000000180022150 f   MSVCRTD:guard_dispatch.obj
  0002:00011170       _guard_xfg_dispatch_icall_nop 0000000180022170 f   MSVCRTD:guard_xfg_dispatch.obj
  0003:00000000       __xc_a                     0000000180025000     MSVCRTD:initializers.obj
@@ -312,6 +312,8 @@
  0003:00000550       __xp_z                     0000000180025550     MSVCRTD:initializers.obj
  0003:00000660       __xt_a                     0000000180025660     MSVCRTD:initializers.obj
  0003:00000770       __xt_z                     0000000180025770     MSVCRTD:initializers.obj
+ 0003:000008e0       __real@bf800000            00000001800258e0     p5engine.obj
+ 0003:000008e4       __real@c11ccccd            00000001800258e4     p5engine.obj
  0003:00002880       ??_C@_0BA@NMEIMCEK@InvalidCodePath@ 0000000180027880     p5engine.obj
  0003:00002898       ??_C@_0BF@HOIOEMCL@P5Engine?1data?1bg?4bmp@ 0000000180027898     p5engine.obj
  0003:000028b8       ??_C@_0BJ@EPENJOEL@P5Engine?1data?1shadow?4bmp@ 00000001800278b8     p5engine.obj
@@ -327,8 +329,8 @@
  0003:00002a28       ??_C@_0BN@FPAHMBGA@P5Engine?1data?1sword?9left?4bmp@ 0000000180027a28     p5engine.obj
  0003:00002a50       ??_C@_0BO@BNDLMGBJ@P5Engine?1data?1sword?9front?4bmp@ 0000000180027a50     p5engine.obj
  0003:00002a74       __real@00000000            0000000180027a74     p5engine.obj
- 0003:00002a78       __real@38d1b717            0000000180027a78     p5engine.obj
- 0003:00002a7c       __real@3a83126f            0000000180027a7c     p5engine.obj
+ 0003:00002a78       __real@3a83126f            0000000180027a78     p5engine.obj
+ 0003:00002a7c       __real@3c23d70a            0000000180027a7c     p5engine.obj
  0003:00002a80       __real@3e4ccccd            0000000180027a80     p5engine.obj
  0003:00002a84       __real@3e800000            0000000180027a84     p5engine.obj
  0003:00002a88       __real@3f000000            0000000180027a88     p5engine.obj
@@ -337,10 +339,10 @@
  0003:00002a94       __real@3fc00000            0000000180027a94     p5engine.obj
  0003:00002a98       __real@40000000            0000000180027a98     p5engine.obj
  0003:00002a9c       __real@400ccccd            0000000180027a9c     p5engine.obj
- 0003:00002aa0       __real@40a00000            0000000180027aa0     p5engine.obj
- 0003:00002aa4       __real@40c00000            0000000180027aa4     p5engine.obj
- 0003:00002aa8       __real@40c90fdb            0000000180027aa8     p5engine.obj
- 0003:00002aac       __real@40e00000            0000000180027aac     p5engine.obj
+ 0003:00002aa0       __real@40400000            0000000180027aa0     p5engine.obj
+ 0003:00002aa4       __real@40a00000            0000000180027aa4     p5engine.obj
+ 0003:00002aa8       __real@40c00000            0000000180027aa8     p5engine.obj
+ 0003:00002aac       __real@40c90fdb            0000000180027aac     p5engine.obj
  0003:00002ab0       __real@41200000            0000000180027ab0     p5engine.obj
  0003:00002ab4       __real@41800000            0000000180027ab4     p5engine.obj
  0003:00002ab8       __real@41880000            0000000180027ab8     p5engine.obj
@@ -356,7 +358,6 @@
  0003:00002ae0       __real@47c35000            0000000180027ae0     p5engine.obj
  0003:00002ae4       __real@becccccd            0000000180027ae4     p5engine.obj
  0003:00002ae8       __real@bf000000            0000000180027ae8     p5engine.obj
- 0003:00002aec       __real@bf800000            0000000180027aec     p5engine.obj
  0003:00002af0       __xmm@80000000800000008000000080000000 0000000180027af0     p5engine.obj
  0003:00002b08       _pDefaultRawDllMain        0000000180027b08     MSVCRTD:dll_dllmain.obj
  0003:00002b08       _pRawDllMain               0000000180027b08     MSVCRTD:dll_dllmain.obj
@@ -503,6 +504,7 @@
  Static symbols
 
  0000:fffc7000       .debug$S                   0000000180000000     P5Engine.exp
+ 0000:fffca000       _volmd                     0000000180000000     p5engine.obj
  0000:fffca000       _volmd                     0000000180000000     p5engine.obj
  0000:fffca000       _volmd                     0000000180000000     p5engine.obj
  0000:fffca000       _volmd                     0000000180000000     p5engine.obj
@@ -895,7 +897,7 @@
  0003:00004844       $unwind$?StoreEntityReference@@YAXPEATentity_reference@@@Z 0000000180029844     p5engine.obj
  0003:00004858       $unwind$?AddEntityRaw@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@@Z 0000000180029858     p5engine.obj
  0003:0000486c       $unwind$?BeginSim@@YAPEAUsim_region@@PEAUmemory_arena@@PEAUgame_state@@PEAUworld@@Uworld_position@@Urectangle3@@@Z 000000018002986c     p5engine.obj
- 0003:00004888       $unwind$?EndSim@@YAXPEAUsim_region@@PEAUgame_state@@@Z 0000000180029888     p5engine.obj
+ 0003:00004884       $unwind$?EndSim@@YAXPEAUsim_region@@PEAUgame_state@@@Z 0000000180029884     p5engine.obj
  0003:0000489c       $unwind$?TestWall@@YAHMMMMMPEAMMM@Z 000000018002989c     p5engine.obj
  0003:000048b0       $unwind$?ShouldCollide@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 00000001800298b0     p5engine.obj
  0003:000048c4       $unwind$?HandleCollision@@YAHPEAUsim_entity@@0@Z 00000001800298c4     p5engine.obj

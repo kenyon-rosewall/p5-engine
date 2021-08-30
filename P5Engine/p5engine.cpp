@@ -740,7 +740,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			if (Controller->ActionDown.EndedDown)
 			{
-				ConHero->dZ = 7.0f;
+				ConHero->dZ = 3.0f;
 			}
 			if (Controller->ActionRight.EndedDown)
 			{
