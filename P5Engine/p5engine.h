@@ -12,12 +12,13 @@
   TODO: 
 
   ARCHITECTURE EXPLORATION
-  - Z
-    - Minkowski inclusion test for sim region begin / updatable bounds
-	- Figure out how you go "up" and "down", and how is this rendered?
   - Collision detection?
-    - Entry/exit
+    - Transient collision rules! Clear based on flag.
+	- Entry/exit
 	- What's the plan for robustness / shape definition
+	- (Implement reprojection to handle interpenetration)
+  - Z
+	- Figure out how you go "up" and "down", and how is this rendered?
   - Implement multiple sim regions per frame
     - Per-entity clocking
 	- Sim region merging? For multiple players?
@@ -157,6 +158,11 @@ struct controlled_hero
 	real32 dZ;
 };
 
+enum class pairwise_collision_rule_flag
+{
+	ShouldCollide = 0x1,
+	Temporary = 0x2,
+};
 struct pairwise_collision_rule
 {
 	bool32 ShouldCollide;
@@ -187,6 +193,7 @@ struct game_state
 	hero_bitmaps Hero[4];
 
 	loaded_bitmap Tree;
+	loaded_bitmap Stairs;
 	loaded_bitmap Monstar;
 	loaded_bitmap Familiar;
 	loaded_bitmap Sword[4];
@@ -222,8 +229,6 @@ GetLowEntity(game_state* GameState, uint32 LowIndex)
 
 internal void
 AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide);
-
 internal void
 ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex);
-
 #endif // !P5ENGINE_H

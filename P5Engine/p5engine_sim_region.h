@@ -27,7 +27,8 @@ enum class entity_type
 	Wall,
 	Familiar,
 	Monstar,
-	Sword
+	Sword,
+	Stairs
 };
 
 // TODO: Rename sim_entity to entity
