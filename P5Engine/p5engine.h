@@ -158,14 +158,9 @@ struct controlled_hero
 	real32 dZ;
 };
 
-enum class pairwise_collision_rule_flag
-{
-	ShouldCollide = 0x1,
-	Temporary = 0x2,
-};
 struct pairwise_collision_rule
 {
-	bool32 ShouldCollide;
+	bool32 CanCollide;
 	uint32 StorageIndexA;
 	uint32 StorageIndexB;
 
@@ -228,7 +223,7 @@ GetLowEntity(game_state* GameState, uint32 LowIndex)
 }
 
 internal void
-AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide);
+AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 CanCollide);
 internal void
 ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex);
 #endif // !P5ENGINE_H
