@@ -12,13 +12,24 @@
   TODO: 
 
   ARCHITECTURE EXPLORATION
+  - Z
+    - Need to make a solid concept of ground levels so the camera can
+	  be freely placed in Z and have multiple ground levels in one
+	  sim region
+    - 3D collision detection working properly
+	- How is this rendered (up and down stairs)?
   - Collision detection?
+    - Clean up predicate proliferation. Can we make a nice clean
+	  set of flags/rules so that it's easy to understand how
+	  things work in terms of special handling? This may involve
+	  making the  iteration handle everything instead of handling 
+	  overlap outside and so on.
     - Transient collision rules! Clear based on flag.
-	- Entry/exit
+	  - Allow non-transient rules to override transient ones.
+	  - Entry/exit
 	- What's the plan for robustness / shape definition
 	- (Implement reprojection to handle interpenetration)
-  - Z
-	- Figure out how you go "up" and "down", and how is this rendered?
+	- "Things pushing other things"
   - Implement multiple sim regions per frame
     - Per-entity clocking
 	- Sim region merging? For multiple players?
