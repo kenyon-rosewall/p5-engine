@@ -404,8 +404,7 @@ SpeculativeCollide(sim_entity* Mover, sim_entity* Region)
 
 		real32 Ground = Lerp(RegionRect.Min.Z, Bary.Y, RegionRect.Max.Z);
 		real32 StepHeight = 0.1f;
-		Result = ((AbsoluteValue(Mover->Pos.Z - Ground) > StepHeight) ||
-				  ((Bary.Y > StepHeight) && (Bary.Y < (1.0f - StepHeight))));
+		Result = (AbsoluteValue(Mover->Pos.Z - Ground) > StepHeight);
 	}
 
 	return(Result);
