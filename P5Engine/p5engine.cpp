@@ -256,7 +256,7 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 	
 	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
+	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
 }
@@ -264,14 +264,12 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 internal add_low_entity_result
 AddStairs(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
 {
-	v3 Offset = V3(0.0f, 0.0f, 0.5f * GameState->World->TileDepthInMeters);
-	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ, Offset);
+	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Stairs, Pos);
 
 	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
-	// TODO: This is not cool, come up with a better ground update solution
-	Entity.Low->Sim.Dim.Z = 1.2f * GameState->World->TileDepthInMeters;
+	Entity.Low->Sim.Dim.Z = GameState->World->TileDepthInMeters;
 
 	return(Entity);
 }
@@ -297,7 +295,6 @@ AddSword(game_state* GameState)
 
 	Entity.Low->Sim.Dim.Y = 0.0f;
 	Entity.Low->Sim.Dim.X = 0.0f;
-	AddFlags(&Entity.Low->Sim, entity_flag::Movable);
 
 	return(Entity);
 }
@@ -310,7 +307,7 @@ AddPlayer(game_state* GameState)
 
 	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides|entity_flag::Movable);
+	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	InitHitPoints(Entity.Low, 3);
 
@@ -335,7 +332,7 @@ AddMonstar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTi
 
 	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides|entity_flag::Movable);
+	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
 }
@@ -348,7 +345,6 @@ AddFamiliar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsT
 
 	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Movable);
 
 	return(Entity);
 }
@@ -448,9 +444,9 @@ ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex)
 }
 
 internal void
-AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 CanCollide)
+AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide)
 {
-	// TODO: Collapse this with CanCollide
+	// TODO: Collapse this with ShouldCollide
 	if (StorageIndexA > StorageIndexB)
 	{
 		uint32 Temp = StorageIndexA;
@@ -495,7 +491,7 @@ AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageInde
 	{
 		Found->StorageIndexA = StorageIndexA;
 		Found->StorageIndexB = StorageIndexB;
-		Found->CanCollide = CanCollide;
+		Found->ShouldCollide = ShouldCollide;
 	}
 }
 
@@ -886,8 +882,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Stairs:
 				{
-					PushRect(&PieceGroup, V2(0, 0), 0, Entity->Dim.XY, V4(1.0f, 1.0f, 0.0f, 1.0f), 0.0f);
-					// PushBitmap(&PieceGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
+					PushBitmap(&PieceGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
 				} break;
 
 				case entity_type::Sword:
@@ -975,8 +970,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				} break;
 			}
 
-			if (!HasFlag(Entity, entity_flag::Nonspatial) &&
-				HasFlag(Entity, entity_flag::Movable))
+			if (!HasFlag(Entity, entity_flag::Nonspatial))
 			{
 				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}

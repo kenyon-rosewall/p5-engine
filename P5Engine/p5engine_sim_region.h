@@ -39,11 +39,10 @@ union entity_reference
 	uint32 Index;
 };
 
-enum entity_flag
+enum class entity_flag
 {
-	Collides = (1 << 0),
-	Nonspatial = (1 << 1),
-	Movable = (1 << 2),
+	Collides = (1 << 1),
+	Nonspatial = (1 << 2),
 
 	Simming = (1 << 30),
 };

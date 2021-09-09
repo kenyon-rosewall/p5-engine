@@ -6,7 +6,7 @@
 #define InvalidPos V3(100000.0f, 100000.0f, 100000.0f)
 
 inline bool32
-HasFlag(sim_entity* Entity, uint32 Flag)
+HasFlag(sim_entity* Entity, entity_flag Flag)
 {
 	bool32 Result = Entity->Flags & (uint32)Flag;
 
@@ -14,13 +14,13 @@ HasFlag(sim_entity* Entity, uint32 Flag)
 }
 
 inline void
-AddFlags(sim_entity* Entity, uint32 Flag)
+AddFlag(sim_entity* Entity, entity_flag Flag)
 {
 	Entity->Flags |= (uint32)Flag;
 }
 
 inline void
-ClearFlags(sim_entity* Entity, uint32 Flag)
+ClearFlag(sim_entity* Entity, entity_flag Flag)
 {
 	Entity->Flags &= ~(uint32)Flag;
 }
@@ -28,14 +28,14 @@ ClearFlags(sim_entity* Entity, uint32 Flag)
 inline void
 MakeEntityNonSpatial(sim_entity* Entity)
 {
-	AddFlags(Entity, entity_flag::Nonspatial);
+	AddFlag(Entity, entity_flag::Nonspatial);
 	Entity->Pos = InvalidPos;
 }
 
 inline void
 MakeEntitySpatial(sim_entity* Entity, v3 Pos, v3 dPos)
 {
-	ClearFlags(Entity, entity_flag::Nonspatial);
+	ClearFlag(Entity, entity_flag::Nonspatial);
 	Entity->Pos = Pos;
 	Entity->dPos = dPos;
 }
