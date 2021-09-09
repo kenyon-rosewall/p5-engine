@@ -44,7 +44,6 @@ enum entity_flag
 	Collides = (1 << 0),
 	Nonspatial = (1 << 1),
 	Movable = (1 << 2),
-	ZSupported = (1 << 4),
 
 	Simming = (1 << 30),
 };
@@ -103,8 +102,6 @@ struct sim_region
 	uint32 MaxEntityCount;
 	uint32 EntityCount;
 	sim_entity* Entities;
-
-	real32 GroundZBase;
 
 	// TODO: Do I really want a hash for this?
 	// NOTE: Must be a power of two
