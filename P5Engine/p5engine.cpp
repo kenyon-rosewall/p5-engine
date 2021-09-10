@@ -256,7 +256,7 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 	
 	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
-	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
+	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
 }
@@ -264,12 +264,13 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 internal add_low_entity_result
 AddStairs(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
 {
-	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
+	v3 StairOffset = V3(0.0f, 0.0f, 0.5f * GameState->World->TileDepthInMeters);
+	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ, StairOffset);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Stairs, Pos);
 
 	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
-	Entity.Low->Sim.Dim.Z = GameState->World->TileDepthInMeters;
+	Entity.Low->Sim.Dim.Z = 1.2f * GameState->World->TileDepthInMeters;
 
 	return(Entity);
 }
@@ -295,6 +296,7 @@ AddSword(game_state* GameState)
 
 	Entity.Low->Sim.Dim.Y = 0.0f;
 	Entity.Low->Sim.Dim.X = 0.0f;
+	AddFlags(&Entity.Low->Sim, entity_flag::Moveable);
 
 	return(Entity);
 }
@@ -307,7 +309,7 @@ AddPlayer(game_state* GameState)
 
 	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
-	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
+	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
 
 	InitHitPoints(Entity.Low, 3);
 
@@ -332,7 +334,7 @@ AddMonstar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTi
 
 	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
-	AddFlag(&Entity.Low->Sim, entity_flag::Collides);
+	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
 
 	return(Entity);
 }
@@ -345,6 +347,7 @@ AddFamiliar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsT
 
 	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
+	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
 
 	return(Entity);
 }
@@ -444,9 +447,9 @@ ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex)
 }
 
 internal void
-AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide)
+AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 CanCollide)
 {
-	// TODO: Collapse this with ShouldCollide
+	// TODO: Collapse this with CanCollide
 	if (StorageIndexA > StorageIndexB)
 	{
 		uint32 Temp = StorageIndexA;
@@ -491,7 +494,7 @@ AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageInde
 	{
 		Found->StorageIndexA = StorageIndexA;
 		Found->StorageIndexB = StorageIndexB;
-		Found->ShouldCollide = ShouldCollide;
+		Found->CanCollide = CanCollide;
 	}
 }
 
@@ -850,7 +853,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							}
 
 							MoveSpec.UnitMaxAccelVector = true;
-							MoveSpec.Speed = 65.0f;
+							MoveSpec.Speed = 45.0f;
 							MoveSpec.Drag = 6.0f;
 							MoveSpec.SpeedMult = ConHero->SpeedMultiplier;
 							ddPos = ConHero->ddP;
@@ -882,7 +885,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Stairs:
 				{
-					PushBitmap(&PieceGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
+					// PushBitmap(&PieceGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
+					PushRect(&PieceGroup, V2(0, 0), 0, Entity->Dim.XY, V4(1, 1, 0, 1), 0.0f);
 				} break;
 
 				case entity_type::Sword:
@@ -923,6 +927,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					sim_entity* ClosestHero = 0;
 					real32 ClosestHeroDSq = Square(17.0f); // NOTE: Ten meter maximum search
 
+#if 0
 					// TODO: Make spatial queries easy for things
 					for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 					{
@@ -938,6 +943,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							}
 						}
 					}
+#endif
 
 					if (ClosestHero && (ClosestHeroDSq > Square(1.5f)))
 					{
@@ -970,7 +976,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				} break;
 			}
 
-			if (!HasFlag(Entity, entity_flag::Nonspatial))
+			if (!HasFlag(Entity, entity_flag::Nonspatial) &&
+				HasFlag(Entity, entity_flag::Moveable))
 			{
 				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
