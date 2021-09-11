@@ -497,46 +497,49 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 
 						v3 Rel = Entity->Pos - TestEntity->Pos;
 
-						real32 tMinTest = tMin;
-						v3 TestWallNormal = {};
-						bool32 HitThis = false;
-
-						// Right Wall
-						if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMinTest, MinCorner.Y, MaxCorner.Y))
+						if ((Rel.Z >= MinCorner.Z) && (Rel.Z < MaxCorner.Z))
 						{
-							TestWallNormal = V3(-1, 0, 0);
-							HitThis = true;
-						}
+							real32 tMinTest = tMin;
+							v3 TestWallNormal = {};
+							bool32 HitThis = false;
 
-						// Left Wall
-						if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMinTest, MinCorner.Y, MaxCorner.Y))
-						{
-							TestWallNormal = V3(1, 0, 0);
-							HitThis = true;
-						}
-
-						// Top Wall
-						if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMinTest, MinCorner.X, MaxCorner.X))
-						{
-							TestWallNormal = V3(0, -1, 0);
-							HitThis = true;
-						}
-
-						// Bottom Wall
-						if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMinTest, MinCorner.X, MaxCorner.X))
-						{
-							TestWallNormal = V3(0, 1, 0);
-							HitThis = true;
-						}
-
-						if (HitThis)
-						{
-							v3 TestPos = Entity->Pos + tMinTest * PlayerDelta;
-							if (SpeculativeCollide(Entity, TestEntity))
+							// Right Wall
+							if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMinTest, MinCorner.Y, MaxCorner.Y))
 							{
-								tMin = tMinTest;
-								WallNormal = TestWallNormal;
-								HitEntity = TestEntity;
+								TestWallNormal = V3(-1, 0, 0);
+								HitThis = true;
+							}
+
+							// Left Wall
+							if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y, &tMinTest, MinCorner.Y, MaxCorner.Y))
+							{
+								TestWallNormal = V3(1, 0, 0);
+								HitThis = true;
+							}
+
+							// Top Wall
+							if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMinTest, MinCorner.X, MaxCorner.X))
+							{
+								TestWallNormal = V3(0, -1, 0);
+								HitThis = true;
+							}
+
+							// Bottom Wall
+							if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X, &tMinTest, MinCorner.X, MaxCorner.X))
+							{
+								TestWallNormal = V3(0, 1, 0);
+								HitThis = true;
+							}
+
+							if (HitThis)
+							{
+								v3 TestPos = Entity->Pos + tMinTest * PlayerDelta;
+								if (SpeculativeCollide(Entity, TestEntity))
+								{
+									tMin = tMinTest;
+									WallNormal = TestWallNormal;
+									HitEntity = TestEntity;
+								}
 							}
 						}
 					}

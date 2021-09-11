@@ -254,8 +254,9 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Wall, Pos);
 	
+	Entity.Low->Sim.Dim.X = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
-	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
+	Entity.Low->Sim.Dim.Z = GameState->World->TileDepthInMeters;
 	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
@@ -308,8 +309,9 @@ AddPlayer(game_state* GameState)
 	world_position Pos = GameState->CameraP;
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Hero, Pos);
 
-	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
+	Entity.Low->Sim.Dim.Y = 0.5f;
+	Entity.Low->Sim.Dim.Z = 1.2f;
 	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
 
 	InitHitPoints(Entity.Low, 3);
@@ -333,8 +335,9 @@ AddMonstar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTi
 
 	InitHitPoints(Entity.Low, 3);
 
-	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
+	Entity.Low->Sim.Dim.Y = 0.5f;
+	Entity.Low->Sim.Dim.Z = 0.5f;
 	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
 
 	return(Entity);
@@ -346,8 +349,9 @@ AddFamiliar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsT
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Familiar, Pos);
 
-	Entity.Low->Sim.Dim.Y = 0.5f;
 	Entity.Low->Sim.Dim.X = 1.0f;
+	Entity.Low->Sim.Dim.Y = 0.5f;
+	Entity.Low->Sim.Dim.Z = 0.5f;
 	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
 
 	return(Entity);
@@ -549,7 +553,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		GameState->World = PushStruct(&GameState->WorldArena, world);
 		world* World = GameState->World;
-		InitializeWorld(World, 1.4f);
+		InitializeWorld(World, 1.4f, 3.0f);
 
 		int32 TileSideInPixels = 60;
 		GameState->MetersToPixels = (real32)TileSideInPixels / (real32)World->TileSideInMeters;
