@@ -268,9 +268,10 @@ AddStairs(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTil
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ, StairOffset);
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Stairs, Pos);
 
-	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
-	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
-	Entity.Low->Sim.Dim.Z = 1.2f * GameState->World->TileDepthInMeters;
+	Entity.Low->Sim.Dim.X = GameState->World->TileSideInMeters;
+	Entity.Low->Sim.Dim.Y = 2.0f * GameState->World->TileSideInMeters;
+	Entity.Low->Sim.Dim.Z = GameState->World->TileDepthInMeters;
+	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
 
 	return(Entity);
 }
@@ -639,7 +640,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 					else if (CreatedZDoor)
 					{
-						if ((TileX == 10) && (TileY == 6))
+						if ((TileX == 10) && (TileY == 5))
 						{
 							AddStairs(GameState, AbsTileX, AbsTileY, DoorDown ? AbsTileZ - 1 : AbsTileZ);
 						}
@@ -954,9 +955,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					MoveSpec.UnitMaxAccelVector = true;
 					MoveSpec.SpeedMult = 1.0f;
-					MoveSpec.Speed = 65.0f;
+					MoveSpec.Speed = 45.0f;
 					MoveSpec.Drag = 6.0;
-
 
 					Entity->tBob += dt;
 					if (Entity->tBob > 2.0f * Pi32)
@@ -981,9 +981,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
+
+			real32 ZFudge = (1.0f + 0.1f * Entity->Pos.Z);
 			
-			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->Pos.X;
-			real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * Entity->Pos.Y;
+			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * ZFudge * Entity->Pos.X;
+			real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * ZFudge * Entity->Pos.Y;
 			real32 EntityZ = -MetersToPixels * Entity->Pos.Z;
 
 #if 0
