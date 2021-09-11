@@ -78,6 +78,9 @@ struct sim_entity
 
 	entity_reference Sword;
 
+	// TODO: Only for stairs
+	real32 WalkableHeight;
+
 	// TODO: Generation index so we know how "up to date" this entity is
 };
 
