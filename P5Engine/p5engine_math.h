@@ -772,7 +772,6 @@ RectanglesIntersect(rectangle3 A, rectangle3 B)
 	return(Result);
 }
 
-
 inline v3
 GetBarycentric(rectangle3 A, v3 P)
 {
