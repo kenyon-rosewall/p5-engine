@@ -304,28 +304,32 @@ CanCollide(game_state* GameState, sim_entity* A, sim_entity* B)
 			B = Temp;
 		}
 
-		if (!HasFlag(A, entity_flag::Nonspatial) &&
-			!HasFlag(B, entity_flag::Nonspatial))
+		if (HasFlag(A, entity_flag::Collides) &&
+			HasFlag(B, entity_flag::Collides))
 		{
-			// TODO: Property-based logic goes here
-			Result = true;
-		}
-
-		// TODO: Better hash function
-		uint32 StorageIndexA = A->StorageIndex;
-		uint32 ArrayHash = (ArrayCount(GameState->CollisionRuleHash) - 1);
-		uint32 HashBucket = StorageIndexA & ArrayHash;
-		pairwise_collision_rule* Rule = GameState->CollisionRuleHash[HashBucket];
-		while (Rule)
-		{
-			if ((Rule->StorageIndexA == A->StorageIndex) &&
-				(Rule->StorageIndexB == B->StorageIndex))
+			if (!HasFlag(A, entity_flag::Nonspatial) &&
+				!HasFlag(B, entity_flag::Nonspatial))
 			{
-				Result = Rule->CanCollide;
-				break;
+				// TODO: Property-based logic goes here
+				Result = true;
 			}
 
-			Rule = Rule->NextInHash;
+			// TODO: Better hash function
+			uint32 StorageIndexA = A->StorageIndex;
+			uint32 ArrayHash = (ArrayCount(GameState->CollisionRuleHash) - 1);
+			uint32 HashBucket = StorageIndexA & ArrayHash;
+			pairwise_collision_rule* Rule = GameState->CollisionRuleHash[HashBucket];
+			while (Rule)
+			{
+				if ((Rule->StorageIndexA == A->StorageIndex) &&
+					(Rule->StorageIndexB == B->StorageIndex))
+				{
+					Result = Rule->CanCollide;
+					break;
+				}
+
+				Rule = Rule->NextInHash;
+			}
 		}
 	}
 

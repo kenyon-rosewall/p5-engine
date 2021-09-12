@@ -23,12 +23,14 @@ enum class entity_type
 {
 	Null,
 
+	Space,
+
 	Hero,
 	Wall,
 	Familiar,
 	Monstar,
 	Sword,
-	Stairs
+	Stairs,
 };
 
 // TODO: Rename sim_entity to entity
@@ -41,10 +43,13 @@ union entity_reference
 
 enum entity_flag
 {
+	// TODO: Does it make more sense to have the flag be for _non_ colliding entities?
+	// TODO: Collides and Zupported probably can be removed
 	Collides = (1 << 0),
 	Nonspatial = (1 << 1),
 	Moveable = (1 << 2),
-	ZSupported = (1 << 4),
+	ZSupported = (1 << 3),
+	Traversable = (1 << 4),
 
 	Simming = (1 << 30),
 };
