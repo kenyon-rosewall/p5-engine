@@ -2,6 +2,9 @@
 
 #ifndef P5ENGINE_RANDOM_H
 
+#define MinRandomNumber 0x00066055
+#define MaxRandomNumber 0x3b8beb7d
+
 global_variable uint32 RandomNumberTable[] =
 {
 	0x0af750ac, 0x1fce33eb, 0x02ea1c03, 0x22df9383, 0x2e218562, 0x249dc89b, 0x147e72e6, 0x161c8075,

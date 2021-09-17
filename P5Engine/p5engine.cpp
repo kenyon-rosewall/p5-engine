@@ -549,6 +549,52 @@ MakeNullCollision(game_state* GameState)
 	return(Group);
 }
 
+internal void
+DrawTestGround(game_state* GameState, game_offscreen_buffer* Buffer)
+{
+	// TODO: Make random number generation more systemic
+	uint32 RandomNumberIndex = 0;
+
+	v2 Center = 0.5f * V2i(Buffer->Width, Buffer->Height);
+	for (uint32 SoilIndex = 0; SoilIndex < 100; ++SoilIndex)
+	{
+		Assert(RandomNumberIndex < ArrayCount(RandomNumberTable));
+
+		uint32 AssetChoice = RandomNumberTable[RandomNumberIndex++] % 3;
+		loaded_bitmap* Stamp = {};
+		switch (AssetChoice)
+		{
+			case 0:
+			{
+				Stamp = GameState->Tuft + (RandomNumberTable[RandomNumberIndex++] % ArrayCount(GameState->Tuft));
+			} break;
+
+			case 1: 
+			{
+				Stamp = GameState->Soil + (RandomNumberTable[RandomNumberIndex++] % ArrayCount(GameState->Soil));
+			} break;
+
+			case 2:
+			{
+				Stamp = &GameState->Grass;
+			} break;
+		}
+
+		if (Stamp)
+		{
+			real32 Radius = 5.0f;
+			v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
+			v2 Offset = V2(
+				2.0f * (real32)RandomNumberTable[RandomNumberIndex++] / (real32)MaxRandomNumber - 1.0f,
+				2.0f * (real32)RandomNumberTable[RandomNumberIndex++] / (real32)MaxRandomNumber - 1.0f
+			);
+			v2 Pos = Center + GameState->MetersToPixels * Offset * Radius - BitmapCenter;
+
+			DrawBitmap(Buffer, Stamp, Pos.X, Pos.Y);
+		}
+	}
+}
+
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)));
@@ -597,6 +643,15 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GameState, TilesPerWidth * GameState->World->TileSideInMeters,
 			TilesPerHeight * GameState->World->TileSideInMeters, 0.9f * GameState->World->TileDepthInMeters
 		);
+
+		GameState->Grass = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/grass1.bmp");
+
+		GameState->Soil[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/soil1.bmp");
+		GameState->Soil[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/soil2.bmp");
+		GameState->Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/soil3.bmp");
+
+		GameState->Tuft[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/tuft1.bmp");
+		GameState->Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/tuft2.bmp");
 
 		GameState->Backdrop = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/bg.bmp");
 		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/shadow.bmp");
@@ -892,6 +947,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #else
 	DrawBitmap(Buffer, &GameState->Backdrop, 0, 0);
 #endif
+
+	DrawTestGround(GameState, Buffer);
 
 	real32 ScreenCenterX = 0.5f * (real32)Buffer->Width;
 	real32 ScreenCenterY = 0.5f * (real32)Buffer->Height;
