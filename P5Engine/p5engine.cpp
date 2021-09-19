@@ -559,7 +559,7 @@ internal void
 DrawTestGround(game_state* GameState, loaded_bitmap* Buffer)
 {
 	// TODO: Make random number generation more systemic
-	random_series Series = Seed(1234);
+	random_series Series = RandomSeed(1234);
 
 	v2 Center = 0.5f * V2i(Buffer->Width, Buffer->Height);
 	for (uint32 SoilIndex = 0; SoilIndex < 100; ++SoilIndex)
@@ -706,7 +706,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/sword-front.bmp");
 		++SwordBitmap;
 
-		random_series Series = { 0 };
+		random_series Series = RandomSeed(0);
 
 		uint32 ScreenBaseX = 0;
 		uint32 ScreenBaseY = 0;
