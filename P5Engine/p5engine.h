@@ -117,7 +117,8 @@ struct loaded_bitmap
 {
 	int32 Width;
 	int32 Height;
-	uint32* Pixels;
+	int32 Pitch;
+	uint32* Memory;
 };
 
 struct hero_bitmaps
@@ -196,6 +197,8 @@ struct game_state
 	loaded_bitmap Monstar;
 	loaded_bitmap Familiar;
 	loaded_bitmap Sword[4];
+
+	loaded_bitmap GroundBuffer;
 
 	// TODO: Must be power of two
 	pairwise_collision_rule* CollisionRuleHash[256];

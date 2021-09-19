@@ -4,7 +4,7 @@
 
 struct win32_offscreen_buffer
 {
-	// NOTE: Pixels are always 32-bits wide,
+	// NOTE: Memory are always 32-bits wide,
 	// Memory Order BB GG RR XX
 	BITMAPINFO Info;
 	void* Memory;
