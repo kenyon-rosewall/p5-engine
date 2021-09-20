@@ -96,32 +96,36 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 Re
 		MaxY = Buffer->Height;
 	}
 
-	int32 BytesPerPixel = BITMAP_BYTES_PER_PIXEL;
-	uint8* SourceRow = (uint8*)Bitmap->Memory + Bitmap->Pitch* SourceOffsetY + BytesPerPixel * SourceOffsetX;
-	uint8* DestRow = ((uint8*)Buffer->Memory + MinX * BytesPerPixel + MinY * Buffer->Pitch);
+	uint8* SourceRow = (uint8*)Bitmap->Memory + Bitmap->Pitch* SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
+	uint8* DestRow = ((uint8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
 	for (int32 Y = MinY; Y < MaxY; ++Y)
 	{
 		uint32* Dest = (uint32*)DestRow;
 		uint32* Source = (uint32*)SourceRow;
 		for (int32 X = MinX; X < MaxX; ++X)
 		{
-			real32  SA = (real32)((*Source >> 24) & 0xFF) / 255.0f;
-			SA *= CAlpha;
+			real32 SA = (real32)((*Source >> 24) & 0xFF);
 			real32 SR = (real32)((*Source >> 16) & 0xFF);
 			real32 SG = (real32)((*Source >> 8) & 0xFF);
 			real32 SB = (real32)((*Source >> 0) & 0xFF);
+			real32 RSA = (SA / 255.0f); // * CAlpha;
 
 			real32 DA = (real32)((*Dest >> 24) & 0xFF);
 			real32 DR = (real32)((*Dest >> 16) & 0xFF);
 			real32 DG = (real32)((*Dest >> 8) & 0xFF);
 			real32 DB = (real32)((*Dest >> 0) & 0xFF);
+			real32 RDA = (DA / 255.0f);
 
-			real32 A = Maximum(DA, 255.0f * SA);
-			real32 R = (1.0f - SA) * DR + SA * SR;
-			real32 G = (1.0f - SA) * DG + SA * SG;
-			real32 B = (1.0f - SA) * DB + SA * SB;
+			real32 InvRSA = (1.0f - RSA);
+			real32 A = 255.0f * (RSA + RDA - RSA * RDA);
+			real32 R = InvRSA * DR + SR;
+			real32 G = InvRSA * DG + SG;
+			real32 B = InvRSA * DB + SB;
 
-			*Dest = (((uint32)(A + 0.5f) << 24) | ((uint32)(R + 0.5f) << 16) | ((uint32)(G + 0.5f) << 8) | ((uint32)(B + 0.5f) << 0));
+			*Dest = (((uint32)(A + 0.5f) << 24) | 
+					 ((uint32)(R + 0.5f) << 16) | 
+					 ((uint32)(G + 0.5f) << 8)  | 
+					 ((uint32)(B + 0.5f) << 0));
 
 			++Dest;
 			++Source;
@@ -197,10 +201,10 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		Assert(BlueScan.Found);
 		Assert(AlphaScan.Found);
 
-		int32 RedShift = 16 - RedScan.Index;
-		int32 GreenShift = 8 - GreenScan.Index;
-		int32 BlueShift = 0 - BlueScan.Index;
-		int32 AlphaShift = 24 - AlphaScan.Index;
+		int32 AlphaShiftDown = AlphaScan.Index;
+		int32 RedShiftDown = RedScan.Index;
+		int32 GreenShiftDown = GreenScan.Index;
+		int32 BlueShiftDown = BlueScan.Index;
 
 		uint32* SourceDest = Memory;
 		for (int32 Y = 0; Y < Header->Height; ++Y)
@@ -209,16 +213,25 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 			{
 				uint32 C = *SourceDest;
 
-				*SourceDest++ = (RotateLeft(C & RedMask, RedShift) |
-					RotateLeft(C & GreenMask, GreenShift) |
-					RotateLeft(C & BlueMask, BlueShift) |
-					RotateLeft(C & AlphaMask, AlphaShift));
+				real32 R = (real32)((C & RedMask) >> RedShiftDown);
+				real32 G = (real32)((C & GreenMask) >> GreenShiftDown);
+				real32 B = (real32)((C & BlueMask) >> BlueShiftDown);
+				real32 A = (real32)((C & AlphaMask) >> AlphaShiftDown);
+				real32 AN = (A / 255.0f);
+
+				R = R * AN;
+				G = G * AN;
+				B = B * AN;
+
+				*SourceDest++ = (((uint32)(A + 0.5f) << 24) |
+								 ((uint32)(R + 0.5f) << 16) |
+								 ((uint32)(G + 0.5f) << 8) |
+								 ((uint32)(B + 0.5f) << 0));
 			}
 		}
 	}
 
-	int32 BytesPerPixel = BITMAP_BYTES_PER_PIXEL;
-	Result.Pitch = -Result.Width * BytesPerPixel;
+	Result.Pitch = -Result.Width * BITMAP_BYTES_PER_PIXEL;
 	Result.Memory = (uint32*)((uint8*)Result.Memory - Result.Pitch * (Result.Height - 1));
 
 	return(Result);
