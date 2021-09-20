@@ -105,10 +105,10 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 Re
 		for (int32 X = MinX; X < MaxX; ++X)
 		{
 			real32 SA = (real32)((*Source >> 24) & 0xFF);
-			real32 SR = (real32)((*Source >> 16) & 0xFF);
-			real32 SG = (real32)((*Source >> 8) & 0xFF);
-			real32 SB = (real32)((*Source >> 0) & 0xFF);
-			real32 RSA = (SA / 255.0f); // * CAlpha;
+			real32 RSA = (SA / 255.0f) * CAlpha;
+			real32 SR = CAlpha * (real32)((*Source >> 16) & 0xFF);
+			real32 SG = CAlpha * (real32)((*Source >> 8) & 0xFF);
+			real32 SB = CAlpha * (real32)((*Source >> 0) & 0xFF);
 
 			real32 DA = (real32)((*Dest >> 24) & 0xFF);
 			real32 DR = (real32)((*Dest >> 16) & 0xFF);
