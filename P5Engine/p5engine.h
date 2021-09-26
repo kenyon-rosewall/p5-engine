@@ -198,6 +198,7 @@ struct game_state
 	loaded_bitmap Familiar;
 	loaded_bitmap Sword[4];
 
+	world_position GroundBufferPos;
 	loaded_bitmap GroundBuffer;
 
 	// TODO: Must be power of two
