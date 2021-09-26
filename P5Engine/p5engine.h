@@ -73,6 +73,14 @@ struct memory_arena
 	memory_index Size;
 	uint8* Base;
 	memory_index Used;
+
+	uint32 TempCount;
+};
+
+struct temporary_memory
+{
+	memory_arena* Arena;
+	memory_index Used;
 };
 
 inline void
@@ -81,6 +89,7 @@ InitializeArena(memory_arena* Arena, memory_index Size, void* Base)
 	Arena->Size = Size;
 	Arena->Base = (uint8*)Base;
 	Arena->Used = 0;
+	Arena->TempCount = 0;
 }
 
 #define PushStruct(Arena, type) (type*)PushSize_(Arena, sizeof(type))
@@ -93,6 +102,35 @@ PushSize_(memory_arena* Arena, memory_index Size)
 	Arena->Used += Size;
 
 	return(Result);
+}
+
+inline temporary_memory
+BeginTemporaryMemory(memory_arena* Arena)
+{
+	temporary_memory Result = {};
+
+	Result.Arena = Arena;
+	Result.Used = Arena->Used;
+
+	++Result.Arena->TempCount;
+
+	return(Result);
+}
+
+inline void
+EndTemporaryMemory(temporary_memory TempMemory)
+{
+	memory_arena* Arena = TempMemory.Arena;
+	Assert(Arena->Used >= TempMemory.Used);
+	Arena->Used = TempMemory.Used;
+	Assert(Arena->TempCount > 0);
+	--Arena->TempCount;
+}
+
+inline void
+CheckArena(memory_arena* Arena)
+{
+	Assert(Arena->TempCount == 0);
 }
 
 #define ZeroStruct(Instance) ZeroSize(sizeof(Instance), &(Instance))
@@ -118,7 +156,7 @@ struct loaded_bitmap
 	int32 Width;
 	int32 Height;
 	int32 Pitch;
-	uint32* Memory;
+	void* Memory;
 };
 
 struct hero_bitmaps
@@ -168,6 +206,12 @@ struct pairwise_collision_rule
 	pairwise_collision_rule* NextInHash;
 };
 
+struct ground_buffer
+{
+	world_position Pos;
+	void* Memory;
+};
+
 struct game_state
 {
 	memory_arena WorldArena;
@@ -198,9 +242,6 @@ struct game_state
 	loaded_bitmap Familiar;
 	loaded_bitmap Sword[4];
 
-	world_position GroundBufferPos;
-	loaded_bitmap GroundBuffer;
-
 	// TODO: Must be power of two
 	pairwise_collision_rule* CollisionRuleHash[256];
 	pairwise_collision_rule* FirstFreeCollisionRule;
@@ -213,6 +254,15 @@ struct game_state
 	sim_entity_collision_volume_group* FamiliarCollision;
 	sim_entity_collision_volume_group* WallCollision;
 	sim_entity_collision_volume_group* StandardRoomCollision;
+};
+
+struct transient_state
+{
+	bool32 IsInitialized;
+	memory_arena TransientArena;
+	uint32 GroundBufferCount;
+	loaded_bitmap GroundBitmapTemplate;
+	ground_buffer* GroundBuffers;
 };
 
 // TODO: This is dumb, this should just be part of
