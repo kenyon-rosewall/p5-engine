@@ -217,6 +217,9 @@ struct game_state
 	memory_arena WorldArena;
 	world* World;
 	real32 MetersToPixels;
+	real32 PixelsToMeters;
+
+	real32 TypicalFloorHeight;
 
 	// TODO: Should we allow split-screen?
 	uint32 CameraFollowingEntityIndex;
