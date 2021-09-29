@@ -148,6 +148,79 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 Re
 	}
 }
 
+internal void
+DrawMatte(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 RealY, real32 CAlpha = 1.0f)
+{
+	int32 MinX = RoundReal32ToInt32(RealX);
+	int32 MinY = RoundReal32ToInt32(RealY);
+	int32 MaxX = MinX + Bitmap->Width;
+	int32 MaxY = MinY + Bitmap->Height;
+
+	int32 SourceOffsetX = 0;
+	if (MinX < 0)
+	{
+		SourceOffsetX = -MinX;
+		MinX = 0;
+	}
+
+	int32 SourceOffsetY = 0;
+	if (MinY < 0)
+	{
+		SourceOffsetY = -MinY;
+		MinY = 0;
+	}
+
+	if (MaxX > Buffer->Width)
+	{
+		MaxX = Buffer->Width;
+	}
+
+	if (MaxY > Buffer->Height)
+	{
+		MaxY = Buffer->Height;
+	}
+
+	uint8* SourceRow = (uint8*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
+	uint8* DestRow = ((uint8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
+	for (int32 Y = MinY; Y < MaxY; ++Y)
+	{
+		uint32* Dest = (uint32*)DestRow;
+		uint32* Source = (uint32*)SourceRow;
+		for (int32 X = MinX; X < MaxX; ++X)
+		{
+			real32 SA = (real32)((*Source >> 24) & 0xFF);
+			real32 RSA = (SA / 255.0f) * CAlpha;
+			real32 SR = CAlpha * (real32)((*Source >> 16) & 0xFF);
+			real32 SG = CAlpha * (real32)((*Source >> 8) & 0xFF);
+			real32 SB = CAlpha * (real32)((*Source >> 0) & 0xFF);
+
+			real32 DA = (real32)((*Dest >> 24) & 0xFF);
+			real32 DR = (real32)((*Dest >> 16) & 0xFF);
+			real32 DG = (real32)((*Dest >> 8) & 0xFF);
+			real32 DB = (real32)((*Dest >> 0) & 0xFF);
+			real32 RDA = (DA / 255.0f);
+
+			real32 InvRSA = (1.0f - RSA);
+			// real32 A = 255.0f * (RSA + RDA - RSA * RDA);
+			real32 A = InvRSA * DA;
+			real32 R = InvRSA * DR;
+			real32 G = InvRSA * DG;
+			real32 B = InvRSA * DB;
+
+			*Dest = (((uint32)(A + 0.5f) << 24) |
+				((uint32)(R + 0.5f) << 16) |
+				((uint32)(G + 0.5f) << 8) |
+				((uint32)(B + 0.5f) << 0));
+
+			++Dest;
+			++Source;
+		}
+
+		DestRow += Buffer->Pitch;
+		SourceRow += Bitmap->Pitch;
+	}
+}
+
 #pragma pack(push, 1)
 struct bitmap_header
 {
