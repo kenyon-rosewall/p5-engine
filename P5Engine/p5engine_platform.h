@@ -48,6 +48,8 @@ extern "C" {
 
 // TODO: Implement sine ourselves
 #include <stdint.h>
+#include <limits.h>
+#include <float.h>
 
 typedef int8_t int8;
 typedef int16_t int16;
@@ -64,6 +66,8 @@ typedef size_t memory_index;
 
 typedef float real32;
 typedef double real64;
+
+#define Real32Maximum FLT_MAX
 
 #define global_variable static
 #define local_persist static
@@ -203,6 +207,7 @@ typedef struct game_input
 	game_button_state MouseButtons[5];
 	int32 MouseX, MouseY, MouseZ;
 
+	bool32 ExecutableReloaded;
 	real32 dtForFrame;
 
 	game_controller_input Controllers[5];

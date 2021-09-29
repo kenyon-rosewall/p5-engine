@@ -587,53 +587,86 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 	Buffer.Memory = GroundBuffer->Memory;
 	GroundBuffer->Pos = *ChunkPos;
 
-	// TODO: Make random number generation more systemic
-	// TODO: Look into wang hashing here or some other spatial seed generation
-	random_series Series = RandomSeed(139 * ChunkPos->ChunkX + 593 * ChunkPos->ChunkY + 329 * ChunkPos->ChunkZ);
-
 	real32 Width = (real32)Buffer.Width;
 	real32 Height = (real32)Buffer.Height;
 
-	v2 Center = 0.5f * V2(Width, Height);
-	for (uint32 SoilIndex = 0; SoilIndex < 50; ++SoilIndex)
+	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 	{
-		loaded_bitmap* Stamp = GameState->Soil + 2;
-		v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
-		v2 Offset = V2(
-			Width * RandomUnilateral(&Series),
-			Height * RandomUnilateral(&Series)
-		);
-		v2 Pos = Offset - BitmapCenter;
+		for (int32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
+		{
+			int32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
+			int32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
+			int32 ChunkZ = ChunkPos->ChunkZ;
 
-		DrawBitmap(&Buffer, Stamp, Pos.X, Pos.Y);
+			// TODO: Make random number generation more systemic
+			// TODO: Look into wang hashing here or some other spatial seed generation
+			random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
+
+			v2 Center = V2(ChunkOffsetX * Width, -ChunkOffsetY * Height);
+
+			for (uint32 SoilIndex = 0; SoilIndex < 50; ++SoilIndex)
+			{
+				loaded_bitmap* Stamp = GameState->Soil + 2;
+				v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
+				v2 Offset = V2(
+					Width * RandomUnilateral(&Series),
+					Height * RandomUnilateral(&Series)
+				);
+				v2 Pos = Center + Offset - BitmapCenter;
+
+				DrawBitmap(&Buffer, Stamp, Pos.X, Pos.Y);
+			}
+		}
 	}
 
-	for (uint32 GrassIndex = 0; GrassIndex < 5; ++GrassIndex)
+
+	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 	{
-		loaded_bitmap* Stamp = {};
-		switch (RandomChoice(&Series, 2))
+		for (int32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
 		{
-			case 0:
+			for (uint32 GrassIndex = 0; GrassIndex < 5; ++GrassIndex)
 			{
-				Stamp = GameState->Tuft + RandomChoice(&Series, ArrayCount(GameState->Tuft));
-			} break;
+				int32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
+				int32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
+				int32 ChunkZ = ChunkPos->ChunkZ;
 
-			case 1: 
-			{
-				Stamp = &GameState->Grass;
-			} break;
-		}
+				// TODO: Make random number generation more systemic
+				// TODO: Look into wang hashing here or some other spatial seed generation
+				random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
 
-		if (Stamp)
-		{
-			v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
-			v2 Offset = V2(
-				Width * RandomUnilateral(&Series),
-				Height * RandomUnilateral(&Series)
-			);
-			v2 Pos = Offset - BitmapCenter;
+				v2 Center = V2(ChunkOffsetX * Width, -ChunkOffsetY * Height);
 
-			DrawBitmap(&Buffer, Stamp, Pos.X, Pos.Y);
+				loaded_bitmap* Stamp = {};
+				switch (RandomChoice(&Series, 20))
+				{
+					case 1:
+					{
+						Stamp = &GameState->Grass;
+					} break;
+
+					case 2:
+					{
+						Stamp = GameState->Soil;
+					} break;
+
+					default:
+					{
+						Stamp = GameState->Tuft + RandomChoice(&Series, ArrayCount(GameState->Tuft));
+					} break;
+				}
+
+				if (Stamp)
+				{
+					v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
+					v2 Offset = V2(
+						Width * RandomUnilateral(&Series),
+						Height * RandomUnilateral(&Series)
+					);
+					v2 Pos = Center + Offset - BitmapCenter;
+
+					DrawBitmap(&Buffer, Stamp, Pos.X, Pos.Y);
+				}
+			}
 		}
 	}
 }
@@ -935,7 +968,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	{
 		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (uint8*)Memory->TransientStorage + sizeof(transient_state));
 
-		TransientState->GroundBufferCount = 128;
+		TransientState->GroundBufferCount = 32;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
 		for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
 		{
@@ -944,9 +977,17 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GroundBuffer->Memory = TransientState->GroundBitmapTemplate.Memory;
 			GroundBuffer->Pos = NullPosition();
 		}
-		// FillGroundChunk(TransientState, GameState, TransientState->GroundBuffers, &GameState->CameraP);
 
 		TransientState->IsInitialized = true;
+	}
+
+	if (Input->ExecutableReloaded)
+	{
+		for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
+		{
+			ground_buffer* GroundBuffer = TransientState->GroundBuffers + GroundBufferIndex;
+			GroundBuffer->Pos = NullPosition();
+		}
 	}
 
 	world* World = GameState->World;
@@ -1062,6 +1103,24 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		V3(ScreenWidthInMeters, ScreenHeightInMeters, 0.0f)
 	);
 
+	for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
+	{
+		ground_buffer* GroundBuffer = TransientState->GroundBuffers + GroundBufferIndex;
+		if (IsValid(GroundBuffer->Pos))
+		{
+			loaded_bitmap Bitmap = TransientState->GroundBitmapTemplate;
+			Bitmap.Memory = GroundBuffer->Memory;
+			v3 Delta = GameState->MetersToPixels * Subtract(GameState->World, &GroundBuffer->Pos, &GameState->CameraP);
+
+			v2 Ground = V2(
+				ScreenCenter.X + Delta.X - 0.5f * (real32)Bitmap.Width,
+				ScreenCenter.Y - Delta.Y - 0.5f * (real32)Bitmap.Height
+			);
+
+			DrawBitmap(DrawBuffer, &Bitmap, Ground.X, Ground.Y);
+		}
+	}
+
 	world_position MinChunkPos = MapIntoChunkSpace(World, GameState->CameraP, GetMinCorner(CameraBoundsInMeters));
 	world_position MaxChunkPos = MapIntoChunkSpace(World, GameState->CameraP, GetMaxCorner(CameraBoundsInMeters));
 
@@ -1080,28 +1139,39 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				v2 ScreenDim = MetersToPixels * World->ChunkDimInMeters.XY;
 
 				// TODO: This is super inefficient, fix it tomorrow
-				bool32 Found = false;
-				ground_buffer* EmptyBuffer = 0;
+				real32 FurthestBufferLengthSq = 0.0f;
+				ground_buffer* FurthestBuffer = 0;
 				for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
 				{
 					ground_buffer* GroundBuffer = TransientState->GroundBuffers + GroundBufferIndex;
 					if (AreInSameChunk(World, &GroundBuffer->Pos, &ChunkCenterPos))
 					{
-						Found = true;
+						FurthestBuffer = 0;
 						break;
 					}
-					else if (!IsValid(GroundBuffer->Pos))
+					else if (IsValid(GroundBuffer->Pos))
 					{
-						EmptyBuffer = GroundBuffer;
+						v3 RelPos = Subtract(World, &GroundBuffer->Pos, &GameState->CameraP);
+						real32 BufferLengthSq = LengthSq(RelPos.XY);
+						if (FurthestBufferLengthSq < BufferLengthSq)
+						{
+							FurthestBufferLengthSq = BufferLengthSq;
+							FurthestBuffer = GroundBuffer;
+						}
+					}
+					else
+					{
+						FurthestBufferLengthSq = Real32Maximum;
+						FurthestBuffer = GroundBuffer;
 					}
 				}
 
-				if (!Found && EmptyBuffer)
+				if (FurthestBuffer)
 				{
-					FillGroundChunk(TransientState, GameState, EmptyBuffer, &ChunkCenterPos);
+					FillGroundChunk(TransientState, GameState, FurthestBuffer, &ChunkCenterPos);
 				}
 
-				DrawRectangleOutline(DrawBuffer, ScreenPos - 0.5f * ScreenDim, ScreenPos + 0.5f * ScreenDim, V3(1.0f, 1.0f, 0.0f));
+				// DrawRectangleOutline(DrawBuffer, ScreenPos - 0.5f * ScreenDim, ScreenPos + 0.5f * ScreenDim, V3(1.0f, 1.0f, 0.0f));
 			}
 		}
 	}
@@ -1112,24 +1182,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	temporary_memory SimMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	sim_region* SimRegion = BeginSim(&TransientState->TransientArena, GameState, GameState->World, 
 									 GameState->CameraP, SimBounds, Input->dtForFrame);
-
-	for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
-	{
-		ground_buffer* GroundBuffer = TransientState->GroundBuffers + GroundBufferIndex;
-		if (IsValid(GroundBuffer->Pos))
-		{
-			loaded_bitmap Bitmap = TransientState->GroundBitmapTemplate;
-			Bitmap.Memory = GroundBuffer->Memory;
-			v3 Delta = GameState->MetersToPixels * Subtract(GameState->World, &GroundBuffer->Pos, &GameState->CameraP);
-
-			v2 Ground = V2(
-				ScreenCenter.X + Delta.X - 0.5f * (real32)Bitmap.Width,
-				ScreenCenter.Y - Delta.Y - 0.5f * (real32)Bitmap.Height
-			);
-
-			DrawBitmap(DrawBuffer, &Bitmap, Ground.X, Ground.Y);
-		}
-	}
 
 	// TODO: Move this out into p5engien_entity.cpp
 	entity_visible_piece_group PieceGroup = {};
