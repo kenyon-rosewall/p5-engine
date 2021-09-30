@@ -23,50 +23,6 @@ GameOutputSound(game_state* GameState, game_sound_output_buffer* SoundBuffer, in
 }
 
 internal void
-DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, real32 R, real32 G, real32 B)
-{
-	int32 MinX = RoundReal32ToInt32(vMin.X);
-	int32 MinY = RoundReal32ToInt32(vMin.Y);
-	int32 MaxX = RoundReal32ToInt32(vMax.X);
-	int32 MaxY = RoundReal32ToInt32(vMax.Y);
-
-	if (MinX < 0)
-	{
-		MinX = 0;
-	}
-
-	if (MinY < 0)
-	{
-		MinY = 0;
-	}
-
-	if (MaxX > Buffer->Width)
-	{
-		MaxX = Buffer->Width;
-	}
-
-	if (MaxY > Buffer->Height)
-	{
-		MaxY = Buffer->Height;
-	}
-
-	uint32 Color = ((RoundReal32ToUInt32(R * 255.0f) << 16) | (RoundReal32ToUInt32(G * 255.0f) << 8) | (RoundReal32ToUInt32(B * 255.0f) << 0));
-
-	uint8* Row = ((uint8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
-
-	for (int Y = MinY; Y < MaxY; ++Y)
-	{
-		uint32* Pixel = (uint32*)Row;
-		for (int X = MinX; X < MaxX; ++X)
-		{
-			*Pixel++ = Color;
-		}
-
-		Row += Buffer->Pitch;
-	}
-}
-
-internal void
 DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 R = 2.0f)
 {
 	// NOTE: Rop and boRRom
@@ -76,151 +32,6 @@ DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 R
 	// NOTE: Left and righte
 	DrawRectangle(Buffer, V2(vMin.X - R, vMin.Y - R), V2(vMin.X + R, vMax.Y + R), Color.R, Color.G, Color.B);
 	DrawRectangle(Buffer, V2(vMax.X - R, vMin.Y - R), V2(vMax.X + R, vMax.Y + R), Color.R, Color.G, Color.B);
-}
-
-internal void
-DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 RealY, real32 CAlpha = 1.0f)
-{
-	int32 MinX = RoundReal32ToInt32(RealX);
-	int32 MinY = RoundReal32ToInt32(RealY);
-	int32 MaxX = MinX + Bitmap->Width;
-	int32 MaxY = MinY + Bitmap->Height;
-
-	int32 SourceOffsetX = 0;
-	if (MinX < 0)
-	{
-		SourceOffsetX = -MinX;
-		MinX = 0;
-	}
-
-	int32 SourceOffsetY = 0;
-	if (MinY < 0)
-	{
-		SourceOffsetY = -MinY;
-		MinY = 0;
-	}
-
-	if (MaxX > Buffer->Width)
-	{
-		MaxX = Buffer->Width;
-	}
-
-	if (MaxY > Buffer->Height)
-	{
-		MaxY = Buffer->Height;
-	}
-
-	uint8* SourceRow = (uint8*)Bitmap->Memory + Bitmap->Pitch* SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
-	uint8* DestRow = ((uint8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
-	for (int32 Y = MinY; Y < MaxY; ++Y)
-	{
-		uint32* Dest = (uint32*)DestRow;
-		uint32* Source = (uint32*)SourceRow;
-		for (int32 X = MinX; X < MaxX; ++X)
-		{
-			real32 SA = (real32)((*Source >> 24) & 0xFF);
-			real32 RSA = (SA / 255.0f) * CAlpha;
-			real32 SR = CAlpha * (real32)((*Source >> 16) & 0xFF);
-			real32 SG = CAlpha * (real32)((*Source >> 8) & 0xFF);
-			real32 SB = CAlpha * (real32)((*Source >> 0) & 0xFF);
-
-			real32 DA = (real32)((*Dest >> 24) & 0xFF);
-			real32 DR = (real32)((*Dest >> 16) & 0xFF);
-			real32 DG = (real32)((*Dest >> 8) & 0xFF);
-			real32 DB = (real32)((*Dest >> 0) & 0xFF);
-			real32 RDA = (DA / 255.0f);
-
-			real32 InvRSA = (1.0f - RSA);
-			real32 A = 255.0f * (RSA + RDA - RSA * RDA);
-			real32 R = InvRSA * DR + SR;
-			real32 G = InvRSA * DG + SG;
-			real32 B = InvRSA * DB + SB;
-
-			*Dest = (((uint32)(A + 0.5f) << 24) | 
-					 ((uint32)(R + 0.5f) << 16) | 
-					 ((uint32)(G + 0.5f) << 8)  | 
-					 ((uint32)(B + 0.5f) << 0));
-
-			++Dest;
-			++Source;
-		}
-
-		DestRow += Buffer->Pitch;
-		SourceRow += Bitmap->Pitch;
-	}
-}
-
-internal void
-DrawMatte(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 RealY, real32 CAlpha = 1.0f)
-{
-	int32 MinX = RoundReal32ToInt32(RealX);
-	int32 MinY = RoundReal32ToInt32(RealY);
-	int32 MaxX = MinX + Bitmap->Width;
-	int32 MaxY = MinY + Bitmap->Height;
-
-	int32 SourceOffsetX = 0;
-	if (MinX < 0)
-	{
-		SourceOffsetX = -MinX;
-		MinX = 0;
-	}
-
-	int32 SourceOffsetY = 0;
-	if (MinY < 0)
-	{
-		SourceOffsetY = -MinY;
-		MinY = 0;
-	}
-
-	if (MaxX > Buffer->Width)
-	{
-		MaxX = Buffer->Width;
-	}
-
-	if (MaxY > Buffer->Height)
-	{
-		MaxY = Buffer->Height;
-	}
-
-	uint8* SourceRow = (uint8*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
-	uint8* DestRow = ((uint8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
-	for (int32 Y = MinY; Y < MaxY; ++Y)
-	{
-		uint32* Dest = (uint32*)DestRow;
-		uint32* Source = (uint32*)SourceRow;
-		for (int32 X = MinX; X < MaxX; ++X)
-		{
-			real32 SA = (real32)((*Source >> 24) & 0xFF);
-			real32 RSA = (SA / 255.0f) * CAlpha;
-			real32 SR = CAlpha * (real32)((*Source >> 16) & 0xFF);
-			real32 SG = CAlpha * (real32)((*Source >> 8) & 0xFF);
-			real32 SB = CAlpha * (real32)((*Source >> 0) & 0xFF);
-
-			real32 DA = (real32)((*Dest >> 24) & 0xFF);
-			real32 DR = (real32)((*Dest >> 16) & 0xFF);
-			real32 DG = (real32)((*Dest >> 8) & 0xFF);
-			real32 DB = (real32)((*Dest >> 0) & 0xFF);
-			real32 RDA = (DA / 255.0f);
-
-			real32 InvRSA = (1.0f - RSA);
-			// real32 A = 255.0f * (RSA + RDA - RSA * RDA);
-			real32 A = InvRSA * DA;
-			real32 R = InvRSA * DR;
-			real32 G = InvRSA * DG;
-			real32 B = InvRSA * DB;
-
-			*Dest = (((uint32)(A + 0.5f) << 24) |
-				((uint32)(R + 0.5f) << 16) |
-				((uint32)(G + 0.5f) << 8) |
-				((uint32)(B + 0.5f) << 0));
-
-			++Dest;
-			++Source;
-		}
-
-		DestRow += Buffer->Pitch;
-		SourceRow += Bitmap->Pitch;
-	}
 }
 
 #pragma pack(push, 1)
@@ -1367,7 +1178,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Space:
 				{
-#if 0
+#if 1
 					for (uint32 VolumeIndex = 0; VolumeIndex < Entity->Collision->VolumeCount; ++VolumeIndex)
 					{
 						sim_entity_collision_volume* Volume = Entity->Collision->Volumes + VolumeIndex;
@@ -1393,37 +1204,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 	}
 
-	int What = 9;
-
-	for (uint32 BaseAddress = 0; BaseAddress < RenderGroup->PushBufferSize;)
-	{
-		entity_visible_piece* Piece = (entity_visible_piece*)(RenderGroup->PushBufferBase + BaseAddress);
-		BaseAddress += sizeof(entity_visible_piece);
-
-		v3 EntityBasePos = Piece->Basis->Pos;
-		real32 ZFudge = (1.0f + 0.1f * (EntityBasePos.Z + Piece->OffsetZ));
-
-		real32 EntityGroundPointX = ScreenCenter.X + MetersToPixels * ZFudge * EntityBasePos.X;
-		real32 EntityGroundPointY = ScreenCenter.Y - MetersToPixels * ZFudge * EntityBasePos.Y;
-		real32 EntityZ = -MetersToPixels * EntityBasePos.Z;
-
-		v2 Center = V2(
-			EntityGroundPointX + Piece->Offset.X,
-			EntityGroundPointY + Piece->Offset.Y + Piece->EntityZC * EntityZ
-		);
-
-		if (Piece->Bitmap)
-		{
-			DrawBitmap(DrawBuffer, Piece->Bitmap, Center.X, Center.Y, Piece->A);
-		}
-		else
-		{
-			v2 HalfDim = 0.5f * MetersToPixels * Piece->Dim;
-			v2 Min = Center - HalfDim;
-			v2 Max = Center + HalfDim;
-			DrawRectangle(DrawBuffer, Min, Max, Piece->R, Piece->G, Piece->B);
-		}
-	}
+	RenderGroupToOutput(RenderGroup, DrawBuffer);
 
 	EndSim(SimRegion, GameState);
 	EndTemporaryMemory(SimMemory);
