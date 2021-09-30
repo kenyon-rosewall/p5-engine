@@ -12,38 +12,63 @@
   TODO: 
 
   ARCHITECTURE EXPLORATION
+  - Z
+	- Need to make a solid concept of ground levels so the camera can
+	  be freely placed in Z and have multiple ground levels in one
+	  sim region
+	- Concept of ground in the collision loop so it can handle 
+	  collisions coming onto _and off of_ stairwells, for example.
+	- Make sure flying things can go over low walls
+	- How is this rendered?
+
   - Collision detection?
+    - Fix sword collisions!
+	- Clean up predicate proliferation. Can we make a nice clean
+	  set of flags/rules so that it's easy to understand how
+	  things work in terms of special handling? This may involve
+	  making the iteration handle everything instead of handling
+	  overlap outside and so on.
     - Transient collision rules! Clear based on flag.
-	- Entry/exit
+	  - Allow non-transient rules to override transient ones
+	  - Entry/exit
 	- What's the plan for robustness / shape definition
 	- (Implement reprojection to handle interpenetration)
-  - Z
-	- Figure out how you go "up" and "down", and how is this rendered?
+	- "Things pushing other things"
+
   - Implement multiple sim regions per frame
     - Per-entity clocking
 	- Sim region merging? For multiple players?
+	- Simple zoomed-out view for testing?
 
   - Debug code
+    - Fonts
 	- Logging
 	- Diagramming
 	- (A LITTLE GUI, but only a little!) Switchs / sliders / etc.
+	- Draw tile chunks so we can verify that things are aligned /
+	  in the chunks we want them to be in / 
+
+  - Asset streaming
 
   - Audio
 	- Sound effect triggers
 	- Ambient sounds
 	- Music
-  - Asset streaming
 
   - Metagame / save game
+    - How do you enter "save slot"?
     - Persistent unlocks/etc.
     - Do we allow saved games? Probably yes, only for "pausing",
 	- Continuous save for crash recovery
-  - Rudimentary world genreratione(no quality, just "what sorts of things" we do)
+	
+  - Rudimentary world gen (no quality, just "what sorts of things" we do)
     - Placement of background things
 	- Connectivity?
 	- Non-overlapping?
+	- Map display
+
   - AI
-	- Cudimentary monstar behavior example
+	- Rudimentary monstar behavior example
 	- Pathfinding
 	- AI "storage"
 
@@ -94,6 +119,7 @@ InitializeArena(memory_arena* Arena, memory_index Size, void* Base)
 
 #define PushStruct(Arena, type) (type*)PushSize_(Arena, sizeof(type))
 #define PushArray(Arena, PieceCount, type) (type*)PushSize_(Arena, (uint64_t)(PieceCount)*sizeof(type))
+#define PushSize(Arena, Size) PushSize_(Arena, Size)
 inline void*
 PushSize_(memory_arena* Arena, memory_index Size)
 {
@@ -175,17 +201,6 @@ struct low_entity
 	sim_entity Sim;
 };
 
-struct entity_visible_piece
-{
-	loaded_bitmap* Bitmap;
-	v2 Offset;
-	real32 OffsetZ;
-	real32 EntityZC;
-
-	real32 R, G, B, A;
-	v2 Dim;
-};
-
 struct controlled_hero
 {
 	uint32 EntityIndex;
@@ -209,7 +224,7 @@ struct pairwise_collision_rule
 struct ground_buffer
 {
 	world_position Pos;
-	void* Memory;
+	loaded_bitmap Bitmap;
 };
 
 struct game_state
@@ -264,19 +279,7 @@ struct transient_state
 	bool32 IsInitialized;
 	memory_arena TransientArena;
 	uint32 GroundBufferCount;
-	loaded_bitmap GroundBitmapTemplate;
 	ground_buffer* GroundBuffers;
-};
-
-// TODO: This is dumb, this should just be part of
-// the renderer pushbuffer - add correction of coordinates
-// in there and be done with it.
-struct entity_visible_piece_group
-{
-	uint32 PieceCount;
-	entity_visible_piece Pieces[8];
-
-	game_state* GameState;
 };
 
 inline low_entity*
