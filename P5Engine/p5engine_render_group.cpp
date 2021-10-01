@@ -1,6 +1,6 @@
 
 internal void
-DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, real32 r, real32 g, real32 b)
+DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, real32 R, real32 G, real32 B, real32 A = 1.0)
 {
 	int32 MinX = RoundReal32ToInt32(vMin.x);
 	int32 MinY = RoundReal32ToInt32(vMin.y);
@@ -27,7 +27,10 @@ DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, real32 r, real32 g, real3
 		MaxY = Buffer->Height;
 	}
 
-	uint32 Color = ((RoundReal32ToUInt32(r * 255.0f) << 16) | (RoundReal32ToUInt32(g * 255.0f) << 8) | (RoundReal32ToUInt32(b * 255.0f) << 0));
+	uint32 Color = ((RoundReal32ToUInt32(A * 255.0f) << 24) |
+					(RoundReal32ToUInt32(R * 255.0f) << 16) | 
+					(RoundReal32ToUInt32(G * 255.0f) << 8) | 
+					(RoundReal32ToUInt32(B * 255.0f) << 0));
 
 	uint8* Row = ((uint8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
 
@@ -261,12 +264,22 @@ PushRectOutline(render_group* Group, v2 Offset, real32 OffsetZ, v2 Dim, v4 Color
 	real32 Thickness = 0.1f;
 
 	// NOTE: Top and bottom
-	PushEntry(Group, 0, Offset - V2(0, 0.5f * Dim.y), V2(0, 0), OffsetZ, V2(Dim.x, Thickness), Color, EntityZC);
-	PushEntry(Group, 0, Offset + V2(0, 0.5f * Dim.y), V2(0, 0), OffsetZ, V2(Dim.x, Thickness), Color, EntityZC);
+	PushRect(Group, Offset - V2(0, 0.5f * Dim.y), OffsetZ, V2(Dim.x, Thickness), Color, EntityZC);
+	PushRect(Group, Offset + V2(0, 0.5f * Dim.y), OffsetZ, V2(Dim.x, Thickness), Color, EntityZC);
 
 	// NOTE: Left and right
-	PushEntry(Group, 0, Offset - V2(0.5f * Dim.x, 0), V2(0, 0), OffsetZ, V2(Thickness, Dim.y), Color, EntityZC);
-	PushEntry(Group, 0, Offset + V2(0.5f * Dim.x, 0), V2(0, 0), OffsetZ, V2(Thickness, Dim.y), Color, EntityZC);
+	PushRect(Group, Offset - V2(0.5f * Dim.x, 0), OffsetZ, V2(Thickness, Dim.y), Color, EntityZC);
+	PushRect(Group, Offset + V2(0.5f * Dim.x, 0), OffsetZ, V2(Thickness, Dim.y), Color, EntityZC);
+}
+
+inline void
+Clear(render_group* Group, v4 Color)
+{
+	render_entry_clear* Entry = PushRenderElement(Group, render_entry_clear);
+	if (Entry)
+	{
+		Entry->Color = Color;
+	}
 }
 
 inline v2
@@ -303,6 +316,8 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 			case render_group_entry_type::render_entry_clear:
 			{
 				render_entry_clear* Entry = (render_entry_clear*)Header;
+
+				DrawRectangle(OutputTarget, V2(0, 0), V2i(OutputTarget->Width, OutputTarget->Height), Entry->Color.r, Entry->Color.g, Entry->Color.b, Entry->Color.a);
 
 				BaseAddress += sizeof(*Entry);
 			} break;

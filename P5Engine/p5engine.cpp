@@ -423,6 +423,11 @@ MakeNullCollision(game_state* GameState)
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
+	temporary_memory Memory = BeginTemporaryMemory(&TransientState->TransientArena);
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), 1);
+
+	Clear(RenderGroup, V4(1, 1, 0, 1));
+
 	loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
 	GroundBuffer->Pos = *ChunkPos;
 
@@ -453,7 +458,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				);
 				v2 Pos = Center + Offset - BitmapCenter;
 
-				DrawBitmap(Buffer, Stamp, Pos.x, Pos.y);
+				PushBitmap(RenderGroup, Stamp, Pos, 0, V2(0, 0));
 			}
 		}
 	}
@@ -503,11 +508,14 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					);
 					v2 Pos = Center + Offset - BitmapCenter;
 
-					DrawBitmap(Buffer, Stamp, Pos.x, Pos.y);
+					PushBitmap(RenderGroup, Stamp, Pos, 0, V2(0, 0));
 				}
 			}
 		}
 	}
+
+	RenderGroupToOutput(RenderGroup, Buffer);
+	EndTemporaryMemory(Memory);
 }
 
 internal void
@@ -931,7 +939,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DrawBuffer->Pitch = Buffer->Pitch;
 	DrawBuffer->Memory = (uint32*)Buffer->Memory;
 
-	DrawRectangle(DrawBuffer, V2(0, 0), V2((real32)DrawBuffer->Width, (real32)DrawBuffer->Height), 0.5f, 0.5f, 0.5f);
+	Clear(RenderGroup, V4(1, 0, 1, 0));
 
 	v2 ScreenCenter = V2(
 		0.5f * (real32)DrawBuffer->Width,
@@ -1008,7 +1016,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					FillGroundChunk(TransientState, GameState, FurthestBuffer, &ChunkCenterPos);
 				}
 
-				// DrawRectangleOutline(DrawBuffer, ScreenPos - 0.5f * ScreenDim, ScreenPos + 0.5f * ScreenDim, V3(1.0f, 1.0f, 0.0f));
+				PushRectOutline(RenderGroup, RelPos.xy, RelPos.z, World->ChunkDimInMeters.xy, V4(1, 1, 0, 1));
 			}
 		}
 	}
@@ -1178,14 +1186,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Space:
 				{
-#if 0
 					for (uint32 VolumeIndex = 0; VolumeIndex < Entity->Collision->VolumeCount; ++VolumeIndex)
 					{
 						sim_entity_collision_volume* Volume = Entity->Collision->Volumes + VolumeIndex;
 
 						PushRectOutline(RenderGroup, Volume->OffsetPos.xy, 0, Volume->Dim.xy, V4(1, 0.5f, 1, 1), 0.0f);
 					}
-#endif
 				} break;
 
 				default:
