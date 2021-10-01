@@ -61,9 +61,9 @@ GetStairGround(sim_entity* Entity, v3 AtGroundPoint)
 {
 	Assert(Entity->Type == entity_type::Stairs);
 
-	rectangle2 RegionRect = RectCenterDim(Entity->Pos.XY, Entity->WalkableDim);
-	v2 Bary = Clamp01(GetBarycentric(RegionRect, AtGroundPoint.XY));
-	real32 Result = Entity->Pos.Z + Bary.Y * Entity->WalkableHeight;
+	rectangle2 RegionRect = RectCenterDim(Entity->Pos.xy, Entity->WalkableDim);
+	v2 Bary = Clamp01(GetBarycentric(RegionRect, AtGroundPoint.xy));
+	real32 Result = Entity->Pos.z + Bary.y * Entity->WalkableHeight;
 
 	return(Result);
 }

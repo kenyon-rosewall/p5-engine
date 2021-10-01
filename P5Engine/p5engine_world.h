@@ -30,7 +30,7 @@ struct world_entity_block
 
 struct world_chunk
 {
-	int32 X, Y, Z;
+	int32 x, y, z;
 
 	world_entity_block FirstBlock;
 

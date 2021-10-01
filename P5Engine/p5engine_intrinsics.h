@@ -114,9 +114,9 @@ Cos(real32 Angle)
 }
 
 inline real32
-ATan2(real32 Y, real32 X)
+ATan2(real32 y, real32 x)
 {
-	real32 Result = (real32)atan2(Y, X);
+	real32 Result = (real32)atan2(y, x);
 	return(Result);
 }
 

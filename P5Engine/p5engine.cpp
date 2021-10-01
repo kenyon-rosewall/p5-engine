@@ -23,15 +23,15 @@ GameOutputSound(game_state* GameState, game_sound_output_buffer* SoundBuffer, in
 }
 
 internal void
-DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 R = 2.0f)
+DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 r = 2.0f)
 {
 	// NOTE: Rop and boRRom
-	DrawRectangle(Buffer, V2(vMin.X - R, vMin.Y - R), V2(vMax.X + R, vMin.Y + R), Color.R, Color.G, Color.B);
-	DrawRectangle(Buffer, V2(vMin.X - R, vMax.Y - R), V2(vMax.X + R, vMax.Y + R), Color.R, Color.G, Color.B);
+	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMax.x + r, vMin.y + r), Color.r, Color.g, Color.b);
+	DrawRectangle(Buffer, V2(vMin.x - r, vMax.y - r), V2(vMax.x + r, vMax.y + r), Color.r, Color.g, Color.b);
 
 	// NOTE: Left and righte
-	DrawRectangle(Buffer, V2(vMin.X - R, vMin.Y - R), V2(vMin.X + R, vMax.Y + R), Color.R, Color.G, Color.B);
-	DrawRectangle(Buffer, V2(vMax.X - R, vMin.Y - R), V2(vMax.X + R, vMax.Y + R), Color.R, Color.G, Color.B);
+	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMin.x + r, vMax.y + r), Color.r, Color.g, Color.b);
+	DrawRectangle(Buffer, V2(vMax.x - r, vMin.y - r), V2(vMax.x + r, vMax.y + r), Color.r, Color.g, Color.b);
 }
 
 #pragma pack(push, 1)
@@ -105,26 +105,26 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		int32 BlueShiftDown = BlueScan.Index;
 
 		uint32* SourceDest = Memory;
-		for (int32 Y = 0; Y < Header->Height; ++Y)
+		for (int32 y = 0; y < Header->Height; ++y)
 		{
-			for (int32 X = 0; X < Header->Width; ++X)
+			for (int32 x = 0; x < Header->Width; ++x)
 			{
 				uint32 C = *SourceDest;
 
-				real32 R = (real32)((C & RedMask) >> RedShiftDown);
-				real32 G = (real32)((C & GreenMask) >> GreenShiftDown);
-				real32 B = (real32)((C & BlueMask) >> BlueShiftDown);
+				real32 r = (real32)((C & RedMask) >> RedShiftDown);
+				real32 g = (real32)((C & GreenMask) >> GreenShiftDown);
+				real32 b = (real32)((C & BlueMask) >> BlueShiftDown);
 				real32 A = (real32)((C & AlphaMask) >> AlphaShiftDown);
 				real32 AN = (A / 255.0f);
 
-				R = R * AN;
-				G = G * AN;
-				B = B * AN;
+				r = r * AN;
+				g = g * AN;
+				b = b * AN;
 
 				*SourceDest++ = (((uint32)(A + 0.5f) << 24) |
-								 ((uint32)(R + 0.5f) << 16) |
-								 ((uint32)(G + 0.5f) << 8) |
-								 ((uint32)(B + 0.5f) << 0));
+								 ((uint32)(r + 0.5f) << 16) |
+								 ((uint32)(g + 0.5f) << 8) |
+								 ((uint32)(b + 0.5f) << 0));
 			}
 		}
 	}
@@ -203,7 +203,7 @@ AddStairs(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTil
 	add_low_entity_result Entity = AddGroundedEntity(GameState, entity_type::Stairs, Pos, GameState->StairsCollision);
 
 	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
-	Entity.Low->Sim.WalkableDim = Entity.Low->Sim.Collision->TotalVolume.Dim.XY;
+	Entity.Low->Sim.WalkableDim = Entity.Low->Sim.Collision->TotalVolume.Dim.xy;
 	Entity.Low->Sim.WalkableHeight = GameState->TypicalFloorHeight;
 
 	return(Entity);
@@ -284,7 +284,7 @@ DrawHitpoints(sim_entity* Entity, render_group* RenderGroup)
 	if (Entity->HitPointMax >= 1)
 	{
 		v2 HealthDim = V2(0.2f, 0.2f);
-		real32 SpacingX = 1.5f * HealthDim.X;
+		real32 SpacingX = 1.5f * HealthDim.x;
 		real32 FirstX = -0.5f * (Entity->HitPointMax - 1) * SpacingX;
 		v2 HitPos = V2(FirstX, -0.4f);
 		v2 dHitPos = V2(SpacingX, 0.0f);
@@ -453,7 +453,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				);
 				v2 Pos = Center + Offset - BitmapCenter;
 
-				DrawBitmap(Buffer, Stamp, Pos.X, Pos.Y);
+				DrawBitmap(Buffer, Stamp, Pos.x, Pos.y);
 			}
 		}
 	}
@@ -503,7 +503,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					);
 					v2 Pos = Center + Offset - BitmapCenter;
 
-					DrawBitmap(Buffer, Stamp, Pos.X, Pos.Y);
+					DrawBitmap(Buffer, Stamp, Pos.x, Pos.y);
 				}
 			}
 		}
@@ -545,7 +545,7 @@ RequestGroundBuffers(world_position CenterPos, rectangle3 Bounds)
 	Bounds = Offset(Bounds, CenterPos.Offset);
 	CenterPos.Offset = V3(0, 0, 0);
 
-	for (uint32 ZIndex = Bounds.Min.Z; ZIndex < Bounds.Max.Z; ++ZIndex)
+	for (uint32 ZIndex = Bounds.Min.z; ZIndex < Bounds.Max.z; ++ZIndex)
 	{
 
 	}
@@ -861,19 +861,19 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				// NOTE: Use digital movement tuning
 				if (Controller->MoveUp.EndedDown)
 				{
-					ConHero->ddP.Y = 1.0f;
+					ConHero->ddP.y = 1.0f;
 				}
 				if (Controller->MoveDown.EndedDown)
 				{
-					ConHero->ddP.Y = -1.0f;
+					ConHero->ddP.y = -1.0f;
 				}
 				if (Controller->MoveLeft.EndedDown)
 				{
-					ConHero->ddP.X = -1.0f;
+					ConHero->ddP.x = -1.0f;
 				}
 				if (Controller->MoveRight.EndedDown)
 				{
-					ConHero->ddP.X = 1.0f;
+					ConHero->ddP.x = 1.0f;
 				}
 			}
 
@@ -954,7 +954,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			v3 Delta = Subtract(GameState->World, &GroundBuffer->Pos, &GameState->CameraP);
 
-			PushBitmap(RenderGroup, Bitmap, Delta.XY, Delta.Z, 0.5f * V2i(Bitmap->Width, Bitmap->Height));
+			PushBitmap(RenderGroup, Bitmap, Delta.xy, Delta.z, 0.5f * V2i(Bitmap->Width, Bitmap->Height));
 		}
 	}
 
@@ -970,10 +970,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				world_position ChunkCenterPos = CenteredChunkPoint(ChunkX, ChunkY, ChunkZ);
 				v3 RelPos = Subtract(World, &ChunkCenterPos, &GameState->CameraP);
 				v2 ScreenPos = V2(
-					ScreenCenter.X + MetersToPixels * RelPos.X,
-					ScreenCenter.Y - MetersToPixels * RelPos.Y
+					ScreenCenter.x + MetersToPixels * RelPos.x,
+					ScreenCenter.y - MetersToPixels * RelPos.y
 				);
-				v2 ScreenDim = MetersToPixels * World->ChunkDimInMeters.XY;
+				v2 ScreenDim = MetersToPixels * World->ChunkDimInMeters.xy;
 
 				// TODO: This is super inefficient, fix it tomorrow
 				real32 FurthestBufferLengthSq = 0.0f;
@@ -989,7 +989,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					else if (IsValid(GroundBuffer->Pos))
 					{
 						v3 RelPos = Subtract(World, &GroundBuffer->Pos, &GameState->CameraP);
-						real32 BufferLengthSq = LengthSq(RelPos.XY);
+						real32 BufferLengthSq = LengthSq(RelPos.xy);
 						if (FurthestBufferLengthSq < BufferLengthSq)
 						{
 							FurthestBufferLengthSq = BufferLengthSq;
@@ -1028,7 +1028,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			real32 dt = Input->dtForFrame;
 
 			// TODO: This is incorrect, should be computed after update
-			real32 ShadowAlpha = 1.0f - 0.5f * Entity->Pos.Z;
+			real32 ShadowAlpha = 1.0f - 0.5f * Entity->Pos.z;
 			if (ShadowAlpha < 0)
 			{
 				ShadowAlpha = 0;
@@ -1055,7 +1055,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						{
 							if (ConHero->dZ != 0.0f)
 							{
-								Entity->dPos.Z = ConHero->dZ;
+								Entity->dPos.z = ConHero->dZ;
 							}
 
 							MoveSpec.UnitMaxAccelVector = true;
@@ -1064,7 +1064,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							MoveSpec.SpeedMult = ConHero->SpeedMultiplier;
 							ddPos = ConHero->ddP;
 
-							if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
+							if ((ConHero->dSword.x != 0.0f) || (ConHero->dSword.y != 0.0f))
 							{
 								sim_entity* Sword = Entity->Sword.Ptr;
 								if (Sword && HasFlag(Sword, entity_flag::Nonspatial))
@@ -1178,12 +1178,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Space:
 				{
-#if 1
+#if 0
 					for (uint32 VolumeIndex = 0; VolumeIndex < Entity->Collision->VolumeCount; ++VolumeIndex)
 					{
 						sim_entity_collision_volume* Volume = Entity->Collision->Volumes + VolumeIndex;
 
-						PushRectOutline(RenderGroup, Volume->OffsetPos.XY, 0, Volume->Dim.XY, V4(1, 0.5f, 1, 1), 0.0f);
+						PushRectOutline(RenderGroup, Volume->OffsetPos.xy, 0, Volume->Dim.xy, V4(1, 0.5f, 1, 1), 0.0f);
 					}
 #endif
 				} break;

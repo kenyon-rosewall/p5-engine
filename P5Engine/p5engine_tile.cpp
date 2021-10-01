@@ -45,7 +45,7 @@ internal uint32
 GetTileValue(world* TileMap, uint32 ChunkX, uint32 ChunkY, uint32 ChunkZ)
 {
 	tile_chunk_position ChunkPos = GetChunkPositionFor(TileMap, ChunkX, ChunkY, ChunkZ);
-	world_chunk* WorldChunk = GetWorldChunk(TileMap, ChunkPos.X, ChunkPos.Y, ChunkPos.Z);
+	world_chunk* WorldChunk = GetWorldChunk(TileMap, ChunkPos.x, ChunkPos.y, ChunkPos.z);
 	uint32 TileChunkValue = GetTileValue(TileMap, WorldChunk, ChunkPos.RelTileX, ChunkPos.RelTileY);
 
 	return(TileChunkValue);
@@ -72,7 +72,7 @@ internal void
 SetTileValue(memory_arena* Arena, world* TileMap, uint32 ChunkX, uint32 ChunkY, uint32 ChunkZ, uint32 TileValue)
 {
 	tile_chunk_position ChunkPos = GetChunkPositionFor(TileMap, ChunkX, ChunkY, ChunkZ);
-	world_chunk* WorldChunk = GetWorldChunk(TileMap, ChunkPos.X, ChunkPos.Y, ChunkPos.Z, Arena);
+	world_chunk* WorldChunk = GetWorldChunk(TileMap, ChunkPos.x, ChunkPos.y, ChunkPos.z, Arena);
 	SetTileValue(TileMap, WorldChunk, ChunkPos.RelTileX, ChunkPos.RelTileY, TileValue);
 }
 

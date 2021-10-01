@@ -12,9 +12,9 @@
   TODO: 
 
   ARCHITECTURE EXPLORATION
-  - Z
+  - z
 	- Need to make a solid concept of ground levels so the camera can
-	  be freely placed in Z and have multiple ground levels in one
+	  be freely placed in z and have multiple ground levels in one
 	  sim region
 	- Concept of ground in the collision loop so it can handle 
 	  collisions coming onto _and off of_ stairwells, for example.
@@ -86,8 +86,8 @@
 
 #include "p5engine_platform.h"
 
-#define Minimum(A, B) ((A < B) ? (A) : (B))
-#define Maximum(A, B) ((A > B) ? (A) : (B))
+#define Minimum(A, b) ((A < b) ? (A) : (b))
+#define Maximum(A, b) ((A > b) ? (A) : (b))
 
 //
 //
