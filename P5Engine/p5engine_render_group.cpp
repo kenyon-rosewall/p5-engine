@@ -282,6 +282,21 @@ Clear(render_group* Group, v4 Color)
 	}
 }
 
+inline render_entry_coordinate_system*
+CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color)
+{
+	render_entry_coordinate_system* Entry = PushRenderElement(Group, render_entry_coordinate_system);
+	if (Entry)
+	{
+		Entry->Origin = Origin;
+		Entry->XAxis = XAxis;
+		Entry->YAxis = YAxis;
+		Entry->Color = Color;
+	}
+
+	return(Entry);
+}
+
 inline v2
 GetRenderEntityBasisPos(render_group* RenderGroup, render_entity_basis* EntityBasis, v2 ScreenCenter)
 {
@@ -337,6 +352,30 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 				render_entry_rectangle* Entry = (render_entry_rectangle*)Header;
 				v2 Pos = GetRenderEntityBasisPos(RenderGroup, &Entry->EntityBasis, ScreenCenter);
 				DrawRectangle(OutputTarget, Pos, Pos + Entry->Dim, Entry->r, Entry->g, Entry->b);
+
+				BaseAddress += sizeof(*Entry);
+			} break;
+
+			case render_group_entry_type::render_entry_coordinate_system:
+			{
+				render_entry_coordinate_system* Entry = (render_entry_coordinate_system*)Header;
+				
+				v2 Dim = V2(2, 2);
+				v2 Pos = Entry->Origin;
+				DrawRectangle(OutputTarget, Pos - Dim, Pos + Dim, Entry->Color.r, Entry->Color.g, Entry->Color.b);
+
+				Pos = Entry->Origin + Entry->XAxis;
+				DrawRectangle(OutputTarget, Pos - Dim, Pos + Dim, Entry->Color.r, Entry->Color.g, Entry->Color.b);
+
+				Pos = Entry->Origin + Entry->YAxis;
+				DrawRectangle(OutputTarget, Pos - Dim, Pos + Dim, Entry->Color.r, Entry->Color.g, Entry->Color.b);
+
+				for (uint32 PointIndex = 0; PointIndex < ArrayCount(Entry->Points); ++PointIndex)
+				{
+					v2 P = Entry->Points[PointIndex];
+					P = Entry->Origin + P.x * Entry->XAxis + P.y * Entry->YAxis;
+					DrawRectangle(OutputTarget, P - Dim, P + Dim, Entry->Color.r, Entry->Color.g, Entry->Color.b);
+				}
 
 				BaseAddress += sizeof(*Entry);
 			} break;
