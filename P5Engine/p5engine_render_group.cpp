@@ -91,10 +91,10 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 		{
 #if 1
 			v2 PixelPos = V2i(X, Y);
-			real32 Edge0 = Inner(PixelPos - Origin, -YAxis);
-			real32 Edge1 = Inner(PixelPos - (Origin + XAxis), XAxis);
-			real32 Edge2 = Inner(PixelPos - (Origin + XAxis + YAxis), YAxis);
-			real32 Edge3 = Inner(PixelPos - (Origin + YAxis), -XAxis);
+			real32 Edge0 = Inner(PixelPos - Origin, -Perp(XAxis));
+			real32 Edge1 = Inner(PixelPos - (Origin + XAxis), -Perp(YAxis));
+			real32 Edge2 = Inner(PixelPos - (Origin + XAxis + YAxis), Perp(XAxis));
+			real32 Edge3 = Inner(PixelPos - (Origin + YAxis), Perp(YAxis));
 
 			if ((Edge0 < 0) && (Edge1 < 0) && (Edge2 < 0) && (Edge3 < 0))
 			{

@@ -1215,7 +1215,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	v2 Origin = ScreenCenter;
 	v2 XAxis = 100 * V2(Cos(Angle), Sin(Angle));
-	v2 YAxis = V2(-XAxis.y, XAxis.x);
+	v2 YAxis = Perp(XAxis);
 
 	uint32 PointIndex = 0;
 	render_entry_coordinate_system* C = CoordinateSystem(RenderGroup, Origin, XAxis, YAxis, V4(1, 0.5f, 1, 1));
