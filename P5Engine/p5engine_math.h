@@ -243,6 +243,14 @@ Perp(v2 A)
 	return(Result);
 }
 
+inline v2
+Lerp(v2 A, real32 t, v2 B)
+{
+	v2 Result = (1.0f - t) * A + t * B;
+
+	return(Result);
+}
+
 //
 // v3 operations
 //
@@ -418,6 +426,14 @@ Clamp01(v3 Value)
 	return(Result);
 }
 
+inline v3
+Lerp(v3 A, real32 t, v3 B)
+{
+	v3 Result = (1.0f - t) * A + t * B;
+
+	return(Result);
+}
+
 //
 // v4 operations
 //
@@ -573,6 +589,14 @@ Clamp01(v4 Value)
 	Result.y = Clamp01(Value.y);
 	Result.z = Clamp01(Value.z);
 	Result.w = Clamp01(Value.w);
+
+	return(Result);
+}
+
+inline v4
+Lerp(v4 A, real32 t, v4 B)
+{
+	v4 Result = (1.0f - t) * A + t * B;
 
 	return(Result);
 }
