@@ -1229,7 +1229,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #endif
 
 	uint32 PointIndex = 0;
-	render_entry_coordinate_system* C = CoordinateSystem(RenderGroup, V2(Disp, 0) + Origin - 0.5f * XAxis - 0.5f * YAxis, XAxis, YAxis, V4(1, 0.5f, 1, 1), &GameState->Tree);
+	v4 Color = V4(0, 0, 1, 0.8f);
+	render_entry_coordinate_system* C = CoordinateSystem(RenderGroup, V2(Disp, 0) + Origin - 0.5f * XAxis - 0.5f * YAxis, XAxis, YAxis, Color, &GameState->Tree);
 	for (real32 Y = 0.0f; Y < 1.0f; Y += 0.25f)
 	{
 		for (real32 X = 0.0f; X < 1.0f; X += 0.25f)
