@@ -192,10 +192,7 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 				TexelD = SRGB255ToLinear1(TexelD);
 
 				v4 Texel = Lerp(Lerp(TexelA, fX, TexelB), fY, Lerp(TexelC, fX, TexelD));
-				Texel.r *= Color.r;
-				Texel.g *= Color.g;
-				Texel.b *= Color.b;
-				Texel.a *= Color.a;
+				Texel = Hadamard(Texel, Color);
 
 				v4 Dest = V4(
 					(real32)((*Pixel >> 16) & 0xFF),
@@ -206,15 +203,8 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 
 				// NOTE: Go from sRGB to "linear" brightness space
 				Dest = SRGB255ToLinear1(Dest);
-				real32 InvRSA = (1.0f - Texel.a);
 
-				v4 Blended = V4(
-					InvRSA * Dest.r + Texel.r,
-					InvRSA * Dest.g + Texel.g,
-					InvRSA * Dest.b + Texel.b,
-					(Texel.a + Dest.a - Texel.a * Dest.a)
-				);
-
+				v4 Blended = (1.0f - Texel.a) * Dest + Texel;
 				v4 Blended255 = Linear1ToSRGB255(Blended);
 
 				*Pixel = (((uint32)(Blended255.a + 0.5f) << 24) |
@@ -290,14 +280,7 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 Re
 				);
 
 			D = SRGB255ToLinear1(D);
-			real32 InvRSA = (1.0f - Texel.a);
-
-			v4 Result = V4(
-				InvRSA * D.r + Texel.r,
-				InvRSA * D.g + Texel.g,
-				InvRSA * D.b + Texel.b,
-				(Texel.a + D.a - Texel.a * D.a)
-			);
+			v4 Result = (1.0f - Texel.a) * D + Texel;
 			Result = Linear1ToSRGB255(Result);
 
 			*Dest = (((uint32)(Result.a + 0.5f) << 24) |
