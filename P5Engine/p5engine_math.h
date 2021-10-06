@@ -449,6 +449,11 @@ union v4
 	{
 		real32 r, g, b, a;
 	};
+	struct
+	{
+		v3 rgb;
+		real32 Ignored0;
+	};
 };
 
 inline v4
