@@ -581,7 +581,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		uint32 TilesPerHeight = 9;
 
 		GameState->TypicalFloorHeight = 3.0f;
-		GameState->MetersToPixels = 48.0f;
+		GameState->MetersToPixels = 43.0f;
 		GameState->PixelsToMeters = 1.0f / GameState->MetersToPixels;
 
 		v3 WorldChunkDimInMeters = V3(
@@ -943,7 +943,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DrawBuffer->Pitch = Buffer->Pitch;
 	DrawBuffer->Memory = (uint32*)Buffer->Memory;
 
-	Clear(RenderGroup, V4(1, 0, 1, 0));
+	Clear(RenderGroup, V4(0.5f, 0.5f, 0.5f, 0));
 
 	v2 ScreenCenter = V2(
 		0.5f * (real32)DrawBuffer->Width,
@@ -1221,6 +1221,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		Angle -= 2.0 * Pi32;
 	}
 	real32 Disp = 100.0f * Cos(5.0f * Angle);
+	Angle = 0;
 
 	v2 Origin = ScreenCenter;
 
@@ -1233,8 +1234,19 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #endif
 
 	uint32 PointIndex = 0;
-	v4 Color = V4(0, 0, 1, 0.8f);
-	render_entry_coordinate_system* C = CoordinateSystem(RenderGroup, V2(Disp, 0) + Origin - 0.5f * XAxis - 0.5f * YAxis, XAxis, YAxis, Color, &GameState->Tree);
+	real32 CAngle = 5.0f * Angle;
+#if 0
+	v4 Color = V4(
+		0.5f + 0.5f * Sin(CAngle),
+		0.5f + 0.5f * Sin(2.9f * CAngle),
+		0.5f + 0.5f * Cos(9.9f * CAngle),
+		0.5f + 0.5f * Sin(10.0f * CAngle)
+	);
+#else
+	v4 Color = V4(1, 1, 1, 1);
+#endif
+
+	render_entry_coordinate_system* C = CoordinateSystem(RenderGroup, /*V2(Disp, 0) + */Origin - 0.5f * XAxis - 0.5f * YAxis, XAxis, YAxis, Color, &GameState->Tree);
 	for (real32 Y = 0.0f; Y < 1.0f; Y += 0.25f)
 	{
 		for (real32 X = 0.0f; X < 1.0f; X += 0.25f)

@@ -525,10 +525,11 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 			case render_group_entry_type::render_entry_bitmap:
 			{
 				render_entry_bitmap* Entry = (render_entry_bitmap*)Data;
+#if 0
 				v2 Pos = GetRenderEntityBasisPos(RenderGroup, &Entry->EntityBasis, ScreenCenter);
 				Assert(Entry->Bitmap);
 				DrawBitmap(OutputTarget, Entry->Bitmap, Pos.x, Pos.y, Entry->a);
-				
+#endif
 				BaseAddress += sizeof(*Entry);
 			} break;
 
