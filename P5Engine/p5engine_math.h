@@ -145,6 +145,25 @@ operator*=(v2& B, real32 A)
 }
 
 inline v2
+operator/(v2 A, real32 B)
+{
+	v2 Result = {};
+
+	Result.x = A.x / B;
+	Result.y = A.y / B;
+
+	return(Result);
+}
+
+inline v2&
+operator/=(v2& B, real32 A)
+{
+	B = B / A;
+
+	return(B);
+}
+
+inline v2
 operator-(v2 A)
 {
 	v2 Result = {};
@@ -221,6 +240,14 @@ inline real32
 Length(v2 A)
 {
 	real32 Result = SquareRoot(LengthSq(A));
+
+	return(Result);
+}
+
+inline v2
+Normalize(v2 A)
+{
+	v2 Result = A / Length(A);
 
 	return(Result);
 }
@@ -331,6 +358,26 @@ operator*=(v3& B, real32 A)
 }
 
 inline v3
+operator/(v3 A, real32 B)
+{
+	v3 Result = {};
+
+	Result.x = A.x / B;
+	Result.y = A.y / B;
+	Result.z = A.z / B;
+
+	return(Result);
+}
+
+inline v3&
+operator/=(v3& B, real32 A)
+{
+	B = B / A;
+
+	return(B);
+}
+
+inline v3
 operator-(v3 A)
 {
 	v3 Result = {};
@@ -415,6 +462,14 @@ Length(v3 A)
 }
 
 inline v3
+Normalize(v3 A)
+{
+	v3 Result = A / Length(A);
+
+	return(Result);
+}
+
+inline v3
 Clamp01(v3 Value)
 {
 	v3 Result = {};
@@ -453,6 +508,11 @@ union v4
 	{
 		v3 rgb;
 		real32 Ignored0;
+	};
+	struct
+	{
+		v3 xyz;
+		real32 Ignored1;
 	};
 };
 
@@ -494,6 +554,27 @@ inline v4&
 operator*=(v4& B, real32 A)
 {
 	B = A * B;
+
+	return(B);
+}
+
+inline v4
+operator/(v4 A, real32 B)
+{
+	v4 Result = {};
+
+	Result.x = A.x / B;
+	Result.y = A.y / B;
+	Result.z = A.z / B;
+	Result.w = A.w / B;
+
+	return(Result);
+}
+
+inline v4&
+operator/=(v4& B, real32 A)
+{
+	B = B / A;
 
 	return(B);
 }
@@ -581,6 +662,14 @@ inline real32
 Length(v4 A)
 {
 	real32 Result = SquareRoot(LengthSq(A));
+
+	return(Result);
+}
+
+inline v4
+Normalize(v4 A)
+{
+	v4 Result = A / Length(A);
 
 	return(Result);
 }

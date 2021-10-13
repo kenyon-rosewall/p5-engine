@@ -76,8 +76,30 @@ DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, real32 R, real32 G, real3
 	}
 }
 
+inline v4
+Unpack4x8(uint32 Packed)
+{
+	v4 Result = V4(
+		(real32)((Packed >> 16) & 0xFF),
+		(real32)((Packed >>  8) & 0xFF),
+		(real32)((Packed >>  0) & 0xFF),
+		(real32)((Packed >> 24) & 0xFF)
+	);
+
+	return(Result);
+}
+
+inline v3
+SampleEnvironmentMap(v2 ScreenSpaceUV, v3 Normal, real32 Roughness, environment_map* Map)
+{
+	v3 Result = Normal;
+
+	return(Result);
+}
+
 internal void
-DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, loaded_bitmap* Texture)
+DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Color,
+	loaded_bitmap* Texture, loaded_bitmap* NormalMap, environment_map* Top, environment_map* Middle, environment_map* Bottom)
 {
 	// NOTE: Premultiply color up front
 	Color.rgb *= Color.a;
@@ -92,6 +114,9 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 
 	int WidthMax = (Buffer->Width - 1);
 	int HeightMax = (Buffer->Height - 1);
+
+	real32 InvWidthMax = 1.0f / (real32)WidthMax;
+	real32 InvHeightMax = 1.0f / (real32)HeightMax;
 
 	int XMin = WidthMax;
 	int XMax = 0;
@@ -136,6 +161,8 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 
 			if ((Edge0 < 0) && (Edge1 < 0) && (Edge2 < 0) && (Edge3 < 0))
 			{
+				v2 ScreenSpaceUV = V2(InvWidthMax * (real32)X, InvHeightMax * (real32)Y);
+
 				real32 U = InvXAxisLengthSq * Inner(d, XAxis);
 				real32 V = InvYAxisLengthSq * Inner(d, YAxis);
 
@@ -160,30 +187,10 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 				uint32 TexelPtrC = *(uint32*)(TexelPtr + Texture->Pitch);
 				uint32 TexelPtrD = *(uint32*)(TexelPtr + Texture->Pitch + BITMAP_BYTES_PER_PIXEL);
 
-				v4 TexelA = V4(
-					(real32)((TexelPtrA >> 16) & 0xFF),
-					(real32)((TexelPtrA >> 8) & 0xFF),
-					(real32)((TexelPtrA >> 0) & 0xFF),
-					(real32)((TexelPtrA >> 24) & 0xFF)
-				);
-				v4 TexelB = V4(
-					(real32)((TexelPtrB >> 16) & 0xFF),
-					(real32)((TexelPtrB >> 8) & 0xFF),
-					(real32)((TexelPtrB >> 0) & 0xFF),
-					(real32)((TexelPtrB >> 24) & 0xFF)
-				);
-				v4 TexelC = V4(
-					(real32)((TexelPtrC >> 16) & 0xFF),
-					(real32)((TexelPtrC >> 8) & 0xFF),
-					(real32)((TexelPtrC >> 0) & 0xFF),
-					(real32)((TexelPtrC >> 24) & 0xFF)
-				);
-				v4 TexelD = V4(
-					(real32)((TexelPtrD >> 16) & 0xFF),
-					(real32)((TexelPtrD >> 8) & 0xFF),
-					(real32)((TexelPtrD >> 0) & 0xFF),
-					(real32)((TexelPtrD >> 24) & 0xFF)
-				);
+				v4 TexelA = Unpack4x8(TexelPtrA);
+				v4 TexelB = Unpack4x8(TexelPtrB);
+				v4 TexelC = Unpack4x8(TexelPtrC);
+				v4 TexelD = Unpack4x8(TexelPtrD);
 
 				// NOTE: Go from sRGB to linear brightness space
 				TexelA = SRGB255ToLinear1(TexelA);
@@ -192,14 +199,53 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 				TexelD = SRGB255ToLinear1(TexelD);
 
 				v4 Texel = Lerp(Lerp(TexelA, fX, TexelB), fY, Lerp(TexelC, fX, TexelD));
+
+				if (NormalMap)
+				{
+					uint8* NormalPtr = ((uint8*)NormalMap->Memory) + Y * NormalMap->Pitch + X * BITMAP_BYTES_PER_PIXEL;
+					uint32 NormalPtrA = *(uint32*)(NormalPtr);
+					uint32 NormalPtrB = *(uint32*)(NormalPtr + BITMAP_BYTES_PER_PIXEL);
+					uint32 NormalPtrC = *(uint32*)(NormalPtr + Texture->Pitch);
+					uint32 NormalPtrD = *(uint32*)(NormalPtr + Texture->Pitch + BITMAP_BYTES_PER_PIXEL);
+
+					v4 NormalA = Unpack4x8(NormalPtrA);
+					v4 NormalB = Unpack4x8(NormalPtrB);
+					v4 NormalC = Unpack4x8(NormalPtrC);
+					v4 NormalD = Unpack4x8(NormalPtrD);
+
+					v4 Normal = Lerp(Lerp(NormalA, fX, NormalB), fY, Lerp(NormalC, fX, NormalD));
+
+					environment_map* FarMap = 0;
+					real32 tEnvMap = Normal.z;
+					real32 tFarMap = 0.0f;
+					if (tEnvMap < 0.25f)
+					{
+						FarMap = Bottom;
+						tFarMap = 1.0f - (tEnvMap / 0.25f);
+					}
+					else if (tEnvMap > 0.75f)
+					{
+						FarMap = Top;
+						tFarMap = 1.0f - (tEnvMap / 0.75f);
+					}
+					else
+					{
+
+					}
+
+					v3 LightColor = SampleEnvironmentMap(ScreenSpaceUV, Normal.xyz, Normal.w, Middle);
+					if (FarMap)
+					{
+						v3 FarMapColor = SampleEnvironmentMap(ScreenSpaceUV, Normal.xyz, Normal.w, Middle);
+						LightColor = Lerp(LightColor, tFarMap, FarMapColor);
+					}
+
+					Texel.rgb = Hadamard(Texel.rgb, LightColor);
+				}
+
 				Texel = Hadamard(Texel, Color);
 
-				v4 Dest = V4(
-					(real32)((*Pixel >> 16) & 0xFF),
-					(real32)((*Pixel >>  8) & 0xFF),
-					(real32)((*Pixel >>  0) & 0xFF),
-					(real32)((*Pixel >> 24) & 0xFF)
-					);
+				v4 Dest = Unpack4x8(*Pixel);
 
 				// NOTE: Go from sRGB to "linear" brightness space
 				Dest = SRGB255ToLinear1(Dest);
@@ -262,24 +308,13 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, real32 RealX, real32 Re
 		uint32* Source = (uint32*)SourceRow;
 		for (int32 x = MinX; x < MaxX; ++x)
 		{
-			v4 Texel = V4(
-				(real32)((*Source >> 16) & 0xFF),
-				(real32)((*Source >> 8) & 0xFF),
-				(real32)((*Source >> 0) & 0xFF),
-				(real32)((*Source >> 24) & 0xFF)
-			);
-
+			v4 Texel = Unpack4x8(*Source);
 			Texel = SRGB255ToLinear1(Texel);
 			Texel *= CAlpha;
 
-			v4 D = V4(
-				(real32)((*Dest >> 16) & 0xFF),
-				(real32)((*Dest >> 8) & 0xFF),
-				(real32)((*Dest >> 0) & 0xFF),
-				(real32)((*Dest >> 24) & 0xFF)
-				);
-
+			v4 D = Unpack4x8(*Dest);
 			D = SRGB255ToLinear1(D);
+
 			v4 Result = (1.0f - Texel.a) * D + Texel;
 			Result = Linear1ToSRGB255(Result);
 
@@ -465,7 +500,8 @@ Clear(render_group* Group, v4 Color)
 }
 
 inline render_entry_coordinate_system*
-CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, loaded_bitmap* Texture)
+CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, loaded_bitmap* Texture, 
+	loaded_bitmap* NormalMap, environment_map* Top, environment_map* Middle, environment_map* Bottom)
 {
 	render_entry_coordinate_system* Entry = PushRenderElement(Group, render_entry_coordinate_system);
 	if (Entry)
@@ -475,6 +511,10 @@ CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, l
 		Entry->YAxis = YAxis;
 		Entry->Color = Color;
 		Entry->Texture = Texture;
+		Entry->NormalMap = NormalMap;
+		Entry->Top = Top;
+		Entry->Middle = Middle;
+		Entry->Bottom = Bottom;
 	}
 
 	return(Entry);
@@ -546,7 +586,18 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 			{
 				render_entry_coordinate_system* Entry = (render_entry_coordinate_system*)Data;
 				
-				DrawRectangleSlowly(OutputTarget, Entry->Origin, Entry->XAxis, Entry->YAxis, Entry->Color, Entry->Texture);
+				DrawRectangleSlowly(
+					OutputTarget, 
+					Entry->Origin, 
+					Entry->XAxis, 
+					Entry->YAxis, 
+					Entry->Color, 
+					Entry->Texture, 
+					Entry->NormalMap,
+					Entry->Top,
+					Entry->Middle,
+					Entry->Bottom
+				);
 
 				v4 Color = V4(1, 1, 0, 1);
 				v2 Dim = V2(2, 2);
