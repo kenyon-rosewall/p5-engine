@@ -255,6 +255,7 @@ struct game_state
 	hero_bitmaps Hero[4];
 
 	loaded_bitmap Tree;
+	loaded_bitmap TreeNormal;
 	loaded_bitmap Stairs;
 	loaded_bitmap Monstar;
 	loaded_bitmap Familiar;

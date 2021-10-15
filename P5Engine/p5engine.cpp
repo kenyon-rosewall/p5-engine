@@ -553,8 +553,8 @@ MakeEmptyBitmap(memory_arena* Arena, int32 Width, int32 Height, bool32 ClearToZe
 internal void
 MakeSphereNormalMap(loaded_bitmap* Bitmap, real32 Roughness)
 {
-	real32 InvWidth = 1.0f / (1.0f - (real32)Bitmap->Width);
-	real32 InvHeight = 1.0f / (1.0f - (real32)Bitmap->Height);
+	real32 InvWidth = 1.0f / ((real32)Bitmap->Width - 1.0f);
+	real32 InvHeight = 1.0f / ((real32)Bitmap->Height - 1.0f);
 
 	uint8* Row = (uint8*)Bitmap->Memory;
 	for (int32 Y = 0; Y < Bitmap->Height; ++Y)
@@ -563,23 +563,30 @@ MakeSphereNormalMap(loaded_bitmap* Bitmap, real32 Roughness)
 		for (int32 X = 0; X < Bitmap->Width; ++X)
 		{
 			v2 BitmapUV = V2(InvWidth * (real32)X, InvHeight * (real32)Y);
+			
+			real32 Nx = 2.0f * BitmapUV.x - 1.0f;
+			real32 Ny = 2.0f * BitmapUV.y - 1.0f;
 
-			v3 Normal = V3(2.0f * BitmapUV.x - 1.0f, 2.0f * BitmapUV.y - 1.0f, 0.0f);
-			Normal.z = SquareRoot(1.0f - Minimum(1.0f, Square(Normal.x) + Square(Normal.y)));
-
-			Normal = Normalize(Normal);
+			v3 Normal = V3(0, 0, 1);
+			real32 RootTerm = 1.0f - Nx * Nx - Ny * Ny;
+			real32 Nz = 0.0f;
+			if (RootTerm >= 0)
+			{
+				Nz = SquareRoot(RootTerm);
+				Normal = V3(Nx, Ny, Nz);
+			}
 
 			v4 Color = V4(
 				255.0f * (0.5f * (Normal.x + 1.0f)), 
 				255.0f * (0.5f * (Normal.y + 1.0f)), 
-				127.0f * Normal.z,
+				255.0f * (0.5f * (Normal.z + 1.0f)),
 				255.0f * Roughness
 			);
 
-			*Pixel = (((uint32)(Color.a + 0.5f) << 24) |
-					  ((uint32)(Color.r + 0.5f) << 16) |
-					  ((uint32)(Color.g + 0.5f) <<  8) |
-					  ((uint32)(Color.b + 0.5f) <<  0));
+			*Pixel++ = (((uint32)(Color.a + 0.5f) << 24) |
+						((uint32)(Color.r + 0.5f) << 16) |
+						((uint32)(Color.g + 0.5f) <<  8) |
+						((uint32)(Color.b + 0.5f) <<  0));
 		}
 
 		Row += Bitmap->Pitch;
@@ -863,6 +870,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GroundBuffer->Bitmap = MakeEmptyBitmap(&TransientState->TransientArena, GroundBufferWidth, GroundBufferHeight, false);
 			GroundBuffer->Pos = NullPosition();
 		}
+
+		GameState->TreeNormal = MakeEmptyBitmap(&TransientState->TransientArena, GameState->Tree.Width, GameState->Tree.Height, false);
+		MakeSphereNormalMap(&GameState->TreeNormal, 0.0f);
 
 		TransientState->IsInitialized = true;
 	}
@@ -1257,19 +1267,17 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		Angle -= 2.0 * Pi32;
 	}
 	real32 Disp = 100.0f * Cos(5.0f * Angle);
+
 	Angle = 0;
 
 	v2 Origin = ScreenCenter;
-
 #if 1
 	v2 XAxis = 100.0f * V2(Cos(Angle), Sin(Angle));
 	v2 YAxis = Perp(XAxis);
 #else
-	v2 XAxis = V2(300, 0);
-	v2 YAxis = V2(0, 300);
+	v2 XAxis = V2(100, 0);
+	v2 YAxis = V2(0, 100);
 #endif
-
-	uint32 PointIndex = 0;
 	real32 CAngle = 5.0f * Angle;
 #if 0
 	v4 Color = V4(
@@ -1289,7 +1297,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		YAxis, 
 		Color, 
 		&GameState->Tree,
-		0, 0, 0, 0
+		&GameState->TreeNormal,
+		0, 0, 0
 	);
 
 	RenderGroupToOutput(RenderGroup, DrawBuffer);
