@@ -1,5 +1,4 @@
 #include "p5engine.h"
-#include "p5engine_render_group.h"
 #include "p5engine_render_group.cpp"
 #include "p5engine_world.cpp"
 #include "p5engine_sim_region.cpp"
@@ -26,12 +25,12 @@ internal void
 DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 r = 2.0f)
 {
 	// NOTE: Rop and boRRom
-	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMax.x + r, vMin.y + r), Color.r, Color.g, Color.b);
-	DrawRectangle(Buffer, V2(vMin.x - r, vMax.y - r), V2(vMax.x + r, vMax.y + r), Color.r, Color.g, Color.b);
+	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMax.x + r, vMin.y + r), ToV4(Color, 1));
+	DrawRectangle(Buffer, V2(vMin.x - r, vMax.y - r), V2(vMax.x + r, vMax.y + r), ToV4(Color, 1));
 
 	// NOTE: Left and righte
-	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMin.x + r, vMax.y + r), Color.r, Color.g, Color.b);
-	DrawRectangle(Buffer, V2(vMax.x - r, vMin.y - r), V2(vMax.x + r, vMax.y + r), Color.r, Color.g, Color.b);
+	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMin.x + r, vMax.y + r), ToV4(Color, 1));
+	DrawRectangle(Buffer, V2(vMax.x - r, vMin.y - r), V2(vMax.x + r, vMax.y + r), ToV4(Color, 1));
 }
 
 #pragma pack(push, 1)
@@ -553,8 +552,8 @@ MakeEmptyBitmap(memory_arena* Arena, int32 Width, int32 Height, bool32 ClearToZe
 internal void
 MakeSphereNormalMap(loaded_bitmap* Bitmap, real32 Roughness)
 {
-	real32 InvWidth = 1.0f / ((real32)Bitmap->Width - 1.0f);
-	real32 InvHeight = 1.0f / ((real32)Bitmap->Height - 1.0f);
+	real32 InvWidth = 1.0f / (real32)(Bitmap->Width - 1);
+	real32 InvHeight = 1.0f / (real32)(Bitmap->Height - 1);
 
 	uint8* Row = (uint8*)Bitmap->Memory;
 	for (int32 Y = 0; Y < Bitmap->Height; ++Y)
@@ -567,8 +566,8 @@ MakeSphereNormalMap(loaded_bitmap* Bitmap, real32 Roughness)
 			real32 Nx = 2.0f * BitmapUV.x - 1.0f;
 			real32 Ny = 2.0f * BitmapUV.y - 1.0f;
 
+			real32 RootTerm = 1.0f - Nx*Nx - Ny*Ny;
 			v3 Normal = V3(0, 0, 1);
-			real32 RootTerm = 1.0f - Nx * Nx - Ny * Ny;
 			real32 Nz = 0.0f;
 			if (RootTerm >= 0)
 			{
@@ -856,6 +855,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		Memory->IsInitialized = true;
 	}
 
+	// NOTE: Transient initialization
 	Assert(sizeof(transient_state) <= Memory->TransientStorageSize);
 	transient_state* TransientState = (transient_state*)Memory->TransientStorage;
 	if (!TransientState->IsInitialized)
@@ -871,8 +871,25 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GroundBuffer->Pos = NullPosition();
 		}
 
-		GameState->TreeNormal = MakeEmptyBitmap(&TransientState->TransientArena, GameState->Tree.Width, GameState->Tree.Height, false);
-		MakeSphereNormalMap(&GameState->TreeNormal, 0.0f);
+		GameState->TestDiffuse = MakeEmptyBitmap(&TransientState->TransientArena, 256, 256, false);
+		DrawRectangle(&GameState->TestDiffuse, V2(0, 0), V2i(GameState->TestDiffuse.Width, GameState->TestDiffuse.Height), V4(0.5f, 0.5f, 0.5f, 1.0f));
+		GameState->TestNormal = MakeEmptyBitmap(&TransientState->TransientArena, GameState->TestDiffuse.Width, GameState->TestDiffuse.Height, false);
+		MakeSphereNormalMap(&GameState->TestNormal, 0.0f);
+
+		TransientState->EnvMapWidth = 512;
+		TransientState->EnvMapHeight = 256;
+		for (uint32 MapIndex = 0; MapIndex < ArrayCount(TransientState->EnvMaps); ++MapIndex)
+		{
+			environment_map* Map = TransientState->EnvMaps + MapIndex;
+			uint32 Width = TransientState->EnvMapWidth;
+			uint32 Height = TransientState->EnvMapHeight;
+			for (uint32 LODIndex = 0; LODIndex < ArrayCount(Map->LOD); ++LODIndex)
+			{
+				Map->LOD[LODIndex] = MakeEmptyBitmap(&TransientState->TransientArena, Width, Height, false);
+				Width >>= 1;
+				Height >>= 1;
+			}
+		}
 
 		TransientState->IsInitialized = true;
 	}
@@ -989,7 +1006,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DrawBuffer->Pitch = Buffer->Pitch;
 	DrawBuffer->Memory = (uint32*)Buffer->Memory;
 
-	Clear(RenderGroup, V4(0.5f, 0.5f, 0.5f, 0));
+	Clear(RenderGroup, V4(0.25f, 0.25f, 0.25f, 0));
 
 	v2 ScreenCenter = V2(
 		0.5f * (real32)DrawBuffer->Width,
@@ -1268,6 +1285,34 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	}
 	real32 Disp = 100.0f * Cos(5.0f * Angle);
 
+	v3 MapColor[] =
+	{
+		V3(1, 0, 0),
+		V3(0, 1, 0),
+		V3(0, 0, 1)
+	};
+	for (uint32 MapIndex = 0; MapIndex < ArrayCount(TransientState->EnvMaps); ++MapIndex)
+	{
+		environment_map* Map = TransientState->EnvMaps + MapIndex;
+		loaded_bitmap* LOD = Map->LOD + 0;
+		bool32 RowCheckerOn = false;
+		int32 CheckerWidth = 16;
+		int32 CheckerHeight = 16;
+		for (int32 Y = 0; Y < LOD->Height; Y += CheckerHeight)
+		{
+			bool32 CheckerOn = RowCheckerOn;
+			for (int32 X = 0; X < LOD->Width; X += CheckerWidth)
+			{
+				v4 Color = CheckerOn ? ToV4(MapColor[MapIndex], 1.0f) : V4(0, 0, 0, 1);
+				v2 MinP = V2i(X, Y);
+				v2 MaxP = MinP + V2i(CheckerWidth, CheckerHeight);
+				DrawRectangle(LOD, MinP, MaxP, Color);
+				CheckerOn = !CheckerOn;
+			}
+			RowCheckerOn = !RowCheckerOn;
+		}
+	}
+	
 	Angle = 0;
 
 	v2 Origin = ScreenCenter;
@@ -1292,14 +1337,29 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	render_entry_coordinate_system* C = CoordinateSystem(
 		RenderGroup, 
-		/*V2(Disp, 0) + */Origin - 0.5f * XAxis - 0.5f * YAxis, 
+		/*V2(Disp, 0) + */ Origin - 0.5f * XAxis - 0.5f * YAxis, 
 		XAxis, 
 		YAxis, 
 		Color, 
-		&GameState->Tree,
-		&GameState->TreeNormal,
-		0, 0, 0
+		&GameState->TestDiffuse,
+		&GameState->TestNormal,
+		TransientState->EnvMaps + 2, 
+		TransientState->EnvMaps + 1, 
+		TransientState->EnvMaps + 0
 	);
+
+	v2 MapP = V2(0.0f, 0.0f);
+	for (uint32 MapIndex = 0; MapIndex < ArrayCount(TransientState->EnvMaps); ++MapIndex)
+	{
+		environment_map* Map = TransientState->EnvMaps + MapIndex;
+		loaded_bitmap* LOD = Map->LOD + 0;
+
+		XAxis = 0.5f * V2((real32)LOD->Width, 0.0f);
+		YAxis = 0.5f * V2(0.0f, (real32)LOD->Height);
+
+		CoordinateSystem(RenderGroup, MapP, XAxis, YAxis, V4(1.0f, 1.0f, 1.0f, 1.0f), LOD, 0, 0, 0, 0);
+		MapP += YAxis + V2(0.0f, 6.0f);
+	}
 
 	RenderGroupToOutput(RenderGroup, DrawBuffer);
 

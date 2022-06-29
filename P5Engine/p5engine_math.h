@@ -318,12 +318,11 @@ V3(real32 X, real32 Y, real32 Z)
 }
 
 inline v3
-V3(v2 XY, real32 Z)
+ToV3(v2 XY, real32 Z)
 {
 	v3 Result = {};
 
-	Result.x = XY.x;
-	Result.y = XY.y;
+	Result.xy = XY;
 	Result.z = Z;
 	
 	return(Result);
@@ -524,6 +523,17 @@ V4(real32 X, real32 Y, real32 Z, real32 W)
 	Result.x = X;
 	Result.y = Y;
 	Result.z = Z;
+	Result.w = W;
+
+	return(Result);
+}
+
+inline v4
+ToV4(v3 XYZ, real32 W)
+{
+	v4 Result;
+
+	Result.xyz = XYZ;
 	Result.w = W;
 
 	return(Result);

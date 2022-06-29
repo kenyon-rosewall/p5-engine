@@ -481,14 +481,12 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 		ddP += V3(0, 0, -9.8f);
 	}
 
-	v3 OldPlayerP = Entity->Pos;
 	v3 PlayerDelta = (0.5f * ddP * Square(dt) + Entity->dPos * dt);
 	Entity->dPos = ddP * dt + Entity->dPos;
 	// TODO: Upgrade physical motion routines to handle capping the
 	// maximum velocity
 	Assert(LengthSq(Entity->dPos) <= Square(SimRegion->MaxEntityVelocity));
-	v3 NewPlayerP = OldPlayerP + PlayerDelta;
-
+	
 	real32 DistanceRemaining = Entity->DistanceLimit;
 	if (DistanceRemaining == 0.0f)
 	{
@@ -559,7 +557,7 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 										{ MinCorner.y, Rel.y, Rel.x, PlayerDelta.y, PlayerDelta.x,
 										MinCorner.x, MaxCorner.x,V3(0, -1, 0) },
 										// Bottom wall
-										{MaxCorner.y, Rel.y, Rel.x, PlayerDelta.y, PlayerDelta.x,
+										{ MaxCorner.y, Rel.y, Rel.x, PlayerDelta.y, PlayerDelta.x,
 										MinCorner.x, MaxCorner.x, V3(0, 1, 0) }
 									};
 

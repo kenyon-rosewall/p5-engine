@@ -11,6 +11,14 @@
 /*
   TODO: 
 
+  - Rendering
+    - Lighting
+	- Straighten out all coordinate systems!
+	  - Screen
+	  - World
+	  - Texture
+	- Optimization
+
   ARCHITECTURE EXPLORATION
   - z
 	- Need to make a solid concept of ground levels so the camera can
@@ -176,14 +184,7 @@ ZeroSize(memory_index Size, void* Ptr)
 #include "p5engine_world.h"
 #include "p5engine_sim_region.h"
 #include "p5engine_entity.h"
-
-struct loaded_bitmap
-{
-	int32 Width;
-	int32 Height;
-	int32 Pitch;
-	void* Memory;
-};
+#include "p5engine_render_group.h"
 
 struct hero_bitmaps
 {
@@ -255,7 +256,6 @@ struct game_state
 	hero_bitmaps Hero[4];
 
 	loaded_bitmap Tree;
-	loaded_bitmap TreeNormal;
 	loaded_bitmap Stairs;
 	loaded_bitmap Monstar;
 	loaded_bitmap Familiar;
@@ -275,6 +275,9 @@ struct game_state
 	sim_entity_collision_volume_group* StandardRoomCollision;
 
 	real32 Time;
+
+	loaded_bitmap TestDiffuse;
+	loaded_bitmap TestNormal;
 };
 
 struct transient_state
@@ -283,6 +286,11 @@ struct transient_state
 	memory_arena TransientArena;
 	uint32 GroundBufferCount;
 	ground_buffer* GroundBuffers;
+
+	uint32 EnvMapWidth;
+	uint32 EnvMapHeight;
+	// NOTE: 0 is bottom, 1 is middle, 2 is top
+	environment_map EnvMaps[3];
 };
 
 inline low_entity*
