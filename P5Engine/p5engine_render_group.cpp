@@ -287,6 +287,8 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 					Normal = UnscaleAndBiasNormal(Normal);
 					Normal.xyz = Normalize(Normal.xyz);
 
+					// TODO: Rotate normals based on X/Y axis!
+
 					// NOTE: The eye vector is always assumed to be [0, 0, 1]
 					// This is just the simplified version of the reflection -e + 2^T N N 
 					v3 BounceDirection = 2.0f * Normal.z * Normal.xyz;
