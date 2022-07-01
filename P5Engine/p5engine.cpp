@@ -567,7 +567,7 @@ MakeSphereNormalMap(loaded_bitmap* Bitmap, real32 Roughness)
 			real32 Ny = 2.0f * BitmapUV.y - 1.0f;
 
 			real32 RootTerm = 1.0f - Nx*Nx - Ny*Ny;
-			v3 Normal = V3(0, 0, 1);
+			v3 Normal = V3(0, 0.707106781188f, 0.707106781188f);
 			real32 Nz = 0.0f;
 			if (RootTerm >= 0)
 			{
@@ -1337,7 +1337,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	render_entry_coordinate_system* C = CoordinateSystem(
 		RenderGroup, 
-		/*V2(Disp, 0) + */ Origin - 0.5f * XAxis - 0.5f * YAxis, 
+		V2(Disp, 0) + Origin - 0.5f * XAxis - 0.5f * YAxis, 
 		XAxis, 
 		YAxis, 
 		Color, 
