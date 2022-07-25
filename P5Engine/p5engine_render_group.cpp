@@ -149,24 +149,42 @@ SRGBBilinearBlend(bilinear_sample Sample, real32 fX, real32 fY)
 }
 
 inline v3
-SampleEnvironmentMap(v2 ScreenSpaceUV, v3 SampleDirection, real32 Roughness, environment_map* Map)
+SampleEnvironmentMap(v2 ScreenSpaceUV, v3 SampleDirection, real32 Roughness, environment_map* Map,
+	real32 DistanceFromMapInZ)
 {
+	/* NOTE: ScreenSpaceUV tells us where the ray is being cast _from_
+	   in normalized screen coordinates.
+
+	   SampleDirection tells us what direction the cast is going - it
+	   does not have to be normalized.
+
+	   Roughness says which LODs of Map we sample from.
+	*/
+
+	// NOTE: Pick which LOD to sample from
 	uint32 LODIndex = (uint32)(Roughness * (real32)(ArrayCount(Map->LOD) - 1) + 0.5f);
 	Assert(LODIndex < ArrayCount(Map->LOD));
 
 	loaded_bitmap* LOD = &Map->LOD[LODIndex];
 
-	Assert(SampleDirection.y > 0.0f);
-	real32 DistanceFromMapInZ = 1.0f;
-	real32 UvsPerMeter = 0.01f;
-	real32 C = (UvsPerMeter * DistanceFromMapInZ) / SampleDirection.y;
+	// NOTE: Compute the distance to the map and the scaling
+	// factor for meters-to-UVs
+	// TODO: Parameterize this, and should be different for X and Y,
+	// based on map
+	real32 UVsPerMeter = 0.01f;
+	real32 C = (UVsPerMeter * DistanceFromMapInZ) / SampleDirection.y;
 	// TODO: Make sure we know what direction Z should go in Y
 	v2 Offset = C * V2(SampleDirection.x, SampleDirection.z);
+
+	// NOTE: Find the intersection point
 	v2 UV = ScreenSpaceUV + Offset;
 
+	// NOTE: Clamp to the valid range
 	UV.x = Clamp01(UV.x);
 	UV.y = Clamp01(UV.y);
 
+	// NOTE: Bilinear sample
+	// TODO: Formalize texture boundaries!!!
 	real32 tX = ((UV.x * (real32)(LOD->Width - 2)));
 	real32 tY = ((UV.y * (real32)(LOD->Height - 2)));
 
@@ -178,6 +196,9 @@ SampleEnvironmentMap(v2 ScreenSpaceUV, v3 SampleDirection, real32 Roughness, env
 
 	Assert((X >= 0) && (X < LOD->Width));
 	Assert((Y >= 0) && (Y < LOD->Height));
+
+	uint8* TexelPtr = ((uint8*)LOD->Memory) + Y * LOD->Pitch + X * sizeof(uint32);
+	*(uint32*)TexelPtr = 0xFFFFFFFF;
 
 	bilinear_sample Sample = BilinearSample(LOD, X, Y);
 	v3 Result = SRGBBilinearBlend(Sample, fX, fY).rgb;
@@ -191,6 +212,13 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 {
 	// NOTE: Premultiply color up front
 	Color.rgb *= Color.a;
+
+	real32 XAxisLength = Length(XAxis);
+	real32 YAxisLength = Length(YAxis);
+
+	v2 NxAxis = (Length(YAxis) / Length(XAxis)) * XAxis;
+	v2 NyAxis = (Length(XAxis) / Length(YAxis)) * YAxis;
+	real32 NzScale = 0.5f * (XAxisLength + YAxisLength);
 
 	real32 InvXAxisLengthSq = 1.0f / LengthSq(XAxis);
 	real32 InvYAxisLengthSq = 1.0f / LengthSq(YAxis);
@@ -206,10 +234,10 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	real32 InvWidthMax = 1.0f / (real32)WidthMax;
 	real32 InvHeightMax = 1.0f / (real32)HeightMax;
 
-	int XMin = WidthMax;
-	int XMax = 0;
-	int YMin = HeightMax;
-	int YMax = 0;
+	int32 XMin = WidthMax;
+	int32 XMax = 0;
+	int32 YMin = HeightMax;
+	int32 YMax = 0;
 
 	v2 P[4] = { Origin, Origin + XAxis, Origin + XAxis + YAxis, Origin + YAxis };
 	for (int PointIndex = 0; PointIndex < ArrayCount(P); ++PointIndex)
@@ -285,23 +313,32 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 					v4 Normal = Lerp(Lerp(NormalA, fX, NormalB), fY, Lerp(NormalC, fX, NormalD));
 
 					Normal = UnscaleAndBiasNormal(Normal);
-					Normal.xyz = Normalize(Normal.xyz);
 
 					// TODO: Rotate normals based on X/Y axis!
+					Normal.xy = Normal.x * NxAxis + Normal.y * NyAxis;
+					Normal.z *= NzScale;
+					Normal.xyz = Normalize(Normal.xyz);
 
 					// NOTE: The eye vector is always assumed to be [0, 0, 1]
 					// This is just the simplified version of the reflection -e + 2^T N N 
 					v3 BounceDirection = 2.0f * Normal.z * Normal.xyz;
 					BounceDirection.z -= 1.0f;
 
+					// TODO: Eventually we need to support two mappings.
+					// one for top-down view (which we don't do now) and
+					// one for sideways, which is what's happening here.
+					BounceDirection.z = -BounceDirection.z;
+
 					environment_map* FarMap = 0;
+					real32 DistanceFromMapInZ = 2.0f;
 					real32 tEnvMap = BounceDirection.y;
 					real32 tFarMap = 0.0f;
 					if (tEnvMap < -0.5f)
 					{
+						// TODO: This path seems PARTICULARLY broken!
 						FarMap = Bottom;
 						tFarMap = -1.0f - 2.0f * tEnvMap;
-						BounceDirection.y = -BounceDirection.y;
+						DistanceFromMapInZ = -DistanceFromMapInZ;
 					}
 					else if (tEnvMap > 0.5f)
 					{
@@ -309,14 +346,16 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 						tFarMap = 2.0f * (tEnvMap - 0.5f);
 					}
 
-					//TODO: How do we sample from the middle map?
+					// TODO: How do we sample from the middle map?
 					v3 LightColor = V3(0, 0, 0);
 					if (FarMap)
 					{
-						v3 FarMapColor = SampleEnvironmentMap(ScreenSpaceUV, BounceDirection, Normal.w, FarMap);
+						v3 FarMapColor = SampleEnvironmentMap(ScreenSpaceUV, BounceDirection, Normal.w, FarMap,
+							DistanceFromMapInZ);
 						LightColor = Lerp(LightColor, tFarMap, FarMapColor);
 					}
 
+					// TODO: Actually do a sighting model computation here
 					Texel.rgb = Texel.rgb + Texel.a * LightColor;
 				}
 

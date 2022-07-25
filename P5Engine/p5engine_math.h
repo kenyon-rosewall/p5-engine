@@ -513,6 +513,24 @@ union v4
 		v3 xyz;
 		real32 Ignored1;
 	};
+	struct
+	{
+		v2 xy;
+		real32 Ignored2;
+		real32 Ignored3;
+	};
+	struct
+	{
+		real32 Ignored4;
+		v2 yz;
+		real32 Ignored5;
+	};
+	struct
+	{
+		real32 Ignored6;
+		real32 Ignored7;
+		v2 zw;
+	};
 };
 
 inline v4
