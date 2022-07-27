@@ -614,7 +614,7 @@ PushEntry(render_group* Group, loaded_bitmap* Bitmap, v2 Offset, v2 Align,
 	{
 		Entry->Bitmap = Bitmap;
 		Entry->EntityBasis.Basis = Group->DefaultBasis;
-		Entry->EntityBasis.Offset = Group->MetersToPixels * V2(Offset.x, -Offset.y) - Align;
+		Entry->EntityBasis.Offset = Group->MetersToPixels * V2(Offset.x, Offset.y) - Align;
 		Entry->EntityBasis.OffsetZ = OffsetZ;
 		Entry->EntityBasis.EntityZC = EntityZC;
 		Entry->Color = Color;
@@ -638,7 +638,7 @@ PushRect(render_group* Group, v2 Offset, real32 OffsetZ, v2 Dim, v4 Color, real3
 		v2 HalfDim = 0.5f * Group->MetersToPixels * Dim;
 		
 		Entry->EntityBasis.Basis = Group->DefaultBasis;
-		Entry->EntityBasis.Offset = Group->MetersToPixels * V2(Offset.x, -Offset.y) - HalfDim;
+		Entry->EntityBasis.Offset = Group->MetersToPixels * V2(Offset.x, Offset.y) - HalfDim;
 		Entry->EntityBasis.OffsetZ = OffsetZ;
 		Entry->EntityBasis.EntityZC = EntityZC;
 		Entry->Dim = Group->MetersToPixels * Dim;
@@ -704,17 +704,15 @@ CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, l
 inline v2
 GetRenderEntityBasisPos(render_group* RenderGroup, render_entity_basis* EntityBasis, v2 ScreenCenter)
 {
+	// TODE: ZHANDLING
+
 	v3 EntityBasePos = EntityBasis->Basis->Pos;
 	real32 ZFudge = (1.0f + 0.1f * (EntityBasePos.z + EntityBasis->OffsetZ));
 
-	real32 EntityGroundPointX = ScreenCenter.x + RenderGroup->MetersToPixels * ZFudge * EntityBasePos.x;
-	real32 EntityGroundPointY = ScreenCenter.y - RenderGroup->MetersToPixels * ZFudge * EntityBasePos.y;
-	real32 EntityZ = -RenderGroup->MetersToPixels * EntityBasePos.z;
+	v2 EntityGroundPoint = ScreenCenter + RenderGroup->MetersToPixels * ZFudge * EntityBasePos.xy;
+	real32 EntityZ = RenderGroup->MetersToPixels * EntityBasePos.z;
 
-	v2 Center = V2(
-		EntityGroundPointX + EntityBasis->Offset.x,
-		EntityGroundPointY + EntityBasis->Offset.y + EntityBasis->EntityZC * EntityZ
-	);
+	v2 Center = EntityGroundPoint + EntityBasis->Offset + V2(0, EntityBasis->EntityZC * EntityZ);
 
 	return(Center);
 }
@@ -755,11 +753,11 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 			case render_group_entry_type::render_entry_bitmap:
 			{
 				render_entry_bitmap* Entry = (render_entry_bitmap*)Data;
-#if 0
+
 				v2 Pos = GetRenderEntityBasisPos(RenderGroup, &Entry->EntityBasis, ScreenCenter);
 				Assert(Entry->Bitmap);
-				DrawBitmap(OutputTarget, Entry->Bitmap, Pos.x, Pos.y, Entry->a);
-#endif
+				DrawBitmap(OutputTarget, Entry->Bitmap, Pos.x, Pos.y, 1);
+
 				BaseAddress += sizeof(*Entry);
 			} break;
 

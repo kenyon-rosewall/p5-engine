@@ -73,6 +73,7 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
 
+		Assert(Result.Height > 0);
 		Assert(Header->Compression == 3);
 
 		// NOTE: If you are using this generically for some reason,
@@ -132,8 +133,12 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		}
 	}
 
-	Result.Pitch = -Result.Width * BITMAP_BYTES_PER_PIXEL;
-	Result.Memory = (uint32*)((uint8*)Result.Memory - Result.Pitch * (Result.Height - 1));
+	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
+
+#if 0
+	Result.Memory = (uint32*)((uint8*)Result.Memory + Result.Pitch * (Result.Height - 1));
+	Result.Pitch = -Result.Width;
+#endif
 
 	return(Result);
 }
@@ -449,7 +454,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 			// TODO: Look into wang hashing here or some other spatial seed generation
 			random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
 
-			v2 Center = V2(ChunkOffsetX * Width, -ChunkOffsetY * Height);
+			v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
 			for (uint32 SoilIndex = 0; SoilIndex < 50; ++SoilIndex)
 			{
@@ -481,7 +486,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				// TODO: Look into wang hashing here or some other spatial seed generation
 				random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
 
-				v2 Center = V2(ChunkOffsetX * Width, -ChunkOffsetY * Height);
+				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
 				loaded_bitmap* Stamp = {};
 				switch (RandomChoice(&Series, 20))
@@ -712,6 +717,20 @@ RequestGroundBuffers(world_position CenterPos, rectangle3 Bounds)
 }
 #endif
 
+internal v2
+TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
+{
+	Align.y = (real32)(Bitmap->Height - 1) - Align.y;
+	return(Align);
+}
+
+
+internal void
+SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
+{
+	Bitmap->Align = TopDownAlign(&Bitmap->Character, Align);
+}
+
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)));
@@ -772,48 +791,48 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GameState, TilesPerWidth * TileSideInMeters, TilesPerHeight * TileSideInMeters, 0.9f * TileDepthInMeters
 		);
 
-		GameState->Grass = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/grass1.bmp");
+		GameState->Grass = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/grass1.bmp");
 
-		GameState->Soil[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/soil1.bmp");
-		GameState->Soil[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/soil2.bmp");
-		GameState->Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/soil3.bmp");
+		GameState->Soil[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil1.bmp");
+		GameState->Soil[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil2.bmp");
+		GameState->Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil3.bmp");
 
-		GameState->Tuft[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/tuft1.bmp");
-		GameState->Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/tuft2.bmp");
+		GameState->Tuft[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft1.bmp");
+		GameState->Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft2.bmp");
 
-		GameState->Backdrop = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/bg.bmp");
-		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/shadow.bmp");
-		GameState->Stairs = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/stairs.bmp");
-		GameState->Tree = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/tree.bmp");
-		GameState->Monstar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/enemy.bmp");
-		GameState->Familiar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/orb.bmp");
+		GameState->Backdrop = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/bg.bmp");
+		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/shadow.bmp");
+		GameState->Stairs = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/stairs.bmp");
+		GameState->Tree = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tree.bmp");
+		GameState->Monstar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/enemy.bmp");
+		GameState->Familiar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/orb.bmp");
 
 		hero_bitmaps* HeroBitmap;
 
 		HeroBitmap = GameState->Hero;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/char-right-0.bmp");
-		HeroBitmap->Align = V2(32, 56);
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-right-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
 		++HeroBitmap;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/char-back-0.bmp");
-		HeroBitmap->Align = V2(32, 56);
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-back-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
 		++HeroBitmap;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/char-left-0.bmp");
-		HeroBitmap->Align = V2(32, 56);
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-left-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
 		++HeroBitmap;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/char-front-0.bmp");
-		HeroBitmap->Align = V2(32, 56);
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-front-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
 		++HeroBitmap;
 
 		loaded_bitmap* SwordBitmap;
 
 		SwordBitmap = GameState->Sword;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/sword-right.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-right.bmp");
 		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/sword-back.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-back.bmp");
 		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/sword-left.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-left.bmp");
 		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"P5Engine/data/sword-front.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-front.bmp");
 		++SwordBitmap;
 
 		random_series Series = RandomSeed(0);
@@ -1000,6 +1019,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		TransientState->IsInitialized = true;
 	}
 
+#if 0
 	if (Input->ExecutableReloaded)
 	{
 		for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
@@ -1008,6 +1028,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GroundBuffer->Pos = NullPosition();
 		}
 	}
+#endif
 
 	world* World = GameState->World;
 	real32 MetersToPixels = GameState->MetersToPixels;
@@ -1189,7 +1210,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					FillGroundChunk(TransientState, GameState, FurthestBuffer, &ChunkCenterPos);
 				}
 
+#if 0
 				PushRectOutline(RenderGroup, RelPos.xy, RelPos.z, World->ChunkDimInMeters.xy, V4(1, 1, 0, 1));
+#endif
 			}
 		}
 	}
@@ -1259,17 +1282,18 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 
 					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
-					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
+					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 20), ShadowAlpha, 0.0f);
 					PushBitmap(RenderGroup, &HeroBitmaps->Character, V2(0, 0), 0, HeroBitmaps->Align);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
-
+				
 				case entity_type::Wall:
 				{
-					PushBitmap(RenderGroup, &GameState->Tree, V2(0, 0), 0, V2(32, 64));
+					v2 Alignment = TopDownAlign(&GameState->Tree, V2(32, 64));
+					PushBitmap(RenderGroup, &GameState->Tree, V2(0, 0), 0, Alignment);
 				} break;
-
+				 
 				case entity_type::Stairs:
 				{
 					// PushBitmap(RenderGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
@@ -1299,12 +1323,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
 					// PushBitmap(&RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-					PushBitmap(RenderGroup, Sword, V2(0, 0), 0, V2(32, 10));
+					v2 Alignment = TopDownAlign(Sword, V2(32, 10));
+					PushBitmap(RenderGroup, Sword, V2(0, 0), 0, Alignment);
 				} break;
 
 				case entity_type::Monstar:
 				{
-					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
+					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 72), ShadowAlpha, 0.0f);
 					PushBitmap(RenderGroup, &GameState->Monstar, V2(0, 0), 0, V2(32, 64));
 
 					DrawHitpoints(Entity, RenderGroup);
@@ -1353,7 +1378,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					real32 BobSin = Sin(2.0f * Entity->tBob);
 
-					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), (0.5f * ShadowAlpha + 0.2f * BobSin), 0.0f);
+					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 72), (0.5f * ShadowAlpha + 0.2f * BobSin), 0.0f);
 					PushBitmap(RenderGroup, &GameState->Familiar, V2(0, 0), 0.25f * BobSin, V2(32, 75));
 				} break;
 
@@ -1383,6 +1408,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 	}
 
+#if 1
 	GameState->Time += Input->dtForFrame;
 
 	v3 MapColor[] =
@@ -1477,6 +1503,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		CoordinateSystem(RenderGroup, MapP, XAxis, YAxis, V4(1.0f, 1.0f, 1.0f, 1.0f), LOD, 0, 0, 0, 0);
 		MapP += YAxis + V2(0.0f, 6.0f);
 	}
+#endif
 
 	RenderGroupToOutput(RenderGroup, DrawBuffer);
 

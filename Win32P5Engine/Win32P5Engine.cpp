@@ -386,7 +386,7 @@ internal void
 Win32ResizeDIBSection(win32_offscreen_buffer* Buffer, int Width, int Height)
 {
 	// TODO: Bulletproof this.
-	// Maybe don't free first, free after, then  free first if that fails.
+	// Maybe don't free first, free after, then free first if that fails.
 
 	if (Buffer->Memory)
 	{
@@ -397,9 +397,13 @@ Win32ResizeDIBSection(win32_offscreen_buffer* Buffer, int Width, int Height)
 	Buffer->Height = Height;
 	Buffer->BytesPerPixel = 4;
 
+	// NOTE: When the biHeight field is negative, this is the clue to Windows
+	// to treat this bitmap as top-down, not bottom-up, meaning that the first
+	// three bytes of the image are the color for the top left pixel in the
+	// bitmap, not the bottom left!
 	Buffer->Info.bmiHeader.biSize = sizeof(Buffer->Info.bmiHeader);
 	Buffer->Info.bmiHeader.biWidth = Buffer->Width;
-	Buffer->Info.bmiHeader.biHeight = -Buffer->Height;
+	Buffer->Info.bmiHeader.biHeight = Buffer->Height;
 	Buffer->Info.bmiHeader.biPlanes = 1;
 	Buffer->Info.bmiHeader.biBitCount = 32;
 	Buffer->Info.bmiHeader.biCompression = BI_RGB;
