@@ -20,10 +20,14 @@
 * 
 *	-> TODO: ZHANDLING
 * 
+*  5) All color values specified to the renderer as V4s are in NON-premultiplied
+*	alpha.
+* 
 */
 
 struct loaded_bitmap
 {
+	int32 AlignX, AlignY;
 	int32 Width;
 	int32 Height;
 	int32 Pitch;
@@ -44,9 +48,7 @@ struct render_basis
 struct render_entity_basis
 {
 	render_basis* Basis;
-	v2 Offset;
-	real32 OffsetZ;
-	real32 EntityZC;
+	v3 Offset;
 };
 
 enum class render_group_entry_type
@@ -54,8 +56,7 @@ enum class render_group_entry_type
 	render_entry_clear,
 	render_entry_bitmap,
 	render_entry_rectangle,
-	render_entry_coordinate_system,
-	render_entry_saturation
+	render_entry_coordinate_system
 };
 
 struct render_group_entry_header
@@ -113,5 +114,14 @@ struct render_group
 	uint32 PushBufferSize;
 	uint8* PushBufferBase;
 };
+
+// NOTE: Renderer API
+#if 0
+inline void PushBitmap(render_group* Group, loaded_bitmap* Bitmap, v3 Offset, 
+	v4 Color = V4(1, 1, 1, 1));
+inline void PushRect(render_group* Group, v3 Offset, v2 Dim, v4 Color);
+inline void PushRectOutline(render_group* Group, v3 Offset, v2 Dim, v4 Color);
+inline void Clear(render_group* Group, v4 Color);
+#endif
 
 #endif // !P5ENGINE_RENDER_GROUP_H

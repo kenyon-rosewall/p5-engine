@@ -60,7 +60,7 @@ struct bitmap_header
 #pragma pack(pop)
 
 internal loaded_bitmap
-DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntireFile, char* Filename)
+DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntireFile, char* Filename, int32 AlignX = 0, int32 AlignY = 0)
 {
 	loaded_bitmap Result = {};
 
@@ -72,6 +72,8 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		Result.Memory = Memory;
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
+		Result.AlignX = AlignX;
+		Result.AlignY = AlignY;
 
 		Assert(Result.Height > 0);
 		Assert(Header->Compression == 3);
@@ -306,7 +308,7 @@ DrawHitpoints(sim_entity* Entity, render_group* RenderGroup)
 				Color = V4(0.2f, 0.2f, 0.2f, 1.0f);
 			}
 
-			PushRect(RenderGroup, HitPos, 0, HealthDim, Color, 0.0f);
+			PushRect(RenderGroup, ToV3(HitPos, 0), HealthDim, Color);
 			HitPos += dHitPos;
 		}
 	}
@@ -466,7 +468,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				);
 				v2 Pos = Center + Offset - BitmapCenter;
 
-				PushBitmap(RenderGroup, Stamp, Pos, 0, V2(0, 0));
+				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0));
 			}
 		}
 	}
@@ -516,7 +518,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					);
 					v2 Pos = Center + Offset - BitmapCenter;
 
-					PushBitmap(RenderGroup, Stamp, Pos, 0, V2(0, 0));
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0));
 				}
 			}
 		}
@@ -728,7 +730,10 @@ TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
 internal void
 SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
 {
-	Bitmap->Align = TopDownAlign(&Bitmap->Character, Align);
+	Align = TopDownAlign(&Bitmap->Character, Align);
+
+	Bitmap->Character.AlignX = (int32)Align.x;
+	Bitmap->Character.AlignY = (int32)Align.y;
 }
 
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -801,11 +806,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		GameState->Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft2.bmp");
 
 		GameState->Backdrop = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/bg.bmp");
-		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/shadow.bmp");
+		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/shadow.bmp", 24, 12);
 		GameState->Stairs = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/stairs.bmp");
-		GameState->Tree = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tree.bmp");
-		GameState->Monstar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/enemy.bmp");
-		GameState->Familiar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/orb.bmp");
+		GameState->Tree = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tree.bmp", 32, 32);
+		GameState->Monstar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/enemy.bmp", 32, 0);
+		GameState->Familiar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/orb.bmp", 32, 0);
 
 		hero_bitmaps* HeroBitmap;
 
@@ -826,13 +831,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		loaded_bitmap* SwordBitmap;
 
 		SwordBitmap = GameState->Sword;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-right.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-right.bmp", 32, 10);
 		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-back.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-back.bmp", 32, 10);
 		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-left.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-left.bmp", 32, 10);
 		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-front.bmp");
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-front.bmp", 32, 10);
 		++SwordBitmap;
 
 		random_series Series = RandomSeed(0);
@@ -1156,7 +1161,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			v3 Delta = Subtract(GameState->World, &GroundBuffer->Pos, &GameState->CameraP);
 
-			PushBitmap(RenderGroup, Bitmap, Delta.xy, Delta.z, 0.5f * V2i(Bitmap->Width, Bitmap->Height));
+			Bitmap->AlignX = Bitmap->Width / 2;
+			Bitmap->AlignY = Bitmap->Height / 2;
+			PushBitmap(RenderGroup, Bitmap, Delta);
 		}
 	}
 
@@ -1282,23 +1289,22 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 
 					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
-					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 20), ShadowAlpha, 0.0f);
-					PushBitmap(RenderGroup, &HeroBitmaps->Character, V2(0, 0), 0, HeroBitmaps->Align);
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0));
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
 				
 				case entity_type::Wall:
 				{
-					v2 Alignment = TopDownAlign(&GameState->Tree, V2(32, 64));
-					PushBitmap(RenderGroup, &GameState->Tree, V2(0, 0), 0, Alignment);
+					PushBitmap(RenderGroup, &GameState->Tree, V3(0, 0, 0));
 				} break;
 				 
 				case entity_type::Stairs:
 				{
 					// PushBitmap(RenderGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
-					PushRect(RenderGroup, V2(0, 0), 0, Entity->WalkableDim, V4(1, 0.5f, 0, 1), 0.0f);
-					PushRect(RenderGroup, V2(0, 0), Entity->WalkableHeight, Entity->WalkableDim, V4(1, 1, 0, 1), 0.0f);
+					PushRect(RenderGroup, V3(0, 0, 0), Entity->WalkableDim, V4(1, 0.5f, 0, 1));
+					PushRect(RenderGroup, V3(0, 0, Entity->WalkableHeight), Entity->WalkableDim, V4(1, 1, 0, 1));
 				} break;
 
 				case entity_type::Sword:
@@ -1323,14 +1329,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
 					// PushBitmap(&RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-					v2 Alignment = TopDownAlign(Sword, V2(32, 10));
-					PushBitmap(RenderGroup, Sword, V2(0, 0), 0, Alignment);
+					PushBitmap(RenderGroup, Sword, V3(0, 0, 0));
 				} break;
 
 				case entity_type::Monstar:
 				{
-					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 72), ShadowAlpha, 0.0f);
-					PushBitmap(RenderGroup, &GameState->Monstar, V2(0, 0), 0, V2(32, 64));
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, &GameState->Monstar, V3(0, 0, 0));
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
@@ -1378,8 +1383,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					real32 BobSin = Sin(2.0f * Entity->tBob);
 
-					PushBitmap(RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 72), (0.5f * ShadowAlpha + 0.2f * BobSin), 0.0f);
-					PushBitmap(RenderGroup, &GameState->Familiar, V2(0, 0), 0.25f * BobSin, V2(32, 75));
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
+					PushBitmap(RenderGroup, &GameState->Familiar, V3(0, 0, 0.25f * BobSin));
 				} break;
 
 				case entity_type::Space:
@@ -1388,7 +1393,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					{
 						sim_entity_collision_volume* Volume = Entity->Collision->Volumes + VolumeIndex;
 
-						PushRectOutline(RenderGroup, Volume->OffsetPos.xy, 0, Volume->Dim.xy, V4(1, 0.5f, 1, 1), 0.0f);
+						PushRectOutline(RenderGroup, Volume->OffsetPos - V3(0, 0, 0.5f * Volume->Dim.z), Volume->Dim.xy, V4(1, 0.5f, 1, 1));
 					}
 				} break;
 

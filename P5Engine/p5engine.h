@@ -188,8 +188,6 @@ ZeroSize(memory_index Size, void* Ptr)
 
 struct hero_bitmaps
 {
-	v2 Align;
-
 	loaded_bitmap Character;
 };
 
