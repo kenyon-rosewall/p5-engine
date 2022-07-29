@@ -59,6 +59,13 @@ struct bitmap_header
 };
 #pragma pack(pop)
 
+internal v2
+TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
+{
+	Align.y = (real32)(Bitmap->Height - 1) - Align.y;
+	return(Align);
+}
+
 internal loaded_bitmap
 DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntireFile, char* Filename, int32 AlignX = 0, int32 AlignY = 0)
 {
@@ -72,8 +79,7 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		Result.Memory = Memory;
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
-		Result.AlignX = AlignX;
-		Result.AlignY = AlignY;
+		Result.Align = V2(AlignX, AlignY);
 
 		Assert(Result.Height > 0);
 		Assert(Header->Compression == 3);
@@ -719,21 +725,12 @@ RequestGroundBuffers(world_position CenterPos, rectangle3 Bounds)
 }
 #endif
 
-internal v2
-TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
-{
-	Align.y = (real32)(Bitmap->Height - 1) - Align.y;
-	return(Align);
-}
-
-
 internal void
 SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
 {
 	Align = TopDownAlign(&Bitmap->Character, Align);
 
-	Bitmap->Character.AlignX = (int32)Align.x;
-	Bitmap->Character.AlignY = (int32)Align.y;
+	Bitmap->Character.Align = Align;
 }
 
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -1161,8 +1158,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			v3 Delta = Subtract(GameState->World, &GroundBuffer->Pos, &GameState->CameraP);
 
-			Bitmap->AlignX = Bitmap->Width / 2;
-			Bitmap->AlignY = Bitmap->Height / 2;
+			Bitmap->Align = 0.5f * V2i(Bitmap->Width, Bitmap->Height);
 			PushBitmap(RenderGroup, Bitmap, Delta);
 		}
 	}

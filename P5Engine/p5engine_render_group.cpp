@@ -611,10 +611,9 @@ PushBitmap(render_group* Group, loaded_bitmap* Bitmap, v3 Offset, v4 Color = V4(
 	render_entry_bitmap* Entry = PushRenderElement(Group, render_entry_bitmap);
 	if (Entry)
 	{
-		v2 Align = V2i(Bitmap->AlignX, Bitmap->AlignY);
 		Entry->Bitmap = Bitmap;
 		Entry->EntityBasis.Basis = Group->DefaultBasis;
-		Entry->EntityBasis.Offset = Group->MetersToPixels * Offset - ToV3(Align, 0);
+		Entry->EntityBasis.Offset = Group->MetersToPixels * Offset - ToV3(Bitmap->Align, 0);
 		Entry->Color = Color;
 	}
 }
