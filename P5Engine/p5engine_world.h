@@ -44,8 +44,10 @@ struct world
 	world_entity_block* FirstFree;
 
 	// TODO: ChunkHash should probably switch to pointers, IF
-	// 	   tile entity blocks continue to be stored en masse derictly in the tile chunk
-	// TODO: At the moment,  this must be a power of two
+	// tile entity blocks continue to be stored en masse derictly 
+	// in the tile chunk
+
+	// NOTE: At the moment,  this must be a power of two
 	world_chunk ChunkHash[4096];
 };
 

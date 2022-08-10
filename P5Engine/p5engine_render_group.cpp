@@ -689,8 +689,7 @@ GetRenderEntityBasisPos(render_group* RenderGroup, render_entity_basis* EntityBa
 	// TODO: Figure out exactly how z-based XY displacement should work
 	v3 EntityBasePos = RenderGroup->MetersToPixels * EntityBasis->Basis->Pos;
 	real32 ZFudge = 1.0f + 0.0015f * EntityBasePos.z;
-	v2 EntityGroundPoint = ScreenCenter + ZFudge * (EntityBasePos.xy +EntityBasis->Offset.xy);
-	v2 Center = EntityGroundPoint + V2(0, EntityBasePos.z + EntityBasis->Offset.z);
+	v2 Center = ScreenCenter + ZFudge * (EntityBasePos.xy + EntityBasis->Offset.xy);
 
 	Result.Pos = Center;
 	Result.Scale = ZFudge;
@@ -745,7 +744,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 			{
 				render_entry_rectangle* Entry = (render_entry_rectangle*)Data;
 				entity_basis_p_result Basis = GetRenderEntityBasisPos(RenderGroup, &Entry->EntityBasis, ScreenCenter);
-				// DrawRectangle(OutputTarget, Basis.Pos, Basis.Pos + Basis.Scale * Entry->Dim, Entry->Color);
+				DrawRectangle(OutputTarget, Basis.Pos, Basis.Pos + Basis.Scale * Entry->Dim, Entry->Color);
 
 				BaseAddress += sizeof(*Entry);
 			} break;

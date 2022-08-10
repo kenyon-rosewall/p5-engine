@@ -149,11 +149,11 @@ AddEntity(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, low
 internal sim_region*
 BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_position Origin, rectangle3 Bounds, real32 dt)
 {
-	// TODO: If entities were stored in the world, we wouldn't nede the game state 
+	// TODO: If entities were stored in the world, we wouldn't need the game state 
 
 	sim_region* SimRegion = PushStruct(SimArena, sim_region);
 	ZeroStruct(SimRegion->Hash);
-	
+
 	// TODO: Try to make these get enforced more rigorously
 	SimRegion->MaxEntityRadius = 5.0f;
 	SimRegion->MaxEntityVelocity = 30.0f;
@@ -164,7 +164,7 @@ BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_posi
 	SimRegion->Origin = Origin;
 	SimRegion->UpdatableBounds = AddRadiusTo(Bounds, V3(SimRegion->MaxEntityRadius, 
 														SimRegion->MaxEntityRadius, 
-														SimRegion->MaxEntityRadius));
+														0.0f));
 	SimRegion->Bounds = AddRadiusTo(SimRegion->UpdatableBounds, V3(UpdateSafetyMargin, 
 																   UpdateSafetyMargin, 
 																   UpdateSafetyMarginZ));
@@ -197,7 +197,6 @@ BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_posi
 								v3 SimSpacePos = GetSimSpacePos(SimRegion, EntityLow);
 								if (EntityOverlapsRectangle(SimSpacePos, EntityLow->Sim.Collision->TotalVolume, SimRegion->Bounds))
 								{
-									// TODO: Check a second rectangle to set the entity to be "movable" or not
 									AddEntity(GameState, SimRegion, LowEntityIndex, EntityLow, &SimSpacePos);
 								}
 							}
@@ -258,9 +257,9 @@ EndSim(sim_region* SimRegion, game_state* GameState)
 				NewCameraP.ChunkY -= 9;
 			}
 #else
-			real32 CamZOffset = NewCameraP.Offset.z;
+			// real32 CamZOffset = NewCameraP.Offset.z;
 			NewCameraP = Stored->Pos;
-			NewCameraP.Offset.z = CamZOffset;
+			// NewCameraP.Offset.z = CamZOffset;
 #endif
 			GameState->CameraP = NewCameraP;
 		}

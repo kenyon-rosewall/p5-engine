@@ -856,23 +856,23 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		{
 
 #if 1
-			uint32 DoorDirection = RandomChoice(&Series, (DoorUp || DoorDown) ? 2 : 3);
+			uint32 DoorDirection = RandomChoice(&Series, (DoorUp || DoorDown) ? 2 : 4);
 #else
 			uint32 DoorDirection = RandomChoice(&Series, 2);
 #endif
 
+			DoorDirection = 3;
+
 			bool32 CreatedZDoor = false;
-			if (DoorDirection == 2)
+			if (DoorDirection == 3)
 			{
 				CreatedZDoor = true;
-				if (AbsTileZ == ScreenBaseZ)
-				{
-					DoorUp = true;
-				}
-				else
-				{
-					DoorDown = true;
-				}
+				DoorDown = true;
+			}
+			else if (DoorDirection == 2)
+			{
+				CreatedZDoor = true;
+				DoorUp = true;
 			}
 			else if (DoorDirection == 1)
 			{
@@ -918,11 +918,15 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					if (ShouldBeDoor)
 					{
-						AddWall(GameState, AbsTileX, AbsTileY, AbsTileZ);
+						if ((TileY % 2) || (TileX % 2))
+						{
+							AddWall(GameState, AbsTileX, AbsTileY, AbsTileZ);
+						}
 					}
 					else if (CreatedZDoor)
 					{
-						if ((TileX == 10) && (TileY == 5))
+						if (((AbsTileZ % 2) && (TileX == 8) && (TileY == 5)) ||
+							(!(AbsTileZ % 2) && (TileX == 12) && TileY == 5))
 						{
 							AddStairs(GameState, AbsTileX, AbsTileY, DoorDown ? AbsTileZ - 1 : AbsTileZ);
 						}
@@ -947,16 +951,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			DoorRight = false;
 			DoorTop = false;
 
-			if (DoorDirection == 2)
+			if (DoorDirection == 3)
 			{
-				if (AbsTileZ == ScreenBaseZ)
-				{
-					AbsTileZ = ScreenBaseZ + 1;
-				}
-				else
-				{
-					AbsTileZ = ScreenBaseZ;
-				}
+				AbsTileZ -= 1;
+			}
+			else if (DoorDirection == 2)
+			{
+				AbsTileZ += 1;
 			}
 			else if (DoorDirection == 1)
 			{
@@ -1085,7 +1086,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				}
 			}
 
-#if 0
 			if (Controller->ActionDown.EndedDown)
 			{
 				ConHero->dZ = 3.0f;
@@ -1123,21 +1123,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				}
 			}
 		}
-#else
-		}
-
-		real32 ZoomRate = 0.0f;
-		if (Controller->ActionUp.EndedDown)
-		{
-			ZoomRate = 1.0f;
-		}
-		if (Controller->ActionDown.EndedDown)
-		{
-			ZoomRate = -1.0f;
-		}
-		GameState->ZOffset += ZoomRate * Input->dtForFrame;
-#endif
-
 	}
 
 	//
@@ -1147,8 +1132,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	// TODO: Decide what our push buffer size is
 	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), GameState->MetersToPixels);
-
-	RenderGroup->GlobalAlpha = 1.0f; // Clamp01(1.0f - GameState->ZOffset);
 
 	loaded_bitmap DrawBuffer_ = {};
 	loaded_bitmap* DrawBuffer = &DrawBuffer_;
@@ -1168,8 +1151,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	real32 ScreenHeightInMeters = DrawBuffer->Height * PixelsToMeters;
 	rectangle3 CameraBoundsInMeters = RectCenterDim(
 		V3(0, 0, 0),
-		V3(ScreenWidthInMeters, ScreenHeightInMeters, 0.0f)
+		V3(ScreenWidthInMeters, ScreenHeightInMeters, 0)
 	);
+
+	CameraBoundsInMeters.Min.z = -3.0f * GameState->TypicalFloorHeight;
+	CameraBoundsInMeters.Max.z = 1.0f * GameState->TypicalFloorHeight;
 
 #if 0
 	for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
@@ -1250,11 +1236,16 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #endif
 
 	// TODO: How big do we actually want to expand here?
-	v3 SimBoundsExpansion = V3(15.0f, 15.0f, 15.0f);
+	// TODO: Do we want to simulate upper floors, etc?
+	v3 SimBoundsExpansion = V3(15.0f, 15.0f, 0.0f);
 	rectangle3 SimBounds = AddRadiusTo(CameraBoundsInMeters, SimBoundsExpansion);
 	temporary_memory SimMemory = BeginTemporaryMemory(&TransientState->TransientArena);
+	world_position SimCenterPos = GameState->CameraP;
 	sim_region* SimRegion = BeginSim(&TransientState->TransientArena, GameState, GameState->World, 
 									 GameState->CameraP, SimBounds, Input->dtForFrame);
+
+	// NOTE: This is the camera position relative to the origin
+	v3 CameraPos = Subtract(World, &GameState->CameraP, &SimCenterPos);
 
 	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 	{
@@ -1275,6 +1266,23 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
 			RenderGroup->DefaultBasis = Basis;
+
+			// TODO: Probably indicates we want to separate update and render
+			// for entities sometime soon?
+			v3 CameraRelativeGroundPos = GetEntityGroundPoint(Entity) - CameraPos;
+			real32 FadeTopEndZ = 0.75f * GameState->TypicalFloorHeight;
+			real32 FadeTopStartZ = 0.5f * GameState->TypicalFloorHeight;
+			real32 FadeBottomStartZ = -2.0f * GameState->TypicalFloorHeight;
+			real32 FadeBottomEndZ = -2.25f * GameState->TypicalFloorHeight;
+			RenderGroup->GlobalAlpha = 1.0f;
+			if (CameraRelativeGroundPos.z > FadeTopStartZ)
+			{
+				RenderGroup->GlobalAlpha = Clamp01MapToRange(FadeTopEndZ, CameraRelativeGroundPos.z, FadeTopStartZ);
+			}
+			else if (CameraRelativeGroundPos.z < FadeBottomStartZ)
+			{
+				RenderGroup->GlobalAlpha = Clamp01MapToRange(FadeBottomEndZ, CameraRelativeGroundPos.z, FadeBottomStartZ);
+			}
 
 			switch (Entity->Type)
 			{
@@ -1327,7 +1335,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				 
 				case entity_type::Stairs:
 				{
-					// PushBitmap(RenderGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
+					//PushBitmap(RenderGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
 					PushRect(RenderGroup, V3(0, 0, 0), Entity->WalkableDim, V4(1, 0.5f, 0, 1));
 					PushRect(RenderGroup, V3(0, 0, Entity->WalkableHeight), Entity->WalkableDim, V4(1, 1, 0, 1));
 				} break;
@@ -1434,9 +1442,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
 
-			Basis->Pos = GetEntityGroundPoint(Entity) + V3(0, 0, GameState->ZOffset);
+			Basis->Pos = GetEntityGroundPoint(Entity);
 		}
 	}
+
+	RenderGroup->GlobalAlpha = 1.0f;
 
 #if 0
 	GameState->Time += Input->dtForFrame;
