@@ -1422,12 +1422,14 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Space:
 				{
+#if 0
 					for (uint32 VolumeIndex = 0; VolumeIndex < Entity->Collision->VolumeCount; ++VolumeIndex)
 					{
 						sim_entity_collision_volume* Volume = Entity->Collision->Volumes + VolumeIndex;
 
 						PushRectOutline(RenderGroup, Volume->OffsetPos - V3(0, 0, 0.5f * Volume->Dim.z), Volume->Dim.xy, V4(1, 0.5f, 1, 1));
 					}
+#endif
 				} break;
 
 				default:

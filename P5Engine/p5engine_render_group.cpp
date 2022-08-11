@@ -680,19 +680,30 @@ struct entity_basis_p_result
 {
 	v2 Pos;
 	real32 Scale;
+	bool32 Valid;
 };
 inline entity_basis_p_result
 GetRenderEntityBasisPos(render_group* RenderGroup, render_entity_basis* EntityBasis, v2 ScreenCenter)
 {
-	entity_basis_p_result Result;
+	entity_basis_p_result Result = {};
 
-	// TODO: Figure out exactly how z-based XY displacement should work
-	v3 EntityBasePos = RenderGroup->MetersToPixels * EntityBasis->Basis->Pos;
-	real32 ZFudge = 1.0f + 0.0015f * EntityBasePos.z;
-	v2 Center = ScreenCenter + ZFudge * (EntityBasePos.xy + EntityBasis->Offset.xy);
+	v3 EntityPos = RenderGroup->MetersToPixels * EntityBasis->Basis->Pos;
 
-	Result.Pos = Center;
-	Result.Scale = ZFudge;
+	// TODO: The values of 20 and 20 seem wrong, did I mess something up here?
+	real32 FocalLength = RenderGroup->MetersToPixels * 20.0f;
+	real32 CameraDistanceAboveGround = RenderGroup->MetersToPixels * 20.0f;
+	real32 DistanceToPosZ = CameraDistanceAboveGround - EntityPos.z;
+	real32 NearClipPlane = RenderGroup->MetersToPixels * 0.2f;
+
+	v3 RawXY = ToV3(EntityPos.xy + EntityBasis->Offset.xy, 1.0f);
+
+	if (DistanceToPosZ > NearClipPlane)
+	{
+		v3 ProjectedXY = (1.0f / DistanceToPosZ) * FocalLength * RawXY;
+		Result.Pos = ScreenCenter +  ProjectedXY.xy;
+		Result.Scale = ProjectedXY.z;
+		Result.Valid = true;
+	}
 
 	return(Result);
 }
