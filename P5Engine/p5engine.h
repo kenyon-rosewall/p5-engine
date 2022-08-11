@@ -230,8 +230,6 @@ struct game_state
 {
 	memory_arena WorldArena;
 	world* World;
-	real32 MetersToPixels;
-	real32 PixelsToMeters;
 
 	real32 TypicalFloorHeight;
 

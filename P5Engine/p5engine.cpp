@@ -63,6 +63,10 @@ internal v2
 TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
 {
 	Align.y = (real32)(Bitmap->Height - 1) - Align.y;
+
+	Align.x = SafeRatio0(Align.x, (real32)Bitmap->Width);
+	Align.y = SafeRatio0(Align.y, (real32)Bitmap->Height);
+
 	return(Align);
 }
 
@@ -79,7 +83,11 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 		Result.Memory = Memory;
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
-		Result.Align = V2(AlignX, AlignY);
+		Result.AlignPercentage = V2(
+			SafeRatio0(AlignX, (real32)Header->Width), 
+			SafeRatio0(AlignY, (real32)Header->Height)
+		);
+		Result.WidthOverHeight = SafeRatio0((real32)Header->Width, (real32)Header->Height);
 
 		Assert(Result.Height > 0);
 		Assert(Header->Compression == 3);
@@ -440,7 +448,7 @@ internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
 	temporary_memory Memory = BeginTemporaryMemory(&TransientState->TransientArena);
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), 1);
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
 
 	Clear(RenderGroup, V4(1, 1, 0, 1));
 
@@ -474,7 +482,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				);
 				v2 Pos = Center + Offset - BitmapCenter;
 
-				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0));
+				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.0f);
 			}
 		}
 	}
@@ -524,7 +532,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					);
 					v2 Pos = Center + Offset - BitmapCenter;
 
-					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0));
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.0f);
 				}
 			}
 		}
@@ -728,9 +736,9 @@ RequestGroundBuffers(world_position CenterPos, rectangle3 Bounds)
 internal void
 SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
 {
-	Align = TopDownAlign(&Bitmap->Character, Align);
+	v2 AlignPercentage = TopDownAlign(&Bitmap->Character, Align);
 
-	Bitmap->Character.Align = Align;
+	Bitmap->Character.AlignPercentage = AlignPercentage;
 }
 
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -740,6 +748,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	uint32 GroundBufferWidth = 256;
 	uint32 GroundBufferHeight = 256;
 
+	// TODO: Remove this!
+	real32 PixelsToMeters = 1.0f / 42.0f;
+
 	Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
 	game_state* GameState = (game_state*)Memory->PermanentStorage;
 	if (!Memory->IsInitialized)
@@ -748,12 +759,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		uint32 TilesPerHeight = 9;
 
 		GameState->TypicalFloorHeight = 3.0f;
-		GameState->MetersToPixels = 43.0f;
-		GameState->PixelsToMeters = 1.0f / GameState->MetersToPixels;
 
 		v3 WorldChunkDimInMeters = V3(
-			GameState->PixelsToMeters * (real32)GroundBufferWidth,
-			GameState->PixelsToMeters * GroundBufferHeight,
+			PixelsToMeters * (real32)GroundBufferWidth,
+			PixelsToMeters * GroundBufferHeight,
 			GameState->TypicalFloorHeight
 		);
 
@@ -1038,8 +1047,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #endif
 
 	world* World = GameState->World;
-	real32 MetersToPixels = GameState->MetersToPixels;
-	real32 PixelsToMeters = GameState->PixelsToMeters;
 
 	for (int ControllerIndex = 0; ControllerIndex < ArrayCount(Input->Controllers); ++ControllerIndex)
 	{
@@ -1131,7 +1138,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	// TODO: Decide what our push buffer size is
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), GameState->MetersToPixels);
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
 
 	loaded_bitmap DrawBuffer_ = {};
 	loaded_bitmap* DrawBuffer = &DrawBuffer_;
@@ -1320,17 +1327,19 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							}
 						}
 					}
-
+					
+					// TODO: Z!!
+					real32 CharacterSizeC = 1.0f;
 					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0));
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
 				
 				case entity_type::Wall:
 				{
-					PushBitmap(RenderGroup, &GameState->Tree, V3(0, 0, 0));
+					PushBitmap(RenderGroup, &GameState->Tree, V3(0, 0, 0), 2.0f);
 				} break;
 				 
 				case entity_type::Stairs:
@@ -1361,14 +1370,15 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 
 					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
+					real32 SwordSizeC = ((Entity->FacingDirection % 2) + 1.0f) / 2.0f;
 					// PushBitmap(&RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-					PushBitmap(RenderGroup, Sword, V3(0, 0, 0));
+					PushBitmap(RenderGroup, Sword, V3(0, 0, 0), SwordSizeC * 1.0f);
 				} break;
 
 				case entity_type::Monstar:
 				{
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, &GameState->Monstar, V3(0, 0, 0));
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, &GameState->Monstar, V3(0, 0, 0), 1.0f);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
@@ -1416,8 +1426,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					real32 BobSin = Sin(2.0f * Entity->tBob);
 
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
-					PushBitmap(RenderGroup, &GameState->Familiar, V3(0, 0, 0.25f * BobSin));
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
+					PushBitmap(RenderGroup, &GameState->Familiar, V3(0, 0, 0.25f * BobSin), 0.6f);
 				} break;
 
 				case entity_type::Space:
