@@ -102,6 +102,10 @@ union v2
 	{
 		real32 x, y;
 	};
+	struct
+	{
+		real32 u, v;
+	};
 };
 
 inline v2
@@ -305,6 +309,10 @@ union v3
 	};
 	struct
 	{
+		real32 u, v, w;
+	};
+	struct
+	{
 		real32 r, g, b;
 	};
 	struct
@@ -316,6 +324,16 @@ union v3
 	{
 		real32 Ignored1;
 		v2 yz;
+	};
+	struct
+	{
+		v2 uv;
+		real32 Ignored2;
+	};
+	struct
+	{
+		real32 Ignored3;
+		v2 vw;
 	};
 };
 

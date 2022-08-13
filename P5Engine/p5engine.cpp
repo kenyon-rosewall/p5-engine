@@ -71,7 +71,7 @@ TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
 }
 
 internal loaded_bitmap
-DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntireFile, char* Filename, int32 AlignX = 0, int32 AlignY = 0)
+DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntireFile, char* Filename, int32 AlignX, int32 AlignY)
 {
 	loaded_bitmap Result = {};
 
@@ -156,6 +156,14 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 	Result.Pitch = -Result.Width;
 #endif
 
+	return(Result);
+}
+
+internal loaded_bitmap
+DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntireFile, char* Filename)
+{
+	loaded_bitmap Result = DEBUGLoadBMP(Thread, ReadEntireFile, Filename, 0, 0);
+	Result.AlignPercentage = V2(0.5f, 0.5f);
 	return(Result);
 }
 
@@ -447,19 +455,26 @@ MakeNullCollision(game_state* GameState)
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
-	// TODO: Decide what our pushbuffer size is!
-	temporary_memory Memory = BeginTemporaryMemory(&TransientState->TransientArena);
-	
-	// TODO: How do we want to control our ground chunk resolution?
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), 1920, 1080);
-
-	Clear(RenderGroup, V4(1, 1, 0, 1));
-
+	// TODO: Need to be able to set an orthographic display mode here!!!
 	loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
+	Buffer->AlignPercentage = V2(0.5f, 0.5f);
+	Buffer->WidthOverHeight = 1.0f;
 	GroundBuffer->Pos = *ChunkPos;
 
-	real32 Width = (real32)Buffer->Width;
-	real32 Height = (real32)Buffer->Height;
+	// TODO: Decide what our pushbuffer size is!
+	temporary_memory GroundMemory = BeginTemporaryMemory(&TransientState->TransientArena);
+	
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), Buffer->Width, Buffer->Height);
+
+	//Clear(RenderGroup, V4(1, 1, 0, 1));
+
+#if 1
+	real32 Width = GameState->World->ChunkDimInMeters.x;
+	real32 Height = GameState->World->ChunkDimInMeters.y;
+	v2 HalfDim = 0.5f * V2(Width, Height);
+
+	// TODO: Once we switch to orthographic STOP MULTIPLYING THIS
+	HalfDim = 1.5f * HalfDim;
 
 	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 	{
@@ -478,18 +493,13 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 			for (uint32 SoilIndex = 0; SoilIndex < 50; ++SoilIndex)
 			{
 				loaded_bitmap* Stamp = GameState->Soil + 2;
-				v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
-				v2 Offset = V2(
-					Width * RandomUnilateral(&Series),
-					Height * RandomUnilateral(&Series)
-				);
-				v2 Pos = Center + Offset - BitmapCenter;
 
-				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.0f);
+				v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
+
+				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f);
 			}
 		}
 	}
-
 
 	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 	{
@@ -528,21 +538,17 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 				if (Stamp)
 				{
-					v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
-					v2 Offset = V2(
-						Width * RandomUnilateral(&Series),
-						Height * RandomUnilateral(&Series)
-					);
-					v2 Pos = Center + Offset - BitmapCenter;
+					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.0f);
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 0.4f);
 				}
 			}
 		}
 	}
+#endif
 
 	RenderGroupToOutput(RenderGroup, Buffer);
-	EndTemporaryMemory(Memory);
+	EndTemporaryMemory(GroundMemory);
 }
 
 internal void
@@ -719,22 +725,6 @@ MakePyramidNormalMap(loaded_bitmap* Bitmap, real32 Roughness)
 		Row += Bitmap->Pitch;
 	}
 }
-
-#if 0
-internal void
-RequestGroundBuffers(world_position CenterPos, rectangle3 Bounds)
-{
-	Bounds = Offset(Bounds, CenterPos.Offset);
-	CenterPos.Offset = V3(0, 0, 0);
-
-	for (uint32 ZIndex = Bounds.Min.z; ZIndex < Bounds.Max.z; ++ZIndex)
-	{
-
-	}
-
-	FillGroundChunk(TransientState, GameState, TrasientState->GroundBuffers, &GameState->CameraP);
-}
-#endif
 
 internal void
 SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
@@ -929,10 +919,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					if (ShouldBeDoor)
 					{
-						if ((TileY % 2) || (TileX % 2))
-						{
-							AddWall(GameState, AbsTileX, AbsTileY, AbsTileZ);
-						}
+						AddWall(GameState, AbsTileX, AbsTileY, AbsTileZ);
 					}
 					else if (CreatedZDoor)
 					{
@@ -1134,35 +1121,30 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 	}
 
-	//
-	// NOTE: Render
-	//
-	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
-	
 	loaded_bitmap DrawBuffer_ = {};
 	loaded_bitmap* DrawBuffer = &DrawBuffer_;
 	DrawBuffer->Width = Buffer->Width;
 	DrawBuffer->Height = Buffer->Height;
 	DrawBuffer->Pitch = Buffer->Pitch;
-	DrawBuffer->Memory = (uint32*)Buffer->Memory;
+	DrawBuffer->Memory = Buffer->Memory;
+
+	//
+	// NOTE: Render
+	//
+	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	
 	// TODO: Decide what our push buffer size is
 	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4),
-		Buffer->Width, Buffer->Height);
+		DrawBuffer->Width, DrawBuffer->Height);
 
 	Clear(RenderGroup, V4(0.25f, 0.25f, 0.25f, 0));
-
-	v2 ScreenCenter = V2(
-		0.5f * (real32)DrawBuffer->Width,
-		0.5f * (real32)DrawBuffer->Height
-	);
 
 	rectangle2 ScreenBounds = GetCameraRectangleAtTarget(RenderGroup);
 	rectangle3 CameraBoundsInMeters = RectMinMax(ToV3(ScreenBounds.Min, 0), ToV3(ScreenBounds.Max, 0));
 	CameraBoundsInMeters.Min.z = -3.0f * GameState->TypicalFloorHeight;
 	CameraBoundsInMeters.Max.z = 1.0f * GameState->TypicalFloorHeight;
 
-#if 0
+	// NOTE: Ground chuck rendering
 	for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
 	{
 		ground_buffer* GroundBuffer = TransientState->GroundBuffers + GroundBufferIndex;
@@ -1172,16 +1154,22 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			v3 Delta = Subtract(GameState->World, &GroundBuffer->Pos, &GameState->CameraP);
 
-			Bitmap->Align = 0.5f * V2i(Bitmap->Width, Bitmap->Height);
+			if ((Delta.z >= -1.0f) && (Delta.z < 1.0f))
+			{
+				render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
+				RenderGroup->DefaultBasis = Basis;
+				Basis->Pos = Delta;
 
-			render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
-			RenderGroup->DefaultBasis = Basis;
-			Basis->Pos = Delta + V3(0, 0, GameState->ZOffset);
-
-			PushBitmap(RenderGroup, Bitmap, V3(0, 0, 0));
+				real32 GroundSideInMeters = World->ChunkDimInMeters.x;
+				PushBitmap(RenderGroup, Bitmap, V3(0, 0, 0), GroundSideInMeters);
+#if 1 
+				PushRectOutline(RenderGroup, V3(0, 0, 0), V2(GroundSideInMeters, GroundSideInMeters), V4(1, 1, 0, 1));
+#endif
+			}
 		}
 	}
 
+	// NOTE: Ground chunk updating
 	world_position MinChunkPos = MapIntoChunkSpace(World, GameState->CameraP, GetMinCorner(CameraBoundsInMeters));
 	world_position MaxChunkPos = MapIntoChunkSpace(World, GameState->CameraP, GetMaxCorner(CameraBoundsInMeters));
 
@@ -1193,11 +1181,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				world_position ChunkCenterPos = CenteredChunkPoint(ChunkX, ChunkY, ChunkZ);
 				v3 RelPos = Subtract(World, &ChunkCenterPos, &GameState->CameraP);
-				v2 ScreenPos = V2(
-					ScreenCenter.x + MetersToPixels * RelPos.x,
-					ScreenCenter.y - MetersToPixels * RelPos.y
-				);
-				v2 ScreenDim = MetersToPixels * World->ChunkDimInMeters.xy;
 
 				// TODO: This is super inefficient, fix it tomorrow
 				real32 FurthestBufferLengthSq = 0.0f;
@@ -1231,14 +1214,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				{
 					FillGroundChunk(TransientState, GameState, FurthestBuffer, &ChunkCenterPos);
 				}
-
-#if 0
-				PushRectOutline(RenderGroup, RelPos.xy, RelPos.z, World->ChunkDimInMeters.xy, V4(1, 1, 0, 1));
-#endif
 			}
 		}
 	}
-#endif
 
 	// TODO: How big do we actually want to expand here?
 	// TODO: Do we want to simulate upper floors, etc?
@@ -1252,9 +1230,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	// NOTE: This is the camera position relative to the origin
 	v3 CameraPos = Subtract(World, &GameState->CameraP, &SimCenterPos);
 
+	render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
+	Basis->Pos = V3(0, 0, 0);
+	RenderGroup->DefaultBasis = Basis;
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(ScreenBounds), V4(1, 1, 0, 1));
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimBounds).xy, V4(0, 1, 1, 1));
-	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimRegion->Bounds).xy, V4(1, 1, 1, 1));
+	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimRegion->Bounds).xy, V4(1, 0, 1, 1));
 
 	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 	{
