@@ -447,8 +447,11 @@ MakeNullCollision(game_state* GameState)
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
+	// TODO: Decide what our pushbuffer size is!
 	temporary_memory Memory = BeginTemporaryMemory(&TransientState->TransientArena);
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
+	
+	// TODO: How do we want to control our ground chunk resolution?
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), 1920, 1080);
 
 	Clear(RenderGroup, V4(1, 1, 0, 1));
 
@@ -748,9 +751,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	uint32 GroundBufferWidth = 256;
 	uint32 GroundBufferHeight = 256;
 
-	// TODO: Remove this!
-	real32 PixelsToMeters = 1.0f / 42.0f;
-
 	Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
 	game_state* GameState = (game_state*)Memory->PermanentStorage;
 	if (!Memory->IsInitialized)
@@ -760,6 +760,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		GameState->TypicalFloorHeight = 3.0f;
 
+		// TODO: Remove this!
+		real32 PixelsToMeters = 1.0f / 42.0f;
 		v3 WorldChunkDimInMeters = V3(
 			PixelsToMeters * (real32)GroundBufferWidth,
 			PixelsToMeters * GroundBufferHeight,
@@ -870,7 +872,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			uint32 DoorDirection = RandomChoice(&Series, 2);
 #endif
 
-			DoorDirection = 3;
+			// DoorDirection = 3;
 
 			bool32 CreatedZDoor = false;
 			if (DoorDirection == 3)
@@ -1135,17 +1137,18 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	//
 	// NOTE: Render
 	//
-
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
-	// TODO: Decide what our push buffer size is
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
-
+	
 	loaded_bitmap DrawBuffer_ = {};
 	loaded_bitmap* DrawBuffer = &DrawBuffer_;
 	DrawBuffer->Width = Buffer->Width;
 	DrawBuffer->Height = Buffer->Height;
 	DrawBuffer->Pitch = Buffer->Pitch;
 	DrawBuffer->Memory = (uint32*)Buffer->Memory;
+	
+	// TODO: Decide what our push buffer size is
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4),
+		Buffer->Width, Buffer->Height);
 
 	Clear(RenderGroup, V4(0.25f, 0.25f, 0.25f, 0));
 
@@ -1154,13 +1157,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		0.5f * (real32)DrawBuffer->Height
 	);
 
-	real32 ScreenWidthInMeters = DrawBuffer->Width * PixelsToMeters;
-	real32 ScreenHeightInMeters = DrawBuffer->Height * PixelsToMeters;
-	rectangle3 CameraBoundsInMeters = RectCenterDim(
-		V3(0, 0, 0),
-		V3(ScreenWidthInMeters, ScreenHeightInMeters, 0)
-	);
-
+	rectangle2 ScreenBounds = GetCameraRectangleAtTarget(RenderGroup);
+	rectangle3 CameraBoundsInMeters = RectMinMax(ToV3(ScreenBounds.Min, 0), ToV3(ScreenBounds.Max, 0));
 	CameraBoundsInMeters.Min.z = -3.0f * GameState->TypicalFloorHeight;
 	CameraBoundsInMeters.Max.z = 1.0f * GameState->TypicalFloorHeight;
 
@@ -1253,6 +1251,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	// NOTE: This is the camera position relative to the origin
 	v3 CameraPos = Subtract(World, &GameState->CameraP, &SimCenterPos);
+
+	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(ScreenBounds), V4(1, 1, 0, 1));
+	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimBounds).xy, V4(0, 1, 1, 1));
+	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimRegion->Bounds).xy, V4(1, 1, 1, 1));
 
 	for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 	{

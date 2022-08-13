@@ -761,6 +761,13 @@ GetMaxCorner(rectangle2 Rect)
 }
 
 inline v2
+GetDim(rectangle2 Rect)
+{
+	v2 Result = Rect.Max - Rect.Min;
+	return(Result);
+}
+
+inline v2
 GetCenter(rectangle2 Rect)
 {
 	v2 Result = 0.5f * (Rect.Min + Rect.Max);
@@ -881,6 +888,13 @@ inline v3
 GetMaxCorner(rectangle3 Rect)
 {
 	v3 Result = Rect.Max;
+	return(Result);
+}
+
+inline v3
+GetDim(rectangle3 Rect)
+{
+	v3 Result = Rect.Max - Rect.Min;
 	return(Result);
 }
 
