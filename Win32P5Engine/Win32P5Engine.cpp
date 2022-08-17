@@ -882,6 +882,35 @@ Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End)
 	return(Result);
 }
 
+internal void
+HandleDebugCycleCounters(game_memory* GameMemory)
+{
+#if P5ENGINE_INTERNAL
+	OutputDebugStringA("DEBUG CYCLE COUNTS:\n");
+	for (int CounterIndex = 0; CounterIndex < ArrayCount(GameMemory->Counters); ++CounterIndex)
+	{
+		debug_cycle_counter* Counter = GameMemory->Counters + CounterIndex;
+
+		if (Counter->HitCount)
+		{
+			char TextBuffer[256];
+			_snprintf_s(TextBuffer, sizeof(TextBuffer),
+				"  %d: %I64ucy %uh %I64ucy/h\n",
+				CounterIndex,
+				Counter->CycleCount,
+				Counter->HitCount,
+				Counter->CycleCount / Counter->HitCount
+			);
+			OutputDebugStringA(TextBuffer);
+
+			Counter->CycleCount = 0;
+			Counter->HitCount = 0;
+		}
+	}
+#endif
+}
+
+
 int CALLBACK
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode){	win32_state Win32State = {};
 
@@ -1181,6 +1210,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						if (Game.UpdateAndRender)
 						{
 							Game.UpdateAndRender(&Context, &GameMemory, NewInput, &Buffer);
+							HandleDebugCycleCounters(&GameMemory);
 						}
 
 						LARGE_INTEGER AudioCounter = Win32GetWallClock();

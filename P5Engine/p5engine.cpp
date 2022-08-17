@@ -468,7 +468,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 	//Clear(RenderGroup, V4(1, 1, 0, 1));
 
-#if 1
+#if 0
 	real32 Width = GameState->World->ChunkDimInMeters.x;
 	real32 Height = GameState->World->ChunkDimInMeters.y;
 	v2 HalfDim = 0.5f * V2(Width, Height);
@@ -734,8 +734,18 @@ SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
 	Bitmap->Character.AlignPercentage = AlignPercentage;
 }
 
+#if P5ENGINE_INTERNAL
+game_memory* DebugGlobalMemory;
+#endif
+
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
+#if P5ENGINE_INTERNAL
+	DebugGlobalMemory = Memory;
+#endif
+	
+	BEGIN_TIMED_BLOCK(GameUpdateRender);
+	
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)));
 
 	uint32 GroundBufferWidth = 256;
@@ -1548,6 +1558,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
+
+	END_TIMED_BLOCK(GameUpdateRender);
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)

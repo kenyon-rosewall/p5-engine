@@ -131,6 +131,38 @@ typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
 
 #define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) bool32 name(thread_context* Context, char* Filename, uint32 MemorySize, void* Memory)
 typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
+
+enum DebugCycleCounter
+{
+	GameUpdateRender,
+	RenderGroupOutput,
+	DrawRectangleSlow,
+	TestPixel,
+	FillPixel,
+	DrawRectangleQuick,
+	Count,
+};
+
+typedef struct debug_cycle_counter
+{
+	uint64 CycleCount;
+	uint32 HitCount;
+} debug_cycle_counter;
+
+extern struct game_memory* DebugGlobalMemory;
+
+#if _MSC_VER
+
+#define BEGIN_TIMED_BLOCK(ID) uint64 StartCycleCount##ID = __rdtsc();
+#define END_TIMED_BLOCK(ID) DebugGlobalMemory->Counters[DebugCycleCounter::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; ++DebugGlobalMemory->Counters[DebugCycleCounter::##ID].HitCount;
+
+#else
+
+#define BEGIN_TIMED_BLOCK(ID)
+#define END_TIMED_BLOCK(ID)
+
+#endif
+
 #endif
 
 /*
@@ -227,6 +259,10 @@ typedef struct game_memory
 	debug_platform_free_file_memory* DEBUGPlatformFreeFileMemory;
 	debug_platform_read_entire_file* DEBUGPlatformReadEntireFile;
 	debug_platform_write_entire_file* DEBUGPlatformWriteEntireFile;
+
+#if P5ENGINE_INTERNAL
+	debug_cycle_counter Counters[DebugCycleCounter::Count];
+#endif
 } game_memory;
 
 #define GAME_UPDATE_AND_RENDER(name) P5ENGINE_API void name(thread_context* Context, game_memory* Memory, game_input* Input, game_offscreen_buffer* Buffer)
