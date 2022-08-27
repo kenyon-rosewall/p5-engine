@@ -673,17 +673,21 @@ DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Co
 			Blendedb = _mm_mul_ps(One255_4x, mmSquareRoot(Blendedb));
 			Blendeda = _mm_mul_ps(One255_4x, Blendeda);
 
-			for (int I = 0; I < 4; ++I)
-			{
-				if (ShouldFill[I])
-				{
-					// NOTE: Repack
-					*(Pixel + I) = (((uint32)(M(Blendeda, I) + 0.5f) << 24) |
-									((uint32)(M(Blendedr, I) + 0.5f) << 16) |
-									((uint32)(M(Blendedg, I) + 0.5f) << 8) |
-									((uint32)(M(Blendedb, I) + 0.5f) << 0));
-				}
-			}
+			// TODO: Set the rounding to something known
+			__m128i Intr = _mm_cvtps_epi32(Blendedr);
+			__m128i Intg = _mm_cvtps_epi32(Blendedg);
+			__m128i Intb = _mm_cvtps_epi32(Blendedb);
+			__m128i Inta = _mm_cvtps_epi32(Blendeda);
+
+			__m128i Sr = _mm_slli_epi32(Intr, 16);
+			__m128i Sg = _mm_slli_epi32(Intg, 8);
+			__m128i Sb = Intb;
+			__m128i Sa = _mm_slli_epi32(Inta, 24);
+
+			// NOTE: Repack
+			__m128i Out = _mm_or_si128(_mm_or_si128(_mm_or_si128(Sr, Sg), Sb), Sa);
+
+			_mm_storeu_si128((__m128i*)Pixel, Out);
 
 			Pixel += 4;
 		}
