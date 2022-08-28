@@ -133,14 +133,14 @@ DEBUGLoadBMP(thread_context* Thread, debug_platform_read_entire_file* ReadEntire
 					(real32)((C & BlueMask) >> BlueShiftDown),
 					(real32)((C & AlphaMask) >> AlphaShiftDown)
 				);
-				Texel = SRGB255ToLinear1(Texel);
 
+				Texel = SRGB255ToLinear1(Texel);
 #if 1
 				Texel.rgb *= Texel.a;
 #endif
-
 				Texel = Linear1ToSRGB255(Texel);
 			
+
 				*SourceDest++ = (((uint32)(Texel.a + 0.5f) << 24) |
 								 ((uint32)(Texel.r + 0.5f) << 16) |
 								 ((uint32)(Texel.g + 0.5f) <<  8) |
@@ -1000,7 +1000,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	{
 		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (uint8*)Memory->TransientStorage + sizeof(transient_state));
 
-		TransientState->GroundBufferCount = 64;
+		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
 		for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
 		{
