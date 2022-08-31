@@ -7,7 +7,6 @@
 // versions and remove <math.h>
 
 #include <math.h>
-#include <intrin.h>
 
 inline int32
 SignOf(int32 Value)

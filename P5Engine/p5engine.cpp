@@ -22,8 +22,9 @@ GameOutputSound(game_state* GameState, game_sound_output_buffer* SoundBuffer, in
 }
 
 internal void
-DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 r = 2.0f)
+DrawRectangleOutline_(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 r = 2.0f)
 {
+#if 0 
 	// NOTE: Rop and boRRom
 	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMax.x + r, vMin.y + r), ToV4(Color, 1));
 	DrawRectangle(Buffer, V2(vMin.x - r, vMax.y - r), V2(vMax.x + r, vMax.y + r), ToV4(Color, 1));
@@ -31,6 +32,7 @@ DrawRectangleOutline(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, real32 r
 	// NOTE: Left and righte
 	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMin.x + r, vMax.y + r), ToV4(Color, 1));
 	DrawRectangle(Buffer, V2(vMax.x - r, vMin.y - r), V2(vMax.x + r, vMax.y + r), ToV4(Color, 1));
+#endif
 }
 
 #pragma pack(push, 1)
@@ -466,7 +468,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 	
 	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), Buffer->Width, Buffer->Height);
 
-	//Clear(RenderGroup, V4(1, 1, 0, 1));
+	Clear(RenderGroup, V4(0.5f, 0.75f, 0.1f, 1));
 
 #if 0
 	real32 Width = GameState->World->ChunkDimInMeters.x;
@@ -547,7 +549,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 	}
 #endif
 
-	RenderGroupToOutput(RenderGroup, Buffer);
+	TiledRenderGroupToOutput(RenderGroup, Buffer);
 	EndTemporaryMemory(GroundMemory);
 }
 
@@ -1010,7 +1012,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 
 		GameState->TestDiffuse = MakeEmptyBitmap(&TransientState->TransientArena, 256, 256, false);
-		DrawRectangle(&GameState->TestDiffuse, V2(0, 0), V2i(GameState->TestDiffuse.Width, GameState->TestDiffuse.Height), V4(0.5f, 0.5f, 0.5f, 1.0f));
+		
 		GameState->TestNormal = MakeEmptyBitmap(&TransientState->TransientArena, GameState->TestDiffuse.Width, GameState->TestDiffuse.Height, false);
 		MakeSphereNormalMap(&GameState->TestNormal, 0.0f);
 		MakeSphereDiffuseMap(&GameState->TestDiffuse);
@@ -1550,8 +1552,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	}
 #endif
 
-	RenderGroupToOutput(RenderGroup, DrawBuffer);
+	TiledRenderGroupToOutput(RenderGroup, DrawBuffer);
 
+	// TODO: Make sure we hoist the camera update out to a place where the renderer
+	// can know about the location of the camera at the end of cthe frame so there isn't
+	// a frame of lag in camera updating compared to the hero.
 	EndSim(SimRegion, GameState);
 	EndTemporaryMemory(SimMemory);
 	EndTemporaryMemory(RenderMemory);

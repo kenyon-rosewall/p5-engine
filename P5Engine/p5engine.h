@@ -272,6 +272,7 @@ struct game_state
 
 	real32 Time;
 
+	// TODO: Re-fill this guy with gray
 	loaded_bitmap TestDiffuse;
 	loaded_bitmap TestNormal;
 };
