@@ -910,9 +910,116 @@ HandleDebugCycleCounters(game_memory* GameMemory)
 #endif
 }
 
+struct work_queue_entry
+{
+	char* StringToPrint;
+};
+
+global_variable uint32 volatile EntryCompletionCount;
+global_variable uint32 volatile NextEntryToDo;
+global_variable uint32 volatile EntryCount;
+work_queue_entry Entries[256];
+
+// TODO: Double-check the write ordering stuff on the CPU
+#define CompletePastWritesBeforeFutureWrites _WriteBarrier(); _mm_sfence()
+#define CompletePastReadsBeforeFutureReads _ReadBarrier()
+
+internal void
+PushString(HANDLE SemaphoreHandle, char* String)
+{
+	Assert(EntryCount < ArrayCount(Entries));
+
+	work_queue_entry* Entry = Entries + EntryCount;
+	Entry->StringToPrint = String;
+
+	CompletePastWritesBeforeFutureWrites;
+
+	++EntryCount;
+
+	ReleaseSemaphore(SemaphoreHandle, 1, 0);
+}
+
+struct win32_thread_info
+{
+	HANDLE SemaphoreHandle;
+	int LogicalThreadIndex;
+};
+
+DWORD WINAPI
+ThreadProc(LPVOID lpParameter)
+{
+	win32_thread_info* ThreadInfo = (win32_thread_info*)lpParameter;
+	
+	for (;;)
+	{
+		if (NextEntryToDo < EntryCount)
+		{
+			int EntryIndex = InterlockedIncrement((LONG volatile*)&NextEntryToDo) - 1;
+			CompletePastReadsBeforeFutureReads;
+			work_queue_entry* Entry = Entries + EntryIndex;
+
+			char Buffer[256];
+			wsprintf(Buffer, "Thread %u: %s\n", ThreadInfo->LogicalThreadIndex, Entry->StringToPrint);
+			OutputDebugStringA(Buffer);
+
+			InterlockedIncrement((LONG volatile*)&EntryCompletionCount);
+		}
+		else
+		{
+			WaitForSingleObjectEx(ThreadInfo->SemaphoreHandle, INFINITE, FALSE);
+		}
+	}
+
+	// return(0);
+}
 
 int CALLBACK
-WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode){	win32_state Win32State = {};
+WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode)
+{
+	win32_state Win32State = {};
+
+	win32_thread_info ThreadInfo[8];
+
+	uint32 InitialCount = 0;
+	uint32 ThreadCount = ArrayCount(ThreadInfo);
+	HANDLE SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
+
+	for (uint32 ThreadIndex = 0; ThreadIndex < ArrayCount(ThreadInfo); ++ThreadIndex)
+	{
+		win32_thread_info* Info = ThreadInfo + ThreadIndex;
+		Info->SemaphoreHandle = SemaphoreHandle;
+		Info->LogicalThreadIndex = ThreadIndex;
+
+		DWORD ThreadID;
+		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Info, 0, &ThreadID);
+		CloseHandle(ThreadHandle);
+	}
+
+	PushString(SemaphoreHandle, (char*)"String A0");
+	PushString(SemaphoreHandle, (char*)"String A1");
+	PushString(SemaphoreHandle, (char*)"String A2");
+	PushString(SemaphoreHandle, (char*)"String A3");
+	PushString(SemaphoreHandle, (char*)"String A4");
+	PushString(SemaphoreHandle, (char*)"String A5");
+	PushString(SemaphoreHandle, (char*)"String A6");
+	PushString(SemaphoreHandle, (char*)"String A7");
+	PushString(SemaphoreHandle, (char*)"String A8");
+	PushString(SemaphoreHandle, (char*)"String A9");
+
+	Sleep(5000);
+
+	PushString(SemaphoreHandle, (char*)"String B0");
+	PushString(SemaphoreHandle, (char*)"String B1");
+	PushString(SemaphoreHandle, (char*)"String B2");
+	PushString(SemaphoreHandle, (char*)"String B3");
+	PushString(SemaphoreHandle, (char*)"String B4");
+	PushString(SemaphoreHandle, (char*)"String B5");
+	PushString(SemaphoreHandle, (char*)"String B6");
+	PushString(SemaphoreHandle, (char*)"String B7");
+	PushString(SemaphoreHandle, (char*)"String B8");
+	PushString(SemaphoreHandle, (char*)"String B9");
+
+	while (EntryCount != EntryCompletionCount);
 
 	LARGE_INTEGER PerfCountFrequencyResult;
 	QueryPerformanceFrequency(&PerfCountFrequencyResult);
