@@ -910,39 +910,84 @@ HandleDebugCycleCounters(game_memory* GameMemory)
 #endif
 }
 
-struct work_queue_entry
+struct work_queue_entry_storage
 {
-	char* StringToPrint;
+	void* UserPointer;
 };
 
-global_variable uint32 volatile EntryCompletionCount;
-global_variable uint32 volatile NextEntryToDo;
-global_variable uint32 volatile EntryCount;
-work_queue_entry Entries[256];
+struct work_queue
+{
+	uint32 volatile EntryCompletionCount;
+	uint32 volatile NextEntryToDo;
+	uint32 volatile EntryCount;
+	HANDLE SemaphoreHandle;
 
-// TODO: Double-check the write ordering stuff on the CPU
-#define CompletePastWritesBeforeFutureWrites _WriteBarrier(); _mm_sfence()
-#define CompletePastReadsBeforeFutureReads _ReadBarrier()
+	work_queue_entry_storage Entries[256];
+};
+
+struct work_queue_entry
+{
+	void* Data;
+	bool32 IsValid;
+};
 
 internal void
-PushString(HANDLE SemaphoreHandle, char* String)
+AddWorkQueueEntry(work_queue* Queue, void* Pointer)
 {
-	Assert(EntryCount < ArrayCount(Entries));
+	Assert(Queue->EntryCount < ArrayCount(Queue->Entries));
+	Queue->Entries[Queue->EntryCount].UserPointer = Pointer;
 
-	work_queue_entry* Entry = Entries + EntryCount;
-	Entry->StringToPrint = String;
+	_WriteBarrier();
+	_mm_sfence();
 
-	CompletePastWritesBeforeFutureWrites;
+	++Queue->EntryCount;
 
-	++EntryCount;
+	ReleaseSemaphore(Queue->SemaphoreHandle, 1, 0);
+}
 
-	ReleaseSemaphore(SemaphoreHandle, 1, 0);
+internal work_queue_entry
+CompletedAndGetNextWorkQueueEntry(work_queue* Queue, work_queue_entry Completed)
+{
+	work_queue_entry Result;
+	Result.IsValid = false;
+
+	if (Completed.IsValid)
+	{
+		InterlockedIncrement((LONG volatile*)&Queue->EntryCompletionCount);
+	}
+
+	if (Queue->NextEntryToDo < Queue->EntryCount)
+	{
+		uint32 Index = InterlockedIncrement((LONG volatile*)&Queue->NextEntryToDo) - 1;
+		Result.Data = Queue->Entries[Index].UserPointer;
+		Result.IsValid = true;
+		_ReadBarrier();
+	}
+
+	return(Result);
+}
+
+internal bool32
+QueueWorkStillInProgress(work_queue* Queue)
+{
+	bool32 Result = (Queue->EntryCount == Queue->EntryCompletionCount);
+	return(Result);
+}
+
+inline void
+DoWorkerWork(work_queue_entry Entry, int LogicalThreadIndex)
+{
+	Assert(Entry.IsValid);
+
+	char Buffer[256];
+	wsprintf(Buffer, "Thread %u: %s\n", LogicalThreadIndex, (char*)Entry.Data);
+	OutputDebugStringA(Buffer);
 }
 
 struct win32_thread_info
 {
-	HANDLE SemaphoreHandle;
 	int LogicalThreadIndex;
+	work_queue* Queue;
 };
 
 DWORD WINAPI
@@ -950,27 +995,27 @@ ThreadProc(LPVOID lpParameter)
 {
 	win32_thread_info* ThreadInfo = (win32_thread_info*)lpParameter;
 	
+	work_queue_entry Entry = {};
 	for (;;)
 	{
-		if (NextEntryToDo < EntryCount)
+		Entry = CompletedAndGetNextWorkQueueEntry(ThreadInfo->Queue, Entry);
+		if (Entry.IsValid)
 		{
-			int EntryIndex = InterlockedIncrement((LONG volatile*)&NextEntryToDo) - 1;
-			CompletePastReadsBeforeFutureReads;
-			work_queue_entry* Entry = Entries + EntryIndex;
-
-			char Buffer[256];
-			wsprintf(Buffer, "Thread %u: %s\n", ThreadInfo->LogicalThreadIndex, Entry->StringToPrint);
-			OutputDebugStringA(Buffer);
-
-			InterlockedIncrement((LONG volatile*)&EntryCompletionCount);
+			DoWorkerWork(Entry, ThreadInfo->LogicalThreadIndex);
 		}
 		else
 		{
-			WaitForSingleObjectEx(ThreadInfo->SemaphoreHandle, INFINITE, FALSE);
+			WaitForSingleObjectEx(ThreadInfo->Queue->SemaphoreHandle, INFINITE, FALSE);
 		}
 	}
 
 	// return(0);
+}
+
+internal void
+PushString(work_queue* Queue, char* String)
+{
+	AddWorkQueueEntry(Queue, String);
 }
 
 int CALLBACK
@@ -978,16 +1023,18 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 {
 	win32_state Win32State = {};
 
-	win32_thread_info ThreadInfo[8];
+	win32_thread_info ThreadInfo[7];
+
+	work_queue Queue = {};
 
 	uint32 InitialCount = 0;
 	uint32 ThreadCount = ArrayCount(ThreadInfo);
-	HANDLE SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
+	Queue.SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
 
 	for (uint32 ThreadIndex = 0; ThreadIndex < ArrayCount(ThreadInfo); ++ThreadIndex)
 	{
 		win32_thread_info* Info = ThreadInfo + ThreadIndex;
-		Info->SemaphoreHandle = SemaphoreHandle;
+		Info->Queue = &Queue;
 		Info->LogicalThreadIndex = ThreadIndex;
 
 		DWORD ThreadID;
@@ -995,31 +1042,37 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 		CloseHandle(ThreadHandle);
 	}
 
-	PushString(SemaphoreHandle, (char*)"String A0");
-	PushString(SemaphoreHandle, (char*)"String A1");
-	PushString(SemaphoreHandle, (char*)"String A2");
-	PushString(SemaphoreHandle, (char*)"String A3");
-	PushString(SemaphoreHandle, (char*)"String A4");
-	PushString(SemaphoreHandle, (char*)"String A5");
-	PushString(SemaphoreHandle, (char*)"String A6");
-	PushString(SemaphoreHandle, (char*)"String A7");
-	PushString(SemaphoreHandle, (char*)"String A8");
-	PushString(SemaphoreHandle, (char*)"String A9");
+	PushString(&Queue, (char*)"String A0");
+	PushString(&Queue, (char*)"String A1");
+	PushString(&Queue, (char*)"String A2");
+	PushString(&Queue, (char*)"String A3");
+	PushString(&Queue, (char*)"String A4");
+	PushString(&Queue, (char*)"String A5");
+	PushString(&Queue, (char*)"String A6");
+	PushString(&Queue, (char*)"String A7");
+	PushString(&Queue, (char*)"String A8");
+	PushString(&Queue, (char*)"String A9");
 
-	Sleep(5000);
+	PushString(&Queue, (char*)"String B0");
+	PushString(&Queue, (char*)"String B1");
+	PushString(&Queue, (char*)"String B2");
+	PushString(&Queue, (char*)"String B3");
+	PushString(&Queue, (char*)"String B4");
+	PushString(&Queue, (char*)"String B5");
+	PushString(&Queue, (char*)"String B6");
+	PushString(&Queue, (char*)"String B7");
+	PushString(&Queue, (char*)"String B8");
+	PushString(&Queue, (char*)"String B9");
 
-	PushString(SemaphoreHandle, (char*)"String B0");
-	PushString(SemaphoreHandle, (char*)"String B1");
-	PushString(SemaphoreHandle, (char*)"String B2");
-	PushString(SemaphoreHandle, (char*)"String B3");
-	PushString(SemaphoreHandle, (char*)"String B4");
-	PushString(SemaphoreHandle, (char*)"String B5");
-	PushString(SemaphoreHandle, (char*)"String B6");
-	PushString(SemaphoreHandle, (char*)"String B7");
-	PushString(SemaphoreHandle, (char*)"String B8");
-	PushString(SemaphoreHandle, (char*)"String B9");
-
-	while (EntryCount != EntryCompletionCount);
+	work_queue_entry Entry = {};
+	while (QueueWorkStillInProgress(&Queue))
+	{
+		Entry = CompletedAndGetNextWorkQueueEntry(&Queue, Entry);
+		if (Entry.IsValid)
+		{
+			DoWorkerWork(Entry, 7);
+		}
+	}
 
 	LARGE_INTEGER PerfCountFrequencyResult;
 	QueryPerformanceFrequency(&PerfCountFrequencyResult);
