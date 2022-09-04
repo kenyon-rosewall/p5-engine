@@ -910,100 +910,93 @@ HandleDebugCycleCounters(game_memory* GameMemory)
 #endif
 }
 
-struct work_queue_entry_storage
+struct platform_work_queue_entry
 {
-	void* UserPointer;
+	platform_work_queue_callback* Callback;
+	void* Data;
 };
 
-struct work_queue
+struct platform_work_queue
 {
-	uint32 volatile EntryCompletionCount;
-	uint32 volatile NextEntryToDo;
-	uint32 volatile EntryCount;
+	uint32 volatile NextEntryToRead;
+	uint32 volatile NextEntryToWrite;
+
+	uint32 volatile CompletionGoal;
+	uint32 volatile CompletionCount;
+	
 	HANDLE SemaphoreHandle;
 
-	work_queue_entry_storage Entries[256];
+	platform_work_queue_entry Entries[256];
 };
 
-struct work_queue_entry
+struct win32_thread_info
 {
-	void* Data;
-	bool32 IsValid;
+	platform_work_queue* Queue;
 };
 
-internal void
-AddWorkQueueEntry(work_queue* Queue, void* Pointer)
+void
+Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* Data)
 {
-	Assert(Queue->EntryCount < ArrayCount(Queue->Entries));
-	Queue->Entries[Queue->EntryCount].UserPointer = Pointer;
+	uint32 NextEntryToWrite = Queue->NextEntryToWrite;
+	uint32 NewNextEntryToWrite = (NextEntryToWrite + 1) % ArrayCount(Queue->Entries);
+	Assert(NewNextEntryToWrite != Queue->NextEntryToRead);
+
+	platform_work_queue_entry* Entry = Queue->Entries + NextEntryToWrite;
+	Entry->Callback = Callback;
+	Entry->Data = Data;
+	++Queue->CompletionGoal;
 
 	_WriteBarrier();
 	_mm_sfence();
 
-	++Queue->EntryCount;
+	Queue->NextEntryToWrite = NewNextEntryToWrite;
 
 	ReleaseSemaphore(Queue->SemaphoreHandle, 1, 0);
 }
 
-internal work_queue_entry
-CompletedAndGetNextWorkQueueEntry(work_queue* Queue, work_queue_entry Completed)
-{
-	work_queue_entry Result;
-	Result.IsValid = false;
-
-	if (Completed.IsValid)
-	{
-		InterlockedIncrement((LONG volatile*)&Queue->EntryCompletionCount);
-	}
-
-	if (Queue->NextEntryToDo < Queue->EntryCount)
-	{
-		uint32 Index = InterlockedIncrement((LONG volatile*)&Queue->NextEntryToDo) - 1;
-		Result.Data = Queue->Entries[Index].UserPointer;
-		Result.IsValid = true;
-		_ReadBarrier();
-	}
-
-	return(Result);
-}
-
 internal bool32
-QueueWorkStillInProgress(work_queue* Queue)
+Win32DoNextWorkQueueEntry(platform_work_queue* Queue)
 {
-	bool32 Result = (Queue->EntryCount == Queue->EntryCompletionCount);
-	return(Result);
+	bool32 WeShouldSleep = false;
+
+	uint32 NextEntryToRead = Queue->NextEntryToRead;
+	uint32 NewNextEntryToRead = (NextEntryToRead + 1) % ArrayCount(Queue->Entries);
+	if (NextEntryToRead != Queue->NextEntryToWrite)
+	{
+		uint32 Index = InterlockedCompareExchange((LONG volatile*)&Queue->NextEntryToRead, NewNextEntryToRead, NextEntryToRead);
+
+		if (Index == NextEntryToRead)
+		{
+			platform_work_queue_entry* Entry = Queue->Entries + Index;
+			Entry->Callback(Queue, Entry->Data);
+			InterlockedIncrement((LONG volatile*)&Queue->CompletionCount);
+			WeShouldSleep = true;
+		}
+	}
+
+	return(WeShouldSleep);
 }
 
-inline void
-DoWorkerWork(work_queue_entry Entry, int LogicalThreadIndex)
+void
+Win32CompleteAllWork(platform_work_queue* Queue)
 {
-	Assert(Entry.IsValid);
+	while (Queue->CompletionGoal != Queue->CompletionCount)
+	{
+		Win32DoNextWorkQueueEntry(Queue);
+	}
 
-	char Buffer[256];
-	wsprintf(Buffer, "Thread %u: %s\n", LogicalThreadIndex, (char*)Entry.Data);
-	OutputDebugStringA(Buffer);
+	Queue->CompletionGoal = 0;
+	Queue->CompletionCount = 0;
 }
-
-struct win32_thread_info
-{
-	int LogicalThreadIndex;
-	work_queue* Queue;
-};
 
 DWORD WINAPI
 ThreadProc(LPVOID lpParameter)
 {
 	win32_thread_info* ThreadInfo = (win32_thread_info*)lpParameter;
-	
-	work_queue_entry Entry = {};
+
 	for (;;)
 	{
-		Entry = CompletedAndGetNextWorkQueueEntry(ThreadInfo->Queue, Entry);
-		if (Entry.IsValid)
-		{
-			DoWorkerWork(Entry, ThreadInfo->LogicalThreadIndex);
-		}
-		else
+		if (!Win32DoNextWorkQueueEntry(ThreadInfo->Queue))
 		{
 			WaitForSingleObjectEx(ThreadInfo->Queue->SemaphoreHandle, INFINITE, FALSE);
 		}
@@ -1012,10 +1005,12 @@ ThreadProc(LPVOID lpParameter)
 	// return(0);
 }
 
-internal void
-PushString(work_queue* Queue, char* String)
+internal
+PLATFORM_WORK_QUEUE_CALLBACK(DoWorkerWork)
 {
-	AddWorkQueueEntry(Queue, String);
+	char Buffer[256];
+	wsprintf(Buffer, "=== Thread %u: %s ===\n", GetCurrentThreadId(), (char*)Data);
+	OutputDebugStringA(Buffer);
 }
 
 int CALLBACK
@@ -1025,7 +1020,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 	win32_thread_info ThreadInfo[7];
 
-	work_queue Queue = {};
+	platform_work_queue Queue = {};
 
 	uint32 InitialCount = 0;
 	uint32 ThreadCount = ArrayCount(ThreadInfo);
@@ -1035,44 +1030,34 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 	{
 		win32_thread_info* Info = ThreadInfo + ThreadIndex;
 		Info->Queue = &Queue;
-		Info->LogicalThreadIndex = ThreadIndex;
 
-		DWORD ThreadID;
-		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Info, 0, &ThreadID);
+		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Info, 0, 0);
 		CloseHandle(ThreadHandle);
 	}
 
-	PushString(&Queue, (char*)"String A0");
-	PushString(&Queue, (char*)"String A1");
-	PushString(&Queue, (char*)"String A2");
-	PushString(&Queue, (char*)"String A3");
-	PushString(&Queue, (char*)"String A4");
-	PushString(&Queue, (char*)"String A5");
-	PushString(&Queue, (char*)"String A6");
-	PushString(&Queue, (char*)"String A7");
-	PushString(&Queue, (char*)"String A8");
-	PushString(&Queue, (char*)"String A9");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A0");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A1");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A2");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A3");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A4");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A5");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A6");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A7");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A8");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A9");
 
-	PushString(&Queue, (char*)"String B0");
-	PushString(&Queue, (char*)"String B1");
-	PushString(&Queue, (char*)"String B2");
-	PushString(&Queue, (char*)"String B3");
-	PushString(&Queue, (char*)"String B4");
-	PushString(&Queue, (char*)"String B5");
-	PushString(&Queue, (char*)"String B6");
-	PushString(&Queue, (char*)"String B7");
-	PushString(&Queue, (char*)"String B8");
-	PushString(&Queue, (char*)"String B9");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B0");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B1");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B2");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B3");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B4");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B5");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B6");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B7");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B8");
+	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B9");
 
-	work_queue_entry Entry = {};
-	while (QueueWorkStillInProgress(&Queue))
-	{
-		Entry = CompletedAndGetNextWorkQueueEntry(&Queue, Entry);
-		if (Entry.IsValid)
-		{
-			DoWorkerWork(Entry, 7);
-		}
-	}
+	Win32CompleteAllWork(&Queue);
 
 	LARGE_INTEGER PerfCountFrequencyResult;
 	QueryPerformanceFrequency(&PerfCountFrequencyResult);
@@ -1155,6 +1140,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			game_memory GameMemory = {};
 			GameMemory.PermanentStorageSize = Megabytes(256);
 			GameMemory.TransientStorageSize = Gigabytes(1);
+			GameMemory.HighPriorityQueue = &Queue;
+			GameMemory.PlatformAddEntry = Win32AddEntry;
+			GameMemory.PlatformCompleteAllWork = Win32CompleteAllWork;
 			GameMemory.DEBUGPlatformFreeFileMemory = DEBUGPlatformFreeFileMemory;
 			GameMemory.DEBUGPlatformReadEntireFile = DEBUGPlatformReadEntireFile;
 			GameMemory.DEBUGPlatformWriteEntireFile = DEBUGPlatformWriteEntireFile;

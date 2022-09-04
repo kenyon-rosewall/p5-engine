@@ -283,6 +283,7 @@ struct transient_state
 	memory_arena TransientArena;
 	uint32 GroundBufferCount;
 	ground_buffer* GroundBuffers;
+	platform_work_queue* RenderQueue;
 
 	uint32 EnvMapWidth;
 	uint32 EnvMapHeight;
@@ -303,8 +304,12 @@ GetLowEntity(game_state* GameState, uint32 LowIndex)
 	return(Result);
 }
 
+global_variable platform_add_entry* PlatformAddEntry;
+global_variable platform_complete_all_work* PlatformCompleteAllWork;
+
 internal void
 AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide);
 internal void
 ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex);
+
 #endif // !P5ENGINE_H

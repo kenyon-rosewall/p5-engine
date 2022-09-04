@@ -549,7 +549,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 	}
 #endif
 
-	TiledRenderGroupToOutput(RenderGroup, Buffer);
+	TiledRenderGroupToOutput(TransientState->RenderQueue, RenderGroup, Buffer);
 	EndTemporaryMemory(GroundMemory);
 }
 
@@ -757,6 +757,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	game_state* GameState = (game_state*)Memory->PermanentStorage;
 	if (!Memory->IsInitialized)
 	{
+		PlatformAddEntry = Memory->PlatformAddEntry;
+		PlatformCompleteAllWork = Memory->PlatformCompleteAllWork;
+
 		uint32 TilesPerWidth = 17;
 		uint32 TilesPerHeight = 9;
 
@@ -1002,6 +1005,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	{
 		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (uint8*)Memory->TransientStorage + sizeof(transient_state));
 
+		TransientState->RenderQueue = Memory->HighPriorityQueue;
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
 		for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
@@ -1552,7 +1556,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	}
 #endif
 
-	TiledRenderGroupToOutput(RenderGroup, DrawBuffer);
+	TiledRenderGroupToOutput(TransientState->RenderQueue, RenderGroup, DrawBuffer);
 
 	// TODO: Make sure we hoist the camera update out to a place where the renderer
 	// can know about the location of the camera at the end of cthe frame so there isn't
