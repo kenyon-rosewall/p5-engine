@@ -395,7 +395,8 @@ Win32ResizeDIBSection(win32_offscreen_buffer* Buffer, int Width, int Height)
 
 	Buffer->Width = Width;
 	Buffer->Height = Height;
-	Buffer->BytesPerPixel = 4;
+	int BytesPerPixel = 4;
+	Buffer->BytesPerPixel = BytesPerPixel;
 
 	// NOTE: When the biHeight field is negative, this is the clue to Windows
 	// to treat this bitmap as top-down, not bottom-up, meaning that the first
@@ -411,9 +412,9 @@ Win32ResizeDIBSection(win32_offscreen_buffer* Buffer, int Width, int Height)
 	// NOTE: Thank you to Chris Hecker of Spy Party fame
 	// for clarifying the deal with StretchDIBits and BitBlt!
 	// No more DC for us.
-	int BitmapMemorySize = (Buffer->Width * Buffer->Height) * Buffer->BytesPerPixel;
-	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
-	Buffer->Pitch = Buffer->Width * Buffer->BytesPerPixel;
+	Buffer->Pitch = Align16(Width * BytesPerPixel);
+	int BitmapMemorySize = Buffer->Pitch * Buffer->Height;
+	Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
 }
 
 internal void
@@ -947,7 +948,6 @@ Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback
 	++Queue->CompletionGoal;
 
 	_WriteBarrier();
-	_mm_sfence();
 
 	Queue->NextEntryToWrite = NewNextEntryToWrite;
 
@@ -970,8 +970,11 @@ Win32DoNextWorkQueueEntry(platform_work_queue* Queue)
 			platform_work_queue_entry* Entry = Queue->Entries + Index;
 			Entry->Callback(Queue, Entry->Data);
 			InterlockedIncrement((LONG volatile*)&Queue->CompletionCount);
-			WeShouldSleep = true;
 		}
+	}
+	else
+	{
+		WeShouldSleep = true;
 	}
 
 	return(WeShouldSleep);
@@ -996,7 +999,7 @@ ThreadProc(LPVOID lpParameter)
 
 	for (;;)
 	{
-		if (!Win32DoNextWorkQueueEntry(ThreadInfo->Queue))
+		if (Win32DoNextWorkQueueEntry(ThreadInfo->Queue))
 		{
 			WaitForSingleObjectEx(ThreadInfo->Queue->SemaphoreHandle, INFINITE, FALSE);
 		}

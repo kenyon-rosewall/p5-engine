@@ -742,6 +742,9 @@ game_memory* DebugGlobalMemory;
 
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
+	PlatformAddEntry = Memory->PlatformAddEntry;
+	PlatformCompleteAllWork = Memory->PlatformCompleteAllWork;
+
 #if P5ENGINE_INTERNAL
 	DebugGlobalMemory = Memory;
 #endif
@@ -757,9 +760,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	game_state* GameState = (game_state*)Memory->PermanentStorage;
 	if (!Memory->IsInitialized)
 	{
-		PlatformAddEntry = Memory->PlatformAddEntry;
-		PlatformCompleteAllWork = Memory->PlatformCompleteAllWork;
-
 		uint32 TilesPerWidth = 17;
 		uint32 TilesPerHeight = 9;
 
