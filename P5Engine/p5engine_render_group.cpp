@@ -927,30 +927,38 @@ inline entity_basis_p_result
 GetRenderEntityBasisPos(render_transform* Transform, v3 OriginalPos)
 {
 	entity_basis_p_result Result = {};
-
 	v3 Pos = OriginalPos + Transform->OffsetPos;
 
-	real32 DistanceAboveTarget = Transform->DistanceAboveTarget;
+	if (Transform->Orthographic)
+	{
+		Result.Pos = Transform->ScreenCenter + Transform->MetersToPixels * Pos.xy;
+		Result.Scale = Transform->MetersToPixels;
+		Result.Valid = true;
+	}
+	else
+	{
+		real32 DistanceAboveTarget = Transform->DistanceAboveTarget;
 
 #if 0
-	// TODO: How do we want to control the debug camera?
-	if (1)
-	{
-		DistanceAboveTarget += 50.0f;
-	}
+		// TODO: How do we want to control the debug camera?
+		if (1)
+		{
+			DistanceAboveTarget += 50.0f;
+		}
 #endif
 
-	real32 DistanceToPosZ = DistanceAboveTarget - Pos.z;
-	real32 NearClipPlane = 0.2f;
+		real32 DistanceToPosZ = DistanceAboveTarget - Pos.z;
+		real32 NearClipPlane = 0.2f;
 
-	v3 RawXY = ToV3(Pos.xy, 1.0f);
+		v3 RawXY = ToV3(Pos.xy, 1.0f);
 
-	if (DistanceToPosZ > NearClipPlane)
-	{
-		v3 ProjectedXY = (1.0f / DistanceToPosZ) * Transform->FocalLength * RawXY;
-		Result.Pos = Transform->ScreenCenter + Transform->MetersToPixels * ProjectedXY.xy;
-		Result.Scale = Transform->MetersToPixels * ProjectedXY.z;
-		Result.Valid = true;
+		if (DistanceToPosZ > NearClipPlane)
+		{
+			v3 ProjectedXY = (1.0f / DistanceToPosZ) * Transform->FocalLength * RawXY;
+			Result.Scale = Transform->MetersToPixels * ProjectedXY.z;
+			Result.Pos = Transform->ScreenCenter + Transform->MetersToPixels * ProjectedXY.xy;
+			Result.Valid = true;
+		}
 	}
 
 	return(Result);
@@ -1262,7 +1270,7 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 }
 
 internal render_group*
-AllocateRenderGroup(memory_arena* Arena, uint32 MaxPushBufferSize, uint32 ResolutionPixelsX, uint32 ResolutionPixelsY)
+AllocateRenderGroup(memory_arena* Arena, uint32 MaxPushBufferSize)
 {
 	render_group* Result = PushStruct(Arena, render_group);
 	Result->PushBufferBase = (uint8*)PushSize(Arena, MaxPushBufferSize);
@@ -1272,23 +1280,44 @@ AllocateRenderGroup(memory_arena* Arena, uint32 MaxPushBufferSize, uint32 Resolu
 
 	Result->GlobalAlpha = 1.0f;
 
-	// NOTE: Horizontal measurement of monitor in meters (approximate)
-	real32 WidthOfMonitor = 0.635f;
-
-	// TODO: Need to adjust this based on buffer size
-	real32 MetersToPixels = (real32)ResolutionPixelsX * WidthOfMonitor;
-	real32 PixelsToMeters = SafeRatio1(1.0f, MetersToPixels);
-
-	// NOTE: Default transform
-	Result->Transform.MetersToPixels = MetersToPixels;
-	// NOTE: Meters the person is sitting from their monitor
-	Result->Transform.FocalLength = 0.6f;
-	Result->Transform.DistanceAboveTarget = 9.0f;
-	Result->Transform.ScreenCenter = 0.5f * V2(ResolutionPixelsX, ResolutionPixelsY);
 	Result->Transform.OffsetPos = V3(0.0f, 0.0f, 0.0f);
 	Result->Transform.Scale = 1.0f;
 
 	return(Result);
+}
+
+inline void
+Perspective(render_group* RenderGroup, int32 PixelWidth, int32 PixelHeight, real32 MetersToPixels, real32 FocalLength, real32 DistanceAboveTarget)
+{
+	v2 Dim = V2(PixelWidth, PixelHeight);
+
+	// TODO: Need to adjust this based on buffer size
+	real32 PixelsToMeters = SafeRatio1(1.0f, MetersToPixels);
+	RenderGroup->Transform.ScreenCenter = 0.5f * Dim;
+	RenderGroup->MonitorHalfDimInMeters = PixelsToMeters * RenderGroup->Transform.ScreenCenter;
+
+	RenderGroup->Transform.MetersToPixels = MetersToPixels;
+	RenderGroup->Transform.FocalLength = FocalLength; // NOTE: Meters the person is sitting from their monitor
+	RenderGroup->Transform.DistanceAboveTarget = DistanceAboveTarget;
+
+	RenderGroup->Transform.Orthographic = false;
+}
+
+inline void
+Orthographic(render_group* RenderGroup, int32 PixelWidth, int32 PixelHeight, real32 MetersToPixels)
+{
+	v2 Dim = V2(PixelWidth, PixelHeight);
+
+	// TODO: Need to adjust this based on buffer size
+	real32 PixelsToMeters = SafeRatio1(1.0f, MetersToPixels);
+	RenderGroup->Transform.ScreenCenter = 0.5f * Dim;
+	RenderGroup->MonitorHalfDimInMeters = PixelsToMeters * RenderGroup->Transform.ScreenCenter;
+
+	RenderGroup->Transform.MetersToPixels = MetersToPixels;
+	RenderGroup->Transform.FocalLength = 1.0f; // NOTE: Meters the person is sitting from their monitor
+	RenderGroup->Transform.DistanceAboveTarget = 1.0f;
+
+	RenderGroup->Transform.Orthographic = true;
 }
 
 inline v2

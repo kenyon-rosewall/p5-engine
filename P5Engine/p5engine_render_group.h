@@ -104,6 +104,8 @@ struct render_entry_coordinate_system
 
 struct render_transform
 {
+	bool32 Orthographic;
+
 	// NOTE: This translates meters _on the monitor_ into pixels _on the monitor_
 	real32 MetersToPixels;
 	v2 ScreenCenter;

@@ -457,26 +457,23 @@ MakeNullCollision(game_state* GameState)
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
-	// TODO: Need to be able to set an orthographic display mode here!!!
+	temporary_memory GroundMemory = BeginTemporaryMemory(&TransientState->TransientArena);
+	GroundBuffer->Pos = *ChunkPos;
+	
 	loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
 	Buffer->AlignPercentage = V2(0.5f, 0.5f);
 	Buffer->WidthOverHeight = 1.0f;
-	GroundBuffer->Pos = *ChunkPos;
 
-	// TODO: Decide what our pushbuffer size is!
-	temporary_memory GroundMemory = BeginTemporaryMemory(&TransientState->TransientArena);
-	
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4), Buffer->Width, Buffer->Height);
-
-	Clear(RenderGroup, V4(0.5f, 0.75f, 0.1f, 1));
-
-#if 0
 	real32 Width = GameState->World->ChunkDimInMeters.x;
 	real32 Height = GameState->World->ChunkDimInMeters.y;
+	Assert(Width == Height);
 	v2 HalfDim = 0.5f * V2(Width, Height);
 
-	// TODO: Once we switch to orthographic STOP MULTIPLYING THIS
-	HalfDim = 1.5f * HalfDim;
+	// TODO: Decide what our pushbuffer size is!
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
+	Orthographic(RenderGroup, Buffer->Width, Buffer->Height, Buffer->Width / Width);
+	Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
+
 
 	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 	{
@@ -490,15 +487,21 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 			// TODO: Look into wang hashing here or some other spatial seed generation
 			random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
 
+			v4 Color = V4(1, 0, 0, 1);
+			if ((ChunkX % 2) == (ChunkY % 2))
+			{
+				Color = V4(0, 0, 1, 1);
+			}
+
 			v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
-			for (uint32 SoilIndex = 0; SoilIndex < 50; ++SoilIndex)
+			for (uint32 SoilIndex = 0; SoilIndex < 25; ++SoilIndex)
 			{
 				loaded_bitmap* Stamp = GameState->Soil + 2;
 
 				v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f);
+				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.5f, Color);
 			}
 		}
 	}
@@ -520,7 +523,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
 				loaded_bitmap* Stamp = {};
-				switch (RandomChoice(&Series, 20))
+				switch (RandomChoice(&Series, 10))
 				{
 					case 1:
 					{
@@ -529,7 +532,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 					case 2:
 					{
-						Stamp = GameState->Soil;
+						Stamp = GameState->Soil + RandomChoice(&Series, 1);
 					} break;
 
 					default:
@@ -542,12 +545,11 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				{
 					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 0.4f);
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 2.0f);
 				}
 			}
 		}
 	}
-#endif
 
 	TiledRenderGroupToOutput(TransientState->RenderQueue, RenderGroup, Buffer);
 	EndTemporaryMemory(GroundMemory);
@@ -1156,9 +1158,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	
 	// TODO: Decide what our push buffer size is
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4),
-		DrawBuffer->Width, DrawBuffer->Height);
-
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
+	real32 WidthOfMonitor = 0.635f; // NOTE: Horizontal measurement of monitor in meters (approximate)
+	real32 MetersToPixels = (real32)DrawBuffer->Width * WidthOfMonitor;
+	Perspective(RenderGroup, DrawBuffer->Width, DrawBuffer->Height, MetersToPixels, 0.6f, 9.0f);
 	Clear(RenderGroup, V4(0.25f, 0.25f, 0.25f, 0));
 
 	rectangle2 ScreenBounds = GetCameraRectangleAtTarget(RenderGroup);
@@ -1180,7 +1183,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				real32 GroundSideInMeters = World->ChunkDimInMeters.x;
 				PushBitmap(RenderGroup, Bitmap, Delta, GroundSideInMeters);
-#if 1 
+#if 0 
 				PushRectOutline(RenderGroup, Delta, V2(GroundSideInMeters, GroundSideInMeters), V4(1, 1, 0, 1));
 #endif
 			}
