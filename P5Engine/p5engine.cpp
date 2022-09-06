@@ -1144,6 +1144,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DrawBuffer->Pitch = Buffer->Pitch;
 	DrawBuffer->Memory = Buffer->Memory;
 
+#if 0
+	// NOTE: Enable this to test weird buffer sizes in the renderer
+	DrawBuffer->Width = 1279;
+	DrawBuffer->Height = 719;
+#endif
+
 	//
 	// NOTE: Render
 	//
@@ -1172,14 +1178,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 			if ((Delta.z >= -1.0f) && (Delta.z < 1.0f))
 			{
-				render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
-				RenderGroup->DefaultBasis = Basis;
-				Basis->Pos = Delta;
-
 				real32 GroundSideInMeters = World->ChunkDimInMeters.x;
-				PushBitmap(RenderGroup, Bitmap, V3(0, 0, 0), GroundSideInMeters);
+				PushBitmap(RenderGroup, Bitmap, Delta, GroundSideInMeters);
 #if 1 
-				PushRectOutline(RenderGroup, V3(0, 0, 0), V2(GroundSideInMeters, GroundSideInMeters), V4(1, 1, 0, 1));
+				PushRectOutline(RenderGroup, Delta, V2(GroundSideInMeters, GroundSideInMeters), V4(1, 1, 0, 1));
 #endif
 			}
 		}
@@ -1246,9 +1248,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	// NOTE: This is the camera position relative to the origin
 	v3 CameraPos = Subtract(World, &GameState->CameraP, &SimCenterPos);
 
-	render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
-	Basis->Pos = V3(0, 0, 0);
-	RenderGroup->DefaultBasis = Basis;
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(ScreenBounds), V4(1, 1, 0, 1));
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimBounds).xy, V4(0, 1, 1, 1));
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimRegion->Bounds).xy, V4(1, 0, 1, 1));
@@ -1270,9 +1269,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			move_spec MoveSpec = DefaultMoveSpec();
 			v3 ddPos = {};
 
-			render_basis* Basis = PushStruct(&TransientState->TransientArena, render_basis);
-			RenderGroup->DefaultBasis = Basis;
-
 			// TODO: Probably indicates we want to separate update and render
 			// for entities sometime soon?
 			v3 CameraRelativeGroundPos = GetEntityGroundPoint(Entity) - CameraPos;
@@ -1290,6 +1286,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				RenderGroup->GlobalAlpha = Clamp01MapToRange(FadeBottomEndZ, CameraRelativeGroundPos.z, FadeBottomStartZ);
 			}
 
+			//
+			// NOTE: Pre-physics entity work
+			//
 			switch (Entity->Type)
 			{
 				case entity_type::Hero:
@@ -1326,60 +1325,19 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							}
 						}
 					}
-					
-					// TODO: Z!!
-					real32 CharacterSizeC = 1.0f;
-					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
-
-					DrawHitpoints(Entity, RenderGroup);
 				} break;
 				
-				case entity_type::Wall:
-				{
-					PushBitmap(RenderGroup, &GameState->Tree, V3(0, 0, 0), 2.0f);
-				} break;
-				 
-				case entity_type::Stairs:
-				{
-					//PushBitmap(RenderGroup, &GameState->Stairs, V2(0, 0), 0, V2(32, 36));
-					PushRect(RenderGroup, V3(0, 0, 0), Entity->WalkableDim, V4(1, 0.5f, 0, 1));
-					PushRect(RenderGroup, V3(0, 0, Entity->WalkableHeight), Entity->WalkableDim, V4(1, 1, 0, 1));
-				} break;
-
 				case entity_type::Sword:
 				{
 					MoveSpec.UnitMaxAccelVector = false;
 					MoveSpec.Speed = 0.0f;
 					MoveSpec.Drag = 0.0f;
 
-					ddPos = V3(0, 0, 0);
-
-					// TODO: Add the ability in the collision routines to understand a movement
-					// limit for an entity, and then update this routine to use that to know when 
-					// to kill the sword
-					// TODO: Need to handle the fact that DistanceTraveled
-					// might not have enough distance for the total entity move
-					// for the frame
 					if (Entity->DistanceLimit == 0.0f)
 					{
 						ClearCollisionRulesFor(GameState, Entity->StorageIndex);
 						MakeEntityNonSpatial(Entity);
 					}
-
-					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
-					real32 SwordSizeC = ((Entity->FacingDirection % 2) + 1.0f) / 2.0f;
-					// PushBitmap(&RenderGroup, &GameState->Shadow, V2(0, 0), 0, V2(24, 0), ShadowAlpha, 0.0f);
-					PushBitmap(RenderGroup, Sword, V3(0, 0, 0), SwordSizeC * 1.0f);
-				} break;
-
-				case entity_type::Monstar:
-				{
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, &GameState->Monstar, V3(0, 0, 0), 1.0f);
-
-					DrawHitpoints(Entity, RenderGroup);
 				} break;
 
 				case entity_type::Familiar:
@@ -1416,17 +1374,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					MoveSpec.SpeedMult = 1.0f;
 					MoveSpec.Speed = 45.0f;
 					MoveSpec.Drag = 6.0;
-
-					Entity->tBob += dt;
-					if (Entity->tBob > 2.0f * Pi32)
-					{
-						Entity->tBob -= 2.0f * Pi32;
-					}
-
-					real32 BobSin = Sin(2.0f * Entity->tBob);
-
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
-					PushBitmap(RenderGroup, &GameState->Familiar, V3(0, 0, 0.25f * BobSin), 0.6f);
 				} break;
 
 				case entity_type::Space:
@@ -1440,11 +1387,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 #endif
 				} break;
-
-				default:
-				{
-					InvalidCodePath;
-				} break;
 			}
 
 			if (!HasFlag(Entity, entity_flag::Nonspatial) &&
@@ -1453,7 +1395,79 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
 
-			Basis->Pos = GetEntityGroundPoint(Entity);
+			RenderGroup->Transform.OffsetPos = GetEntityGroundPoint(Entity);
+
+			//
+			// NOTE: Post-physics entity work
+			//
+			switch (Entity->Type)
+			{
+				case entity_type::Hero:
+				{
+					real32 CharacterSizeC = 1.5f;
+					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
+
+					DrawHitpoints(Entity, RenderGroup);
+				} break;
+
+				case entity_type::Wall:
+				{
+					PushBitmap(RenderGroup, &GameState->Tree, V3(0, 0, 0), 2.0f);
+				} break;
+
+				case entity_type::Stairs:
+				{
+					PushRect(RenderGroup, V3(0, 0, 0), Entity->WalkableDim, V4(1, 0.5f, 0, 1));
+					PushRect(RenderGroup, V3(0, 0, Entity->WalkableHeight), Entity->WalkableDim, V4(1, 1, 0, 1));
+				} break;
+
+				case entity_type::Sword:
+				{
+					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, Sword, V3(0, 0, 0), 0.5f);
+				} break;
+
+				case entity_type::Monstar:
+				{
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, &GameState->Monstar, V3(0, 0, 0), 1.0f);
+
+					DrawHitpoints(Entity, RenderGroup);
+				} break;
+
+				case entity_type::Familiar:
+				{
+					Entity->tBob += dt;
+					if (Entity->tBob > 2.0f * Pi32)
+					{
+						Entity->tBob -= 2.0f * Pi32;
+					}
+					real32 BobSin = Sin(2.0f * Entity->tBob);
+
+					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
+					PushBitmap(RenderGroup, &GameState->Familiar, V3(0, 0, 0.25f * BobSin), 0.6f);
+				} break;
+
+				case entity_type::Space:
+				{
+	#if 0
+					for (uint32 VolumeIndex = 0; VolumeIndex < Entity->Collision->VolumeCount; ++VolumeIndex)
+					{
+						sim_entity_collision_volume* Volume = Entity->Collision->Volumes + VolumeIndex;
+
+						PushRectOutline(RenderGroup, Volume->OffsetPos - V3(0, 0, 0.5f * Volume->Dim.z), Volume->Dim.xy, V4(1, 0.5f, 1, 1));
+					}
+	#endif
+				} break;
+
+				default:
+				{
+					InvalidCodePath;
+				} break;
+			}
 		}
 	}
 
