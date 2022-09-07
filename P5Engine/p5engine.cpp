@@ -454,6 +454,16 @@ MakeNullCollision(game_state* GameState)
 	return(Group);
 }
 
+#if 0
+internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunk)
+{
+	tile_render_work* Work = (tile_render_work*)Data;
+
+	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, true);
+	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, false);
+}
+#endif
+
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
@@ -471,7 +481,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 	// TODO: Decide what our pushbuffer size is!
 	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
-	Orthographic(RenderGroup, Buffer->Width, Buffer->Height, Buffer->Width / Width);
+	Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
 	Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
 
 
@@ -487,21 +497,15 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 			// TODO: Look into wang hashing here or some other spatial seed generation
 			random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
 
-			v4 Color = V4(1, 0, 0, 1);
-			if ((ChunkX % 2) == (ChunkY % 2))
-			{
-				Color = V4(0, 0, 1, 1);
-			}
-
 			v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
-			for (uint32 SoilIndex = 0; SoilIndex < 25; ++SoilIndex)
+			for (uint32 SoilIndex = 0; SoilIndex < 32; ++SoilIndex)
 			{
 				loaded_bitmap* Stamp = GameState->Soil + 2;
 
 				v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.5f, Color);
+				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f, V4(0.5f, 0.5f, 0.5f, 0.1f));
 			}
 		}
 	}
@@ -523,12 +527,12 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
 				loaded_bitmap* Stamp = {};
-				switch (RandomChoice(&Series, 10))
+				switch (RandomChoice(&Series, 1))
 				{
-					case 1:
+					/*case 1:
 					{
 						Stamp = &GameState->Grass;
-					} break;
+					} break;*/
 
 					case 2:
 					{
@@ -545,13 +549,13 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 				{
 					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 2.0f);
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
 				}
 			}
 		}
 	}
 
-	TiledRenderGroupToOutput(TransientState->RenderQueue, RenderGroup, Buffer);
+	TiledRenderGroupToOutput(TransientState->LowPriorityQueue, RenderGroup, Buffer);
 	EndTemporaryMemory(GroundMemory);
 }
 
@@ -815,7 +819,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		GameState->Soil[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil1.bmp");
 		GameState->Soil[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil2.bmp");
-		GameState->Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil3.bmp");
+		GameState->Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil4.bmp");
 
 		GameState->Tuft[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft1.bmp");
 		GameState->Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft2.bmp");
@@ -1007,7 +1011,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	{
 		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (uint8*)Memory->TransientStorage + sizeof(transient_state));
 
-		TransientState->RenderQueue = Memory->HighPriorityQueue;
+		TransientState->HighPriorityQueue = Memory->HighPriorityQueue;
+		TransientState->LowPriorityQueue = Memory->LowPriorityQueue;
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
 		for (uint32 GroundBufferIndex = 0; GroundBufferIndex < TransientState->GroundBufferCount; ++GroundBufferIndex)
@@ -1161,7 +1166,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
 	real32 WidthOfMonitor = 0.635f; // NOTE: Horizontal measurement of monitor in meters (approximate)
 	real32 MetersToPixels = (real32)DrawBuffer->Width * WidthOfMonitor;
-	Perspective(RenderGroup, DrawBuffer->Width, DrawBuffer->Height, MetersToPixels, 0.6f, 9.0f);
+	real32 FocalLength = 0.6f;
+	real32 DistanceAboveGround = 9.0f;
+	Perspective(RenderGroup, DrawBuffer->Width, DrawBuffer->Height, MetersToPixels, FocalLength, DistanceAboveGround);
 	Clear(RenderGroup, V4(0.25f, 0.25f, 0.25f, 0));
 
 	rectangle2 ScreenBounds = GetCameraRectangleAtTarget(RenderGroup);
@@ -1407,7 +1414,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			{
 				case entity_type::Hero:
 				{
-					real32 CharacterSizeC = 1.5f;
+					real32 CharacterSizeC = 0.9f;
 					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
 					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
 					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
@@ -1573,7 +1580,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	}
 #endif
 
-	TiledRenderGroupToOutput(TransientState->RenderQueue, RenderGroup, DrawBuffer);
+	TiledRenderGroupToOutput(TransientState->HighPriorityQueue, RenderGroup, DrawBuffer);
 
 	// TODO: Make sure we hoist the camera update out to a place where the renderer
 	// can know about the location of the camera at the end of cthe frame so there isn't

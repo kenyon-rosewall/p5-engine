@@ -930,11 +930,6 @@ struct platform_work_queue
 	platform_work_queue_entry Entries[256];
 };
 
-struct win32_thread_info
-{
-	platform_work_queue* Queue;
-};
-
 void
 Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* Data)
 {
@@ -995,13 +990,13 @@ Win32CompleteAllWork(platform_work_queue* Queue)
 DWORD WINAPI
 ThreadProc(LPVOID lpParameter)
 {
-	win32_thread_info* ThreadInfo = (win32_thread_info*)lpParameter;
+	platform_work_queue* Queue = (platform_work_queue*)lpParameter;
 
 	for (;;)
 	{
-		if (Win32DoNextWorkQueueEntry(ThreadInfo->Queue))
+		if (Win32DoNextWorkQueueEntry(Queue))
 		{
-			WaitForSingleObjectEx(ThreadInfo->Queue->SemaphoreHandle, INFINITE, FALSE);
+			WaitForSingleObjectEx(Queue->SemaphoreHandle, INFINITE, FALSE);
 		}
 	}
 
@@ -1016,51 +1011,34 @@ PLATFORM_WORK_QUEUE_CALLBACK(DoWorkerWork)
 	OutputDebugStringA(Buffer);
 }
 
+internal void
+Win32MakeQueue(platform_work_queue* Queue, uint32 ThreadCount)
+{
+	Queue->CompletionGoal = 0;
+	Queue->CompletionCount = 0;
+	Queue->NextEntryToWrite = 0;
+	Queue->NextEntryToRead = 0;
+
+	uint32 InitialCount = 0;
+	Queue->SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
+
+	for (uint32 ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+	{
+		DWORD ThreadID;
+		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Queue, 0, &ThreadID);
+		CloseHandle(ThreadHandle);
+	}
+}
+
 int CALLBACK
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode)
 {
 	win32_state Win32State = {};
 
-	win32_thread_info ThreadInfo[7];
-
-	platform_work_queue Queue = {};
-
-	uint32 InitialCount = 0;
-	uint32 ThreadCount = ArrayCount(ThreadInfo);
-	Queue.SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
-
-	for (uint32 ThreadIndex = 0; ThreadIndex < ArrayCount(ThreadInfo); ++ThreadIndex)
-	{
-		win32_thread_info* Info = ThreadInfo + ThreadIndex;
-		Info->Queue = &Queue;
-
-		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Info, 0, 0);
-		CloseHandle(ThreadHandle);
-	}
-
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A0");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A1");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A2");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A3");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A4");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A5");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A6");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A7");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A8");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String A9");
-
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B0");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B1");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B2");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B3");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B4");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B5");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B6");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B7");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B8");
-	Win32AddEntry(&Queue, DoWorkerWork, (char*)"String B9");
-
-	Win32CompleteAllWork(&Queue);
+	platform_work_queue HighPriorityQueue;
+	Win32MakeQueue(&HighPriorityQueue, 6);
+	platform_work_queue LowPriorityQueue;
+	Win32MakeQueue(&LowPriorityQueue, 2);
 
 	LARGE_INTEGER PerfCountFrequencyResult;
 	QueryPerformanceFrequency(&PerfCountFrequencyResult);
@@ -1143,7 +1121,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			game_memory GameMemory = {};
 			GameMemory.PermanentStorageSize = Megabytes(256);
 			GameMemory.TransientStorageSize = Gigabytes(1);
-			GameMemory.HighPriorityQueue = &Queue;
+			GameMemory.HighPriorityQueue = &HighPriorityQueue;
+			GameMemory.LowPriorityQueue = &LowPriorityQueue;
 			GameMemory.PlatformAddEntry = Win32AddEntry;
 			GameMemory.PlatformCompleteAllWork = Win32CompleteAllWork;
 			GameMemory.DEBUGPlatformFreeFileMemory = DEBUGPlatformFreeFileMemory;
