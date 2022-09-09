@@ -454,67 +454,79 @@ MakeNullCollision(game_state* GameState)
 	return(Group);
 }
 
-#if 0
-internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunk)
+internal task_with_memory*
+BeginTaskWithMemory(transient_state* TransientState)
 {
-	tile_render_work* Work = (tile_render_work*)Data;
+	task_with_memory* Result = 0;
 
-	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, true);
-	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, false);
+	for (uint32 TaskIndex = 0; TaskIndex < ArrayCount(TransientState->Tasks); ++TaskIndex)
+	{
+		task_with_memory* Task = TransientState->Tasks + TaskIndex;
+		if (!Task->BeingUsed)
+		{
+			Result = Task;
+			Task->BeingUsed = true;
+			Task->MemoryFlush = BeginTemporaryMemory(&Task->Arena);
+			break;
+		}
+	}
+
+	return(Result);
 }
-#endif
+
+inline void
+EndTaskWithMemory(task_with_memory* Task)
+{
+	EndTemporaryMemory(Task->MemoryFlush);
+	
+	CompletePreviousWritesBeforeFutureWrites;
+	Task->BeingUsed = false;
+}
+
+struct fill_ground_chunk_work
+{
+	render_group* RenderGroup;
+	loaded_bitmap* Buffer;
+	task_with_memory* Task;
+};
+internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
+{
+	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)Data;
+
+	RenderGroupToOutput(Work->RenderGroup, Work->Buffer);
+	
+	EndTaskWithMemory(Work->Task);
+}
 
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
-	temporary_memory GroundMemory = BeginTemporaryMemory(&TransientState->TransientArena);
-	GroundBuffer->Pos = *ChunkPos;
-	
-	loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
-	Buffer->AlignPercentage = V2(0.5f, 0.5f);
-	Buffer->WidthOverHeight = 1.0f;
-
-	real32 Width = GameState->World->ChunkDimInMeters.x;
-	real32 Height = GameState->World->ChunkDimInMeters.y;
-	Assert(Width == Height);
-	v2 HalfDim = 0.5f * V2(Width, Height);
-
-	// TODO: Decide what our pushbuffer size is!
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
-	Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
-	Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
-
-
-	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
+	task_with_memory* Task = BeginTaskWithMemory(TransientState);
+	if (Task)
 	{
-		for (int32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
+		fill_ground_chunk_work* Work = PushStruct(&Task->Arena, fill_ground_chunk_work);
+
+		GroundBuffer->Pos = *ChunkPos;
+
+		loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
+		Buffer->AlignPercentage = V2(0.5f, 0.5f);
+		Buffer->WidthOverHeight = 1.0f;
+
+		real32 Width = GameState->World->ChunkDimInMeters.x;
+		real32 Height = GameState->World->ChunkDimInMeters.y;
+		Assert(Width == Height);
+		v2 HalfDim = 0.5f * V2(Width, Height);
+
+		// TODO: Decide what our pushbuffer size is!
+		// TODO: Safe cast from memory_uint to uint32?
+		render_group* RenderGroup = AllocateRenderGroup(&Task->Arena, 0); // (uint32)GetArenaSizeRemaining(&Task->Arena));
+		Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
+		Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
+
+
+		for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 		{
-			int32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
-			int32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
-			int32 ChunkZ = ChunkPos->ChunkZ;
-
-			// TODO: Make random number generation more systemic
-			// TODO: Look into wang hashing here or some other spatial seed generation
-			random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
-
-			v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
-
-			for (uint32 SoilIndex = 0; SoilIndex < 32; ++SoilIndex)
-			{
-				loaded_bitmap* Stamp = GameState->Soil + 2;
-
-				v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
-
-				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f, V4(0.5f, 0.5f, 0.5f, 0.1f));
-			}
-		}
-	}
-
-	for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
-	{
-		for (int32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
-		{
-			for (uint32 GrassIndex = 0; GrassIndex < 5; ++GrassIndex)
+			for (int32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
 			{
 				int32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
 				int32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
@@ -526,13 +538,40 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
-				loaded_bitmap* Stamp = {};
-				switch (RandomChoice(&Series, 1))
+				for (uint32 SoilIndex = 0; SoilIndex < 32; ++SoilIndex)
 				{
-					/*case 1:
+					loaded_bitmap* Stamp = GameState->Soil + 2;
+
+					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
+
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f, V4(0.5f, 0.5f, 0.5f, 0.1f));
+				}
+			}
+		}
+
+		for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
+		{
+			for (int32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
+			{
+				for (uint32 GrassIndex = 0; GrassIndex < 5; ++GrassIndex)
+				{
+					int32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
+					int32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
+					int32 ChunkZ = ChunkPos->ChunkZ;
+
+					// TODO: Make random number generation more systemic
+					// TODO: Look into wang hashing here or some other spatial seed generation
+					random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
+
+					v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
+
+					loaded_bitmap* Stamp = {};
+					switch (RandomChoice(&Series, 1))
 					{
-						Stamp = &GameState->Grass;
-					} break;*/
+						/*case 1:
+						{
+							Stamp = &GameState->Grass;
+						} break;*/
 
 					case 2:
 					{
@@ -543,20 +582,24 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					{
 						Stamp = GameState->Tuft + RandomChoice(&Series, ArrayCount(GameState->Tuft));
 					} break;
-				}
+					}
 
-				if (Stamp)
-				{
-					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
+					if (Stamp)
+					{
+						v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
+						PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
+					}
 				}
 			}
 		}
-	}
 
-	TiledRenderGroupToOutput(TransientState->LowPriorityQueue, RenderGroup, Buffer);
-	EndTemporaryMemory(GroundMemory);
+		Work->Buffer = Buffer;
+		Work->RenderGroup = RenderGroup;
+		Work->Task = Task;
+
+		PlatformAddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
+	}
 }
 
 internal void
@@ -578,7 +621,7 @@ MakeEmptyBitmap(memory_arena* Arena, int32 Width, int32 Height, bool32 ClearToZe
 	Result.Height = Height;
 	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
 	int32 TotalBitmapSize = Width * Height * BITMAP_BYTES_PER_PIXEL;
-	Result.Memory = (uint32*)PushSize(Arena, TotalBitmapSize);
+	Result.Memory = (uint32*)PushSize(Arena, TotalBitmapSize, 16);
 	if (ClearToZero)
 	{
 		ClearBitmap(&Result);
@@ -1010,6 +1053,14 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	if (!TransientState->IsInitialized)
 	{
 		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (uint8*)Memory->TransientStorage + sizeof(transient_state));
+
+		for (uint32 TaskIndex = 0; TaskIndex < ArrayCount(TransientState->Tasks); ++TaskIndex)
+		{
+			task_with_memory* Task = TransientState->Tasks + TaskIndex;
+
+			Task->BeingUsed = false;
+			SubArena(&Task->Arena, &TransientState->TransientArena, Megabytes(1));
+		}
 
 		TransientState->HighPriorityQueue = Memory->HighPriorityQueue;
 		TransientState->LowPriorityQueue = Memory->LowPriorityQueue;

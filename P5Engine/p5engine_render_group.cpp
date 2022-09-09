@@ -474,9 +474,9 @@ DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Co
 		__m128i EndClipMasks[] =
 		{
 			_mm_srli_si128(EndClipMask, 0 * 4),
-			_mm_srli_si128(EndClipMask, 1 * 4),
-			_mm_srli_si128(EndClipMask, 2 * 4),
 			_mm_srli_si128(EndClipMask, 3 * 4),
+			_mm_srli_si128(EndClipMask, 2 * 4),
+			_mm_srli_si128(EndClipMask, 1 * 4),
 		};
 
 		if (FillRect.MinX & 3)
@@ -1207,6 +1207,25 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(DoTiledRenderWork)
 }
 
 internal void
+RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
+{
+	Assert(((uintptr)OutputTarget->Memory & 15) == 0);
+
+	rectangle2i ClipRect = {};
+	ClipRect.MinX = 0;
+	ClipRect.MaxX = OutputTarget->Width;
+	ClipRect.MinY = 0;
+	ClipRect.MaxY = OutputTarget->Height;
+
+	tile_render_work Work;
+	Work.RenderGroup = RenderGroup;
+	Work.OutputTarget = OutputTarget;
+	Work.ClipRect = ClipRect;
+
+	DoTiledRenderWork(0, &Work);
+}
+
+internal void
 TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderGroup, loaded_bitmap* OutputTarget)
 {
 	/*
@@ -1275,6 +1294,12 @@ internal render_group*
 AllocateRenderGroup(memory_arena* Arena, uint32 MaxPushBufferSize)
 {
 	render_group* Result = PushStruct(Arena, render_group);
+	
+	if (MaxPushBufferSize == 0)
+	{
+		// TODO: Safe cast from memory_uint to uint32?
+		MaxPushBufferSize = (uint32)GetArenaSizeRemaining(Arena);
+	}
 	Result->PushBufferBase = (uint8*)PushSize(Arena, MaxPushBufferSize);
 
 	Result->MaxPushBufferSize = MaxPushBufferSize;
