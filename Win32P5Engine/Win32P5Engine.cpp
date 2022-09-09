@@ -431,6 +431,7 @@ Win32DisplayBufferInWindow(HDC DeviceContext, win32_offscreen_buffer* Buffer, in
 	}
 	else
 	{
+#if 0
 		int OffsetX = 50;
 		int OffsetY = 50;
 
@@ -438,6 +439,10 @@ Win32DisplayBufferInWindow(HDC DeviceContext, win32_offscreen_buffer* Buffer, in
 		PatBlt(DeviceContext, 0, OffsetY + Buffer->Height, WindowWidth, WindowHeight, BLACKNESS);
 		PatBlt(DeviceContext, 0, 0, OffsetX, WindowHeight, BLACKNESS);
 		PatBlt(DeviceContext, OffsetX + Buffer->Width, 0, WindowWidth, WindowHeight, BLACKNESS);
+#else
+		int OffsetX = 0;
+		int OffsetY = 0;
+#endif
 
 		// NOTE: For prototyping purposes, we're going to always blit
 		// 1-to-1 piyxels to make sure we don't introduce artifacts with
@@ -1061,7 +1066,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 	Win32LoadXInput();
 
-	Win32ResizeDIBSection(&GlobalBackbuffer, 960, 540);
+	int WindowSizeX = 960;
+	int WindowSizeY = 540;
+	Win32ResizeDIBSection(&GlobalBackbuffer, WindowSizeX, WindowSizeY);
 
 #if P5ENGINE_INTERNAL
 	DEBUGGlobalShowCursor = true;
@@ -1077,8 +1084,16 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 	if (RegisterClassA(&WindowClass))
 	{
+		// NOTE: Why do I have to add these numbers to make the window the right size?
+		int WindowWidth = WindowSizeX + 16;
+		int WindowHeight = WindowSizeY + 40;
+
+		RECT DesktopRect;
+		GetClientRect(GetDesktopWindow(), &DesktopRect);
+		DesktopRect.left = (DesktopRect.right / 2) - (WindowWidth / 2);
+		DesktopRect.top = (DesktopRect.bottom / 2) - (WindowHeight / 2);
 		HWND Window = CreateWindowExA(0, WindowClass.lpszClassName, "P5 Engine", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, Instance, 0);
+			DesktopRect.left, DesktopRect.top, WindowSizeX+16, WindowSizeY+40, 0, 0, Instance, 0);
 
 		if (Window)
 		{
