@@ -28,14 +28,14 @@ ClearFlags(sim_entity* Entity, uint32 Flag)
 inline void
 MakeEntityNonSpatial(sim_entity* Entity)
 {
-	AddFlags(Entity, entity_flag::Nonspatial);
+	AddFlags(Entity, (uint32)entity_flag::Nonspatial);
 	Entity->Pos = InvalidPos;
 }
 
 inline void
 MakeEntitySpatial(sim_entity* Entity, v3 Pos, v3 dPos)
 {
-	ClearFlags(Entity, entity_flag::Nonspatial);
+	ClearFlags(Entity, (uint32)entity_flag::Nonspatial);
 	Entity->Pos = Pos;
 	Entity->dPos = dPos;
 }

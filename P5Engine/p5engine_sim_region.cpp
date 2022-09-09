@@ -39,7 +39,7 @@ GetSimSpacePos(sim_region* SimRegion, low_entity* Stored)
 	// of a nonspatial entity
 	v3 Result = InvalidPos;
 
-	if (!HasFlag(&Stored->Sim, entity_flag::Nonspatial))
+	if (!HasFlag(&Stored->Sim, (uint32)entity_flag::Nonspatial))
 	{
 		Result = Subtract(SimRegion->World, &Stored->Pos, &SimRegion->Origin);
 	}
@@ -99,8 +99,8 @@ AddEntityRaw(game_state* GameState, sim_region* SimRegion, uint32 StorageIndex, 
 				*Entity = Source->Sim;
 				LoadEntityReference(GameState, SimRegion, &Entity->Sword);
 
-				Assert(!HasFlag(&Source->Sim, entity_flag::Simming));
-				AddFlags(&Source->Sim, entity_flag::Simming);
+				Assert(!HasFlag(&Source->Sim, (uint32)entity_flag::Simming));
+				AddFlags(&Source->Sim, (uint32)entity_flag::Simming);
 			}
 
 			Entity->StorageIndex = StorageIndex;
@@ -192,7 +192,7 @@ BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_posi
 						{
 							uint32 LowEntityIndex = Block->LowEntityIndex[EntityIndexIndex];
 							low_entity* EntityLow = GameState->LowEntities + LowEntityIndex;
-							if (!HasFlag(&EntityLow->Sim, entity_flag::Nonspatial))
+							if (!HasFlag(&EntityLow->Sim, (uint32)entity_flag::Nonspatial))
 							{
 								v3 SimSpacePos = GetSimSpacePos(SimRegion, EntityLow);
 								if (EntityOverlapsRectangle(SimSpacePos, EntityLow->Sim.Collision->TotalVolume, SimRegion->Bounds))
@@ -221,16 +221,16 @@ EndSim(sim_region* SimRegion, game_state* GameState)
 	{
 		low_entity* Stored = GameState->LowEntities + Entity->StorageIndex;
 
-		Assert(HasFlag(&Stored->Sim, entity_flag::Simming));
+		Assert(HasFlag(&Stored->Sim, (uint32)entity_flag::Simming));
 		Stored->Sim = *Entity;
-		Assert(!HasFlag(&Stored->Sim, entity_flag::Simming));
+		Assert(!HasFlag(&Stored->Sim, (uint32)entity_flag::Simming));
 
 		StoreEntityReference(&Stored->Sim.Sword);
 
 		// TODO: Save state back to the stored entity, once high entities
 		// do state decompression, etc.
 
-		world_position NewPos = HasFlag(Entity, entity_flag::Nonspatial) ? NullPosition() : MapIntoChunkSpace(GameState->World, SimRegion->Origin, Entity->Pos);
+		world_position NewPos = HasFlag(Entity, (uint32)entity_flag::Nonspatial) ? NullPosition() : MapIntoChunkSpace(GameState->World, SimRegion->Origin, Entity->Pos);
 		ChangeEntityLocation(&GameState->WorldArena, GameState->World, Entity->StorageIndex, Stored, NewPos);
 
 		if (Entity->StorageIndex == GameState->CameraFollowingEntityIndex)
@@ -315,11 +315,11 @@ CanCollide(game_state* GameState, sim_entity* A, sim_entity* b)
 			b = Temp;
 		}
 
-		if (HasFlag(A, entity_flag::Collides) &&
-			HasFlag(b, entity_flag::Collides))
+		if (HasFlag(A, (uint32)entity_flag::Collides) &&
+			HasFlag(b, (uint32)entity_flag::Collides))
 		{
-			if (!HasFlag(A, entity_flag::Nonspatial) &&
-				!HasFlag(b, entity_flag::Nonspatial))
+			if (!HasFlag(A, (uint32)entity_flag::Nonspatial) &&
+				!HasFlag(b, (uint32)entity_flag::Nonspatial))
 			{
 				// TODO: Property-based logic goes here
 				Result = true;
@@ -451,7 +451,7 @@ EntitiesOverlap(sim_entity* Entity, sim_entity* TestEntity, v3 Epsilon = V3(0, 0
 internal void
 MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, real32 dt, move_spec* MoveSpec, v3 ddP)
 {
-	Assert(!HasFlag(Entity, entity_flag::Nonspatial));
+	Assert(!HasFlag(Entity, (uint32)entity_flag::Nonspatial));
 
 	world* World = SimRegion->World;
 
@@ -475,7 +475,7 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 	v3 Drag = -MoveSpec->Drag * Entity->dPos;
 	Drag.z = 0;
 	ddP += Drag;
-	if (!HasFlag(Entity, entity_flag::ZSupported))
+	if (!HasFlag(Entity, (uint32)entity_flag::ZSupported))
 	{
 		ddP += V3(0, 0, -9.8f);
 	}
@@ -517,14 +517,14 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 
 			// NOTE: This is just an optimization to avoid entering the
 			// loop in the case where the test entity is non-spatial
-			if (!HasFlag(Entity, entity_flag::Nonspatial))
+			if (!HasFlag(Entity, (uint32)entity_flag::Nonspatial))
 			{
 				// TODO: Spatial partition here
 				for (uint32 TestEntityIndex = 0; TestEntityIndex < SimRegion->EntityCount; ++TestEntityIndex)
 				{
 					sim_entity* TestEntity = SimRegion->Entities + TestEntityIndex;
 					v3 OverlapEpsilon = 0.001f * V3(1, 1, 1);
-					if ((HasFlag(TestEntity, entity_flag::Traversable) &&
+					if ((HasFlag(TestEntity, (uint32)entity_flag::Traversable) &&
 						EntitiesOverlap(Entity, TestEntity, OverlapEpsilon)) ||
 						(CanCollide(GameState, Entity, TestEntity)))
 					{
@@ -560,7 +560,7 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 										MinCorner.x, MaxCorner.x, V3(0, 1, 0) }
 									};
 
-									if (HasFlag(TestEntity, entity_flag::Traversable))
+									if (HasFlag(TestEntity, (uint32)entity_flag::Traversable))
 									{
 											real32 tMaxTest = tMax;
 											bool32 HitThis = false;
@@ -693,16 +693,16 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 
 	Ground += Entity->Pos.z - GetEntityGroundPoint(Entity).z;
 	if ((Entity->Pos.z <= Ground) ||
-		(HasFlag(Entity, entity_flag::ZSupported) &&
+		(HasFlag(Entity, (uint32)entity_flag::ZSupported) &&
 		(Entity->dPos.z == 0.0f)))
 	{
 		Entity->Pos.z = Ground;
 		Entity->dPos.z = 0;
-		AddFlags(Entity, entity_flag::ZSupported);
+		AddFlags(Entity, (uint32)entity_flag::ZSupported);
 	}
 	else
 	{
-		ClearFlags(Entity, entity_flag::ZSupported);
+		ClearFlags(Entity, (uint32)entity_flag::ZSupported);
 	}
 
 	if (Entity->DistanceLimit != 0.0f)

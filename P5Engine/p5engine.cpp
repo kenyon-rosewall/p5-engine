@@ -214,7 +214,7 @@ AddStandardRoom(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 
 {
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddGroundedEntity(GameState, entity_type::Space, Pos, GameState->StandardRoomCollision);
-	AddFlags(&Entity.Low->Sim, entity_flag::Traversable);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Traversable);
 
 	return(Entity);
 }
@@ -225,7 +225,7 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddGroundedEntity(GameState, entity_type::Wall, Pos, GameState->WallCollision);
 
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Collides);
 
 	return(Entity);
 }
@@ -236,7 +236,7 @@ AddStairs(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTil
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddGroundedEntity(GameState, entity_type::Stairs, Pos, GameState->StairsCollision);
 
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Collides);
 	Entity.Low->Sim.WalkableDim = Entity.Low->Sim.Collision->TotalVolume.Dim.xy;
 	Entity.Low->Sim.WalkableHeight = GameState->TypicalFloorHeight;
 
@@ -262,7 +262,7 @@ AddSword(game_state* GameState)
 {
 	add_low_entity_result Entity = AddLowEntity(GameState, entity_type::Sword, NullPosition());
 	Entity.Low->Sim.Collision = GameState->SwordCollision;
-	AddFlags(&Entity.Low->Sim, entity_flag::Moveable);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Moveable);
 
 	return(Entity);
 }
@@ -273,7 +273,7 @@ AddPlayer(game_state* GameState)
 	world_position Pos = GameState->CameraP;
 	add_low_entity_result Entity = AddGroundedEntity(GameState, entity_type::Hero, Pos, GameState->HeroCollision);
 
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Collides | (uint32)entity_flag::Moveable);
 
 	InitHitPoints(Entity.Low, 3);
 
@@ -296,7 +296,7 @@ AddMonstar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTi
 
 	InitHitPoints(Entity.Low, 3);
 
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Collides | (uint32)entity_flag::Moveable);
 
 	return(Entity);
 }
@@ -307,7 +307,7 @@ AddFamiliar(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsT
 	world_position Pos = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddGroundedEntity(GameState, entity_type::Familiar, Pos, GameState->FamiliarCollision);
 
-	AddFlags(&Entity.Low->Sim, entity_flag::Collides | entity_flag::Moveable);
+	AddFlags(&Entity.Low->Sim, (uint32)entity_flag::Collides | (uint32)entity_flag::Moveable);
 
 	return(Entity);
 }
@@ -519,7 +519,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 		// TODO: Decide what our pushbuffer size is!
 		// TODO: Safe cast from memory_uint to uint32?
-		render_group* RenderGroup = AllocateRenderGroup(&Task->Arena, 0); // (uint32)GetArenaSizeRemaining(&Task->Arena));
+		render_group* RenderGroup = AllocateRenderGroup(&TransientState->Assets, &Task->Arena, 0); // (uint32)GetArenaSizeRemaining(&Task->Arena));
 		Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
 		Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
 
@@ -540,7 +540,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 				for (uint32 SoilIndex = 0; SoilIndex < 32; ++SoilIndex)
 				{
-					loaded_bitmap* Stamp = GameState->Soil + 2;
+					loaded_bitmap* Stamp = TransientState->Assets.Soil + 2;
 
 					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
@@ -575,12 +575,12 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 					case 2:
 					{
-						Stamp = GameState->Soil + RandomChoice(&Series, 1);
+						Stamp = TransientState->Assets.Soil + RandomChoice(&Series, 1);
 					} break;
 
 					default:
 					{
-						Stamp = GameState->Tuft + RandomChoice(&Series, ArrayCount(GameState->Tuft));
+						Stamp = TransientState->Assets.Tuft + RandomChoice(&Series, ArrayCount(TransientState->Assets.Tuft));
 					} break;
 					}
 
@@ -785,6 +785,98 @@ SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
 	Bitmap->Character.AlignPercentage = AlignPercentage;
 }
 
+struct load_asset_work
+{
+	game_assets* Assets;
+	char* Filename;
+	game_asset_id ID;
+	task_with_memory* Task;
+	loaded_bitmap* Bitmap;
+	int32 AlignX;
+	int32 AlignY;
+};
+internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
+{
+	load_asset_work* Work = (load_asset_work*)Data;
+
+	// TODO: Get rid of this thread thing when I load through a queue instead of the debug call
+	thread_context* Thread = 0;
+	if (Work->AlignX > 0 || Work->AlignY > 0)
+	{
+		*Work->Bitmap = DEBUGLoadBMP(Thread, Work->Assets->ReadEntireFile, Work->Filename, Work->AlignX, Work->AlignY);
+	}
+	else
+	{
+		*Work->Bitmap = DEBUGLoadBMP(Thread, Work->Assets->ReadEntireFile, Work->Filename);
+	}
+
+	// TODO: Fence!
+
+	Work->Assets->Bitmaps[(uint32)Work->ID] = Work->Bitmap;
+
+	EndTaskWithMemory(Work->Task);
+}
+
+internal void
+LoadAsset(game_assets* Assets, game_asset_id ID)
+{
+	task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
+	if (Task)
+	{
+		debug_platform_read_entire_file* ReadEntireFile = Assets->ReadEntireFile;
+
+		load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
+		Work->Assets = Assets;
+		Work->Filename = (char*)"";
+		Work->ID = ID;
+		Work->AlignX = 0;
+		Work->AlignY = 0;
+		Work->Task = Task;
+		Work->Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
+
+		switch (ID)
+		{
+			case game_asset_id::Backdrop:
+			{
+				Work->Filename = (char*)"../data/bg.bmp";
+			} break;
+
+			case game_asset_id::Shadow:
+			{
+				Work->Filename = (char*)"../data/shadow.bmp";
+				Work->AlignX = 24;
+				Work->AlignY = 12;
+			} break;
+
+			case game_asset_id::Stairs:
+			{
+				Work->Filename = (char*)"../data/stairs.bmp";
+			} break;
+
+			case game_asset_id::Tree:
+			{
+				Work->Filename = (char*)"../data/tree.bmp";
+				Work->AlignX = 32;
+				Work->AlignY = 32;
+			} break;
+
+			case game_asset_id::Monstar:
+			{
+				Work->Filename = (char*)"../data/enemy.bmp";
+				Work->AlignX = 32;
+			} break;
+
+			case game_asset_id::Familiar:
+			{
+				Work->Filename = (char*)"../data/orb.bmp";
+				Work->AlignX = 32;
+			} break;
+		}
+
+		PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
+	}
+}
+
 #if P5ENGINE_INTERNAL
 game_memory* DebugGlobalMemory;
 #endif
@@ -857,50 +949,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		GameState->StandardRoomCollision = MakeSimpleGroundedCollision(
 			GameState, TilesPerWidth * TileSideInMeters, TilesPerHeight * TileSideInMeters, 0.9f * TileDepthInMeters
 		);
-
-		GameState->Grass = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/grass1.bmp");
-
-		GameState->Soil[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil1.bmp");
-		GameState->Soil[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil2.bmp");
-		GameState->Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/soil4.bmp");
-
-		GameState->Tuft[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft1.bmp");
-		GameState->Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tuft2.bmp");
-
-		GameState->Backdrop = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/bg.bmp");
-		GameState->Shadow = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/shadow.bmp", 24, 12);
-		GameState->Stairs = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/stairs.bmp");
-		GameState->Tree = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/tree.bmp", 32, 32);
-		GameState->Monstar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/enemy.bmp", 32, 0);
-		GameState->Familiar = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/orb.bmp", 32, 0);
-
-		hero_bitmaps* HeroBitmap;
-
-		HeroBitmap = GameState->Hero;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-right-0.bmp");
-		SetTopDownAlign(HeroBitmap, V2(32, 56));
-		++HeroBitmap;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-back-0.bmp");
-		SetTopDownAlign(HeroBitmap, V2(32, 56));
-		++HeroBitmap;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-left-0.bmp");
-		SetTopDownAlign(HeroBitmap, V2(32, 56));
-		++HeroBitmap;
-		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/char-front-0.bmp");
-		SetTopDownAlign(HeroBitmap, V2(32, 56));
-		++HeroBitmap;
-
-		loaded_bitmap* SwordBitmap;
-
-		SwordBitmap = GameState->Sword;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-right.bmp", 32, 10);
-		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-back.bmp", 32, 10);
-		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-left.bmp", 32, 10);
-		++SwordBitmap;
-		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../P5Engine/data/sword-front.bmp", 32, 10);
-		++SwordBitmap;
 
 		random_series Series = RandomSeed(0);
 
@@ -1054,6 +1102,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	{
 		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (uint8*)Memory->TransientStorage + sizeof(transient_state));
 
+		SubArena(&TransientState->Assets.Arena, &TransientState->TransientArena, Megabytes(64));
+		TransientState->Assets.ReadEntireFile = Memory->DEBUGPlatformReadEntireFile;
+		TransientState->Assets.TransientState = TransientState;
+
 		for (uint32 TaskIndex = 0; TaskIndex < ArrayCount(TransientState->Tasks); ++TaskIndex)
 		{
 			task_with_memory* Task = TransientState->Tasks + TaskIndex;
@@ -1094,6 +1146,45 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				Height >>= 1;
 			}
 		}
+
+		TransientState->Assets.Grass = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/grass1.bmp");
+
+		TransientState->Assets.Soil[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/soil1.bmp");
+		TransientState->Assets.Soil[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/soil2.bmp");
+		TransientState->Assets.Soil[2] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/soil4.bmp");
+
+		TransientState->Assets.Tuft[0] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/tuft1.bmp");
+		TransientState->Assets.Tuft[1] = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/tuft2.bmp");
+
+		hero_bitmaps* HeroBitmap;
+
+		HeroBitmap = TransientState->Assets.Hero;
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/char-right-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
+		++HeroBitmap;
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/char-back-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
+		++HeroBitmap;
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/char-left-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
+		++HeroBitmap;
+		HeroBitmap->Character = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/char-front-0.bmp");
+		SetTopDownAlign(HeroBitmap, V2(32, 56));
+		++HeroBitmap;
+
+		loaded_bitmap* SwordBitmap;
+
+		SwordBitmap = TransientState->Assets.Sword;
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/sword-right.bmp", 32, 10);
+		++SwordBitmap;
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/sword-back.bmp", 32, 10);
+		++SwordBitmap;
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/sword-left.bmp", 32, 10);
+		++SwordBitmap;
+		*SwordBitmap = DEBUGLoadBMP(Context, Memory->DEBUGPlatformReadEntireFile, (char*)"../data/sword-front.bmp", 32, 10);
+		++SwordBitmap;
+
+		// LoadAssets(TransientState, &TransientState->Assets, Context, Memory->DEBUGPlatformReadEntireFile);
 
 		TransientState->IsInitialized = true;
 	}
@@ -1214,7 +1305,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	
 	// TODO: Decide what our push buffer size is
-	render_group* RenderGroup = AllocateRenderGroup(&TransientState->TransientArena, Megabytes(4));
+	render_group* RenderGroup = AllocateRenderGroup(&TransientState->Assets, &TransientState->TransientArena, Megabytes(4));
 	real32 WidthOfMonitor = 0.635f; // NOTE: Horizontal measurement of monitor in meters (approximate)
 	real32 MetersToPixels = (real32)DrawBuffer->Width * WidthOfMonitor;
 	real32 FocalLength = 0.6f;
@@ -1377,7 +1468,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							if ((ConHero->dSword.x != 0.0f) || (ConHero->dSword.y != 0.0f))
 							{
 								sim_entity* Sword = Entity->Sword.Ptr;
-								if (Sword && HasFlag(Sword, entity_flag::Nonspatial))
+								if (Sword && HasFlag(Sword, (uint32)entity_flag::Nonspatial))
 								{
 									Sword->DistanceLimit = 5.0f;
 									MakeEntitySpatial(Sword, Entity->Pos, 20.0f * ConHero->dSword);
@@ -1450,8 +1541,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				} break;
 			}
 
-			if (!HasFlag(Entity, entity_flag::Nonspatial) &&
-				HasFlag(Entity, entity_flag::Moveable))
+			if (!HasFlag(Entity, (uint32)entity_flag::Nonspatial) &&
+				HasFlag(Entity, (uint32)entity_flag::Moveable))
 			{
 				MoveEntity(GameState, SimRegion, Entity, dt, &MoveSpec, ddPos);
 			}
@@ -1466,8 +1557,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				case entity_type::Hero:
 				{
 					real32 CharacterSizeC = 0.9f;
-					hero_bitmaps* HeroBitmaps = &GameState->Hero[Entity->FacingDirection];
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					hero_bitmaps* HeroBitmaps = &TransientState->Assets.Hero[Entity->FacingDirection];
+					PushBitmap(RenderGroup, game_asset_id::Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
 					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
 
 					DrawHitpoints(Entity, RenderGroup);
@@ -1475,7 +1566,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Wall:
 				{
-					PushBitmap(RenderGroup, &GameState->Tree, V3(0, 0, 0), 2.0f);
+					PushBitmap(RenderGroup, game_asset_id::Tree, V3(0, 0, 0), 2.0f);
 				} break;
 
 				case entity_type::Stairs:
@@ -1486,15 +1577,15 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Sword:
 				{
-					loaded_bitmap* Sword = &GameState->Sword[Entity->FacingDirection];
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					loaded_bitmap* Sword = &TransientState->Assets.Sword[Entity->FacingDirection];
+					PushBitmap(RenderGroup, game_asset_id::Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
 					PushBitmap(RenderGroup, Sword, V3(0, 0, 0), 0.5f);
 				} break;
 
 				case entity_type::Monstar:
 				{
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, &GameState->Monstar, V3(0, 0, 0), 1.0f);
+					PushBitmap(RenderGroup, game_asset_id::Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
+					PushBitmap(RenderGroup, game_asset_id::Monstar, V3(0, 0, 0), 1.0f);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
@@ -1508,8 +1599,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 					real32 BobSin = Sin(2.0f * Entity->tBob);
 
-					PushBitmap(RenderGroup, &GameState->Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
-					PushBitmap(RenderGroup, &GameState->Familiar, V3(0, 0, 0.25f * BobSin), 0.6f);
+					PushBitmap(RenderGroup, game_asset_id::Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
+					PushBitmap(RenderGroup, game_asset_id::Familiar, V3(0, 0, 0.25f * BobSin), 0.6f);
 				} break;
 
 				case entity_type::Space:

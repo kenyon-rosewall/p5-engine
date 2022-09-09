@@ -145,7 +145,7 @@ typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
 #define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) bool32 name(thread_context* Context, char* Filename, uint32 MemorySize, void* Memory)
 typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
 
-enum DebugCycleCounter
+enum class debug_cycle_counter_id
 {
 	/* 0 */ GameUpdateRender,
 	/* 1 */ RenderGroupOutput,
@@ -166,9 +166,9 @@ extern struct game_memory* DebugGlobalMemory;
 #if _MSC_VER
 
 #define BEGIN_TIMED_BLOCK(ID) uint64 StartCycleCount##ID = __rdtsc();
-#define END_TIMED_BLOCK(ID) DebugGlobalMemory->Counters[DebugCycleCounter::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; ++DebugGlobalMemory->Counters[DebugCycleCounter::##ID].HitCount;
+#define END_TIMED_BLOCK(ID) DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; ++DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].HitCount;
 // TODO: Clamp counters so that if the calc is wrong, it won't overflow
-#define END_TIMED_BLOCK_COUNTED(ID, Count) DebugGlobalMemory->Counters[DebugCycleCounter::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; DebugGlobalMemory->Counters[DebugCycleCounter::##ID].HitCount += Count;
+#define END_TIMED_BLOCK_COUNTED(ID, Count) DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].HitCount += Count;
 
 #else
 
@@ -288,7 +288,7 @@ typedef struct game_memory
 	debug_platform_write_entire_file* DEBUGPlatformWriteEntireFile;
 
 #if P5ENGINE_INTERNAL
-	debug_cycle_counter Counters[DebugCycleCounter::Count];
+	debug_cycle_counter Counters[(uint32)debug_cycle_counter_id::Count];
 #endif
 } game_memory;
 

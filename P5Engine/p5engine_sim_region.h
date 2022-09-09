@@ -41,7 +41,7 @@ union entity_reference
 	uint32 Index;
 };
 
-enum entity_flag
+enum class entity_flag
 {
 	// TODO: Does it make more sense to have the flag be for _non_ colliding entities?
 	// TODO: Collides and Zupported probably can be removed

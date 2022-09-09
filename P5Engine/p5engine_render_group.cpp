@@ -1011,6 +1011,20 @@ PushBitmap(render_group* Group, loaded_bitmap* Bitmap, v3 Offset, real32 Height,
 }
 
 inline void
+PushBitmap(render_group* Group, game_asset_id ID, v3 Offset, real32 Height, v4 Color = V4(1, 1, 1, 1))
+{
+	loaded_bitmap* Bitmap = GetBitmap(Group->Assets, ID);
+	if (Bitmap)
+	{
+		PushBitmap(Group, Bitmap, Offset, Height, Color);
+	}
+	else
+	{
+		LoadAsset(Group->Assets, ID);
+	}
+}
+
+inline void
 PushRect(render_group* Group, v3 Offset, v2 Dim, v4 Color = V4(1, 1, 1, 1))
 {
 	v3 Pos = (Offset - ToV3(0.5f * Dim, 0));
@@ -1291,7 +1305,7 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 }
 
 internal render_group*
-AllocateRenderGroup(memory_arena* Arena, uint32 MaxPushBufferSize)
+AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, uint32 MaxPushBufferSize)
 {
 	render_group* Result = PushStruct(Arena, render_group);
 	
@@ -1305,6 +1319,7 @@ AllocateRenderGroup(memory_arena* Arena, uint32 MaxPushBufferSize)
 	Result->MaxPushBufferSize = MaxPushBufferSize;
 	Result->PushBufferSize = 0;
 
+	Result->Assets = Assets;
 	Result->GlobalAlpha = 1.0f;
 
 	Result->Transform.OffsetPos = V3(0.0f, 0.0f, 0.0f);

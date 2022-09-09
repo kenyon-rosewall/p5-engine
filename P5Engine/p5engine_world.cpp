@@ -293,7 +293,7 @@ ChangeEntityLocation(memory_arena* Arena, world* World, uint32 LowEntityIndex, l
 	world_position* OldPos = 0;
 	world_position* NewPos = 0;
 
-	if (!HasFlag(&LowEntity->Sim, entity_flag::Nonspatial) && IsValid(LowEntity->Pos))
+	if (!HasFlag(&LowEntity->Sim, (uint32)entity_flag::Nonspatial) && IsValid(LowEntity->Pos))
 	{
 		OldPos = &LowEntity->Pos;
 	}
@@ -308,11 +308,11 @@ ChangeEntityLocation(memory_arena* Arena, world* World, uint32 LowEntityIndex, l
 	if (NewPos)
 	{
 		LowEntity->Pos = *NewPos;
-		ClearFlags(&LowEntity->Sim, entity_flag::Nonspatial);
+		ClearFlags(&LowEntity->Sim, (uint32)entity_flag::Nonspatial);
 	}
 	else
 	{
 		LowEntity->Pos = NullPosition();
-		AddFlags(&LowEntity->Sim, entity_flag::Nonspatial);
+		AddFlags(&LowEntity->Sim, (uint32)entity_flag::Nonspatial);
 	}
 }

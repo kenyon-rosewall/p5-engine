@@ -266,6 +266,43 @@ struct ground_buffer
 	loaded_bitmap Bitmap;
 };
 
+enum class game_asset_id
+{
+	Backdrop,
+	Shadow,
+	Tree,
+	Stairs,
+	Monstar,
+	Familiar,
+
+	Count,
+};
+
+struct game_assets
+{
+	// TODO: Not crazy about this back pointer
+	struct transient_state* TransientState;
+	memory_arena Arena;
+	debug_platform_read_entire_file* ReadEntireFile;
+
+	loaded_bitmap* Bitmaps[(uint32)game_asset_id::Count];
+
+	// NOTE: Structured assets
+	hero_bitmaps Hero[4];
+	loaded_bitmap Sword[4];
+
+	// NOTE: Arrayed assets
+	loaded_bitmap Grass;
+	loaded_bitmap Soil[3];
+	loaded_bitmap Tuft[2];
+};
+inline loaded_bitmap* GetBitmap(game_assets* Assets, game_asset_id ID)
+{
+	loaded_bitmap* Result = Assets->Bitmaps[(uint32)ID];
+
+	return(Result);
+}
+
 struct game_state
 {
 	memory_arena WorldArena;
@@ -282,20 +319,6 @@ struct game_state
 	// TODO: Change the name to stored entity
 	uint32 LowEntityCount;
 	low_entity LowEntities[100000];
-
-	loaded_bitmap Grass;
-	loaded_bitmap Soil[3];
-	loaded_bitmap Tuft[2];
-
-	loaded_bitmap Backdrop;
-	loaded_bitmap Shadow;
-	hero_bitmaps Hero[4];
-
-	loaded_bitmap Tree;
-	loaded_bitmap Stairs;
-	loaded_bitmap Monstar;
-	loaded_bitmap Familiar;
-	loaded_bitmap Sword[4];
 
 	// TODO: Must be power of two
 	pairwise_collision_rule* CollisionRuleHash[256];
@@ -343,6 +366,8 @@ struct transient_state
 	// NOTE: 0 is bottom, 1 is middle, 2 is top
 
 	environment_map EnvMaps[3];
+
+	game_assets Assets;
 };
 
 inline low_entity*
@@ -365,5 +390,6 @@ internal void
 AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide);
 internal void
 ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex);
+internal void LoadAsset(game_assets* Assets, game_asset_id ID);
 
 #endif // !P5ENGINE_H
