@@ -130,6 +130,8 @@ struct render_group
 	uint32 MaxPushBufferSize;
 	uint32 PushBufferSize;
 	uint8* PushBufferBase;
+
+	uint32 MissingResourceCount;
 };
 
 #endif // !P5ENGINE_RENDER_GROUP_H

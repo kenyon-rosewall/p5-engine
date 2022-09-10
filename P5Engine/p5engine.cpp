@@ -498,6 +498,33 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 	EndTaskWithMemory(Work->Task);
 }
 
+internal int32
+PickBest(int32 InfoCount, asset_bitmap_info* Infos, asset_tag* Tags, real32* MatchVector, real32* WeightVector)
+{
+	real32 BestDiff = Real32Maximum;
+	int32 BestIndex = 0;
+
+	for (int32 InfoIndex = 0; InfoIndex < InfoCount; ++InfoIndex)
+	{
+		asset_bitmap_info* Info = Infos + InfoIndex;
+
+		real32 TotalWeightedDiff = 0.0f;
+		for (uint32 TagIndex = Info->FirztTagIndex; TagIndex < Info->OnePastLastTagIndex; ++TagIndex)
+		{
+			asset_tag* Tag = Tags + TagIndex;
+			real32 Difference = MatchVector[Tag->ID] - Tag->Value;
+			real32 Weighted = WeightVector[Tag->ID] * AbsoluteValue(Difference);
+			TotalWeightedDiff += Weighted;
+		}
+
+		if (BestDiff > TotalWeightedDiff)
+		{
+			BestDiff = TotalWeightedDiff;
+			BestIndex = InfoIndex;
+		}
+	}
+}
+
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
@@ -594,11 +621,15 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 			}
 		}
 
-		Work->Buffer = Buffer;
-		Work->RenderGroup = RenderGroup;
-		Work->Task = Task;
 
-		PlatformAddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
+		if (AllResourcesPresent(RenderGroup))
+		{
+			Work->Buffer = Buffer;
+			Work->RenderGroup = RenderGroup;
+			Work->Task = Task;
+
+			PlatformAddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
+		}
 	}
 }
 
@@ -792,8 +823,12 @@ struct load_asset_work
 	game_asset_id ID;
 	task_with_memory* Task;
 	loaded_bitmap* Bitmap;
+
+	bool32 HasAlignment;
 	int32 AlignX;
 	int32 AlignY;
+
+	asset_state FinalState;
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 {
@@ -801,7 +836,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 
 	// TODO: Get rid of this thread thing when I load through a queue instead of the debug call
 	thread_context* Thread = 0;
-	if (Work->AlignX > 0 || Work->AlignY > 0)
+	if (Work->HasAlignment)
 	{
 		*Work->Bitmap = DEBUGLoadBMP(Thread, Work->Assets->ReadEntireFile, Work->Filename, Work->AlignX, Work->AlignY);
 	}
@@ -810,9 +845,10 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 		*Work->Bitmap = DEBUGLoadBMP(Thread, Work->Assets->ReadEntireFile, Work->Filename);
 	}
 
-	// TODO: Fence!
+	CompletePreviousWritesBeforeFutureWrites;
 
-	Work->Assets->Bitmaps[(uint32)Work->ID] = Work->Bitmap;
+	Work->Assets->Bitmaps[(uint32)Work->ID].Bitmap = Work->Bitmap;
+	Work->Assets->Bitmaps[(uint32)Work->ID].State = Work->FinalState;
 
 	EndTaskWithMemory(Work->Task);
 }
@@ -820,60 +856,69 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 internal void
 LoadAsset(game_assets* Assets, game_asset_id ID)
 {
-	task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
-	if (Task)
+	if (AtomicCompareExchangeUInt32((uint32*)&Assets->Bitmaps[(uint32)ID].State, (uint32)asset_state::Unloaded, (uint32)asset_state::Queued) == (uint32)asset_state::Unloaded)
 	{
-		debug_platform_read_entire_file* ReadEntireFile = Assets->ReadEntireFile;
-
-		load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
-		Work->Assets = Assets;
-		Work->Filename = (char*)"";
-		Work->ID = ID;
-		Work->AlignX = 0;
-		Work->AlignY = 0;
-		Work->Task = Task;
-		Work->Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
-
-		switch (ID)
+		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
+		if (Task)
 		{
-			case game_asset_id::Backdrop:
-			{
-				Work->Filename = (char*)"../data/bg.bmp";
-			} break;
+			debug_platform_read_entire_file* ReadEntireFile = Assets->ReadEntireFile;
 
-			case game_asset_id::Shadow:
-			{
-				Work->Filename = (char*)"../data/shadow.bmp";
-				Work->AlignX = 24;
-				Work->AlignY = 12;
-			} break;
+			load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
+			Work->Assets = Assets;
+			Work->Filename = (char*)"";
+			Work->ID = ID;
+			Work->HasAlignment = false;
+			Work->AlignX = 0;
+			Work->AlignY = 0;
+			Work->Task = Task;
+			Work->Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
+			Work->FinalState = asset_state::Loaded;
 
-			case game_asset_id::Stairs:
+			switch (ID)
 			{
-				Work->Filename = (char*)"../data/stairs.bmp";
-			} break;
+				case game_asset_id::Backdrop:
+				{
+					Work->Filename = (char*)"../data/bg.bmp";
+				} break;
 
-			case game_asset_id::Tree:
-			{
-				Work->Filename = (char*)"../data/tree.bmp";
-				Work->AlignX = 32;
-				Work->AlignY = 32;
-			} break;
+				case game_asset_id::Shadow:
+				{
+					Work->Filename = (char*)"../data/shadow.bmp";
+					Work->HasAlignment = true;
+					Work->AlignX = 24;
+					Work->AlignY = 12;
+				} break;
 
-			case game_asset_id::Monstar:
-			{
-				Work->Filename = (char*)"../data/enemy.bmp";
-				Work->AlignX = 32;
-			} break;
+				case game_asset_id::Stairs:
+				{
+					Work->Filename = (char*)"../data/stairs.bmp";
+				} break;
 
-			case game_asset_id::Familiar:
-			{
-				Work->Filename = (char*)"../data/orb.bmp";
-				Work->AlignX = 32;
-			} break;
+				case game_asset_id::Tree:
+				{
+					Work->Filename = (char*)"../data/tree.bmp";
+					Work->HasAlignment = true;
+					Work->AlignX = 32;
+					Work->AlignY = 32;
+				} break;
+
+				case game_asset_id::Monstar:
+				{
+					Work->Filename = (char*)"../data/enemy.bmp";
+					Work->HasAlignment = true;
+					Work->AlignX = 32;
+				} break;
+
+				case game_asset_id::Familiar:
+				{
+					Work->Filename = (char*)"../data/orb.bmp";
+					Work->HasAlignment = true;
+					Work->AlignX = 32;
+				} break;
+			}
+
+			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 		}
-
-		PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 	}
 }
 
@@ -1247,10 +1292,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				}
 			}
 
-			if (Controller->ActionDown.EndedDown)
-			{
-				ConHero->dZ = 3.0f;
-			}
 			if (Controller->ActionRight.EndedDown)
 			{
 				ConHero->SpeedMultiplier = 2.2f;
@@ -1599,7 +1640,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					}
 					real32 BobSin = Sin(2.0f * Entity->tBob);
 
-					PushBitmap(RenderGroup, game_asset_id::Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, (0.5f * ShadowAlpha + 0.2f * BobSin)));
+					PushBitmap(RenderGroup, game_asset_id::Shadow, V3(0, 0, 0), 0.25f, V4(1, 1, 1, 1.0f - (0.5f * ShadowAlpha + 0.2f * BobSin)));
 					PushBitmap(RenderGroup, game_asset_id::Familiar, V3(0, 0, 0.25f * BobSin), 0.6f);
 				} break;
 

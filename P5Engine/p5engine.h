@@ -219,6 +219,18 @@ ZeroSize(memory_index Size, void* Ptr)
 	}
 }
 
+enum class game_asset_id
+{
+	Backdrop,
+	Shadow,
+	Tree,
+	Stairs,
+	Monstar,
+	Familiar,
+
+	Count,
+};
+
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
 #include "p5engine_world.h"
@@ -266,16 +278,40 @@ struct ground_buffer
 	loaded_bitmap Bitmap;
 };
 
-enum class game_asset_id
+enum class asset_state
 {
-	Backdrop,
-	Shadow,
-	Tree,
-	Stairs,
-	Monstar,
-	Familiar,
+	Unloaded,
+	Queued,
+	Loaded,
+	Locked
+};
+struct asset_slot
+{
+	asset_state State;
+	loaded_bitmap* Bitmap;
+};
 
-	Count,
+struct asset_tag
+{
+	uint32 ID;
+	real32 Value;
+};
+
+struct asset_bitmap_info
+{
+	v2 AlignPercentage;
+	real32 WidthOverHeight;
+	int32 Width;
+	int32 Height;
+
+	uint32 FirztTagIndex;
+	uint32 OnePastLastTagIndex;
+};
+
+struct asset_group
+{
+	uint32 FirstTagIndex;
+	uint32 OnePastLastTagIndex;
 };
 
 struct game_assets
@@ -285,7 +321,7 @@ struct game_assets
 	memory_arena Arena;
 	debug_platform_read_entire_file* ReadEntireFile;
 
-	loaded_bitmap* Bitmaps[(uint32)game_asset_id::Count];
+	asset_slot Bitmaps[(uint32)game_asset_id::Count];
 
 	// NOTE: Structured assets
 	hero_bitmaps Hero[4];
@@ -298,7 +334,7 @@ struct game_assets
 };
 inline loaded_bitmap* GetBitmap(game_assets* Assets, game_asset_id ID)
 {
-	loaded_bitmap* Result = Assets->Bitmaps[(uint32)ID];
+	loaded_bitmap* Result = Assets->Bitmaps[(uint32)ID].Bitmap;
 
 	return(Result);
 }
