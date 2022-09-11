@@ -113,7 +113,6 @@ Win32BuildEXEPathFileName(win32_state* State, char* FileName, int DestCount, cha
 	CatStrings(State->OnePastLastEXEFileNameSlash - State->EXEFileName, State->EXEFileName, StringLength(FileName), FileName, DestCount, Dest);
 }
 
-
 DEBUG_PLATFORM_FREE_FILE_MEMORY(DEBUGPlatformFreeFileMemory)
 {
 	if (Memory)
@@ -144,7 +143,7 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile)
 				}
 				else
 				{
-					DEBUGPlatformFreeFileMemory(Context, Result.Contents);
+					DEBUGPlatformFreeFileMemory(Result.Contents);
 					Result.Contents = 0;
 				}
 			}
@@ -1354,7 +1353,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 						if (Game.UpdateAndRender)
 						{
-							Game.UpdateAndRender(&Context, &GameMemory, NewInput, &Buffer);
+							Game.UpdateAndRender(&GameMemory, NewInput, &Buffer);
 							HandleDebugCycleCounters(&GameMemory);
 						}
 
@@ -1438,7 +1437,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 							if (Game.GetSoundSamples)
 							{
-								Game.GetSoundSamples(&Context, &GameMemory, &SoundBuffer);
+								Game.GetSoundSamples(&GameMemory, &SoundBuffer);
 							}
 
 #if P5ENGINE_INTERNAL

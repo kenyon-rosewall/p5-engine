@@ -219,29 +219,13 @@ ZeroSize(memory_index Size, void* Ptr)
 	}
 }
 
-enum class game_asset_id
-{
-	Backdrop,
-	Shadow,
-	Tree,
-	Stairs,
-	Monstar,
-	Familiar,
-
-	Count,
-};
-
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
 #include "p5engine_world.h"
 #include "p5engine_sim_region.h"
 #include "p5engine_entity.h"
 #include "p5engine_render_group.h"
-
-struct hero_bitmaps
-{
-	loaded_bitmap Character;
-};
+#include "p5engine_asset.h"
 
 struct low_entity
 {
@@ -277,67 +261,6 @@ struct ground_buffer
 	world_position Pos;
 	loaded_bitmap Bitmap;
 };
-
-enum class asset_state
-{
-	Unloaded,
-	Queued,
-	Loaded,
-	Locked
-};
-struct asset_slot
-{
-	asset_state State;
-	loaded_bitmap* Bitmap;
-};
-
-struct asset_tag
-{
-	uint32 ID;
-	real32 Value;
-};
-
-struct asset_bitmap_info
-{
-	v2 AlignPercentage;
-	real32 WidthOverHeight;
-	int32 Width;
-	int32 Height;
-
-	uint32 FirztTagIndex;
-	uint32 OnePastLastTagIndex;
-};
-
-struct asset_group
-{
-	uint32 FirstTagIndex;
-	uint32 OnePastLastTagIndex;
-};
-
-struct game_assets
-{
-	// TODO: Not crazy about this back pointer
-	struct transient_state* TransientState;
-	memory_arena Arena;
-	debug_platform_read_entire_file* ReadEntireFile;
-
-	asset_slot Bitmaps[(uint32)game_asset_id::Count];
-
-	// NOTE: Structured assets
-	hero_bitmaps Hero[4];
-	loaded_bitmap Sword[4];
-
-	// NOTE: Arrayed assets
-	loaded_bitmap Grass;
-	loaded_bitmap Soil[3];
-	loaded_bitmap Tuft[2];
-};
-inline loaded_bitmap* GetBitmap(game_assets* Assets, game_asset_id ID)
-{
-	loaded_bitmap* Result = Assets->Bitmaps[(uint32)ID].Bitmap;
-
-	return(Result);
-}
 
 struct game_state
 {
@@ -391,6 +314,8 @@ struct transient_state
 
 	task_with_memory Tasks[4];
 
+	game_assets* Assets;
+
 	uint32 GroundBufferCount;
 	ground_buffer* GroundBuffers;
 
@@ -402,8 +327,6 @@ struct transient_state
 	// NOTE: 0 is bottom, 1 is middle, 2 is top
 
 	environment_map EnvMaps[3];
-
-	game_assets Assets;
 };
 
 inline low_entity*
@@ -421,11 +344,14 @@ GetLowEntity(game_state* GameState, uint32 LowIndex)
 
 global_variable platform_add_entry* PlatformAddEntry;
 global_variable platform_complete_all_work* PlatformCompleteAllWork;
+global_variable debug_platform_read_entire_file* PlatformReadEntireFile;
 
 internal void
 AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide);
 internal void
 ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex);
-internal void LoadAsset(game_assets* Assets, game_asset_id ID);
+
+internal task_with_memory* BeginTaskWithMemory(transient_state* TransientState);
+internal void EndTaskWithMemory(task_with_memory* Task);
 
 #endif // !P5ENGINE_H

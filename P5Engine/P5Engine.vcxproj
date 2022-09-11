@@ -193,6 +193,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="p5engine.h" />
+    <ClInclude Include="p5engine_asset.h" />
     <ClInclude Include="p5engine_entity.h" />
     <ClInclude Include="p5engine_intrinsics.h" />
     <ClInclude Include="p5engine_math.h" />
@@ -205,6 +206,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="p5engine.cpp" />
+    <ClCompile Include="p5engine_asset.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="p5engine_entity.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
