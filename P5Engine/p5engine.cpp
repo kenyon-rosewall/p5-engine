@@ -1,10 +1,10 @@
 #include "p5engine.h"
+#include "p5engine_random.h"
 #include "p5engine_render_group.cpp"
 #include "p5engine_world.cpp"
 #include "p5engine_sim_region.cpp"
 #include "p5engine_entity.cpp"
 #include "p5engine_asset.cpp"
-#include "p5engine_random.h"
 
 internal void
 GameOutputSound(game_state* GameState, game_sound_output_buffer* SoundBuffer, int ToneHz)
@@ -402,8 +402,6 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 	{
 		fill_ground_chunk_work* Work = PushStruct(&Task->Arena, fill_ground_chunk_work);
 
-		GroundBuffer->Pos = *ChunkPos;
-
 		loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
 		Buffer->AlignPercentage = V2(0.5f, 0.5f);
 		Buffer->WidthOverHeight = 1.0f;
@@ -419,6 +417,9 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 		Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
 		Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
 
+		Work->Buffer = Buffer;
+		Work->RenderGroup = RenderGroup;
+		Work->Task = Task;
 
 		for (int32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 		{
@@ -434,10 +435,11 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
+				bitmap_id Stamp = GetFirstBitmapID(TransientState->Assets, asset_type_id::Soil);
+				Stamp.Value += 2;
+
 				for (uint32 SoilIndex = 0; SoilIndex < 32; ++SoilIndex)
 				{
-					loaded_bitmap* Stamp = TransientState->Assets->Soil + 2;
-
 					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
 					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f, V4(0.5f, 0.5f, 0.5f, 0.1f));
@@ -461,26 +463,18 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 					v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
 
-					loaded_bitmap* Stamp = {};
-					switch (RandomChoice(&Series, 1))
-					{
-						/*case 1:
-						{
-							Stamp = &GameState->Grass;
-						} break;*/
+					bitmap_id Stamp = {};
 
-					case 2:
+					if (RandomChoice(&Series, 12) == 1)
 					{
-						Stamp = TransientState->Assets->Soil + RandomChoice(&Series, 1);
-					} break;
-
-					default:
+						Stamp = RandomAssetFrom(TransientState->Assets, asset_type_id::Grass, &Series);
+					}
+					else
 					{
-						Stamp = TransientState->Assets->Tuft + RandomChoice(&Series, ArrayCount(TransientState->Assets->Tuft));
-					} break;
+						Stamp = RandomAssetFrom(TransientState->Assets, asset_type_id::Tuft, &Series);
 					}
 
-					if (Stamp)
+					if (Stamp.Value)
 					{
 						v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
@@ -493,11 +487,13 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 		if (AllResourcesPresent(RenderGroup))
 		{
-			Work->Buffer = Buffer;
-			Work->RenderGroup = RenderGroup;
-			Work->Task = Task;
+			GroundBuffer->Pos = *ChunkPos;
 
 			PlatformAddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
+		}
+		else
+		{
+			EndTaskWithMemory(Task);
 		}
 	}
 }
@@ -700,7 +696,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
 	game_state* GameState = (game_state*)Memory->PermanentStorage;
-	if (!Memory->IsInitialized)
+	if (!GameState->IsInitialized)
 	{
 		uint32 TilesPerWidth = 17;
 		uint32 TilesPerHeight = 9;
@@ -893,7 +889,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		AddMonstar(GameState, CameraTileX - 4, CameraTileY + 2, CameraTileZ);
 		AddFamiliar(GameState, CameraTileX - 2, CameraTileY + 2, CameraTileZ);
 
-		Memory->IsInitialized = true;
+		GameState->IsInitialized = true;
 	}
 
 	// NOTE: Transient initialization

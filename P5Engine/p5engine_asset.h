@@ -33,12 +33,14 @@ enum class asset_type_id
 {
 	None,
 
-	Backdrop,
 	Shadow,
 	Tree,
-	Stairs,
 	Monstar,
 	Familiar,
+	Grass,
+
+	Soil,
+	Tuft,
 
 	Count,
 };
@@ -64,16 +66,8 @@ struct asset_type
 
 struct asset_bitmap_info
 {
+	char* Filename;
 	v2 AlignPercentage;
-	real32 WidthOverHeight;
-	int32 Width;
-	int32 Height;
-};
-
-struct asset_group
-{
-	uint32 FirstTagIndex;
-	uint32 OnePastLastTagIndex;
 };
 
 struct game_assets
@@ -83,6 +77,7 @@ struct game_assets
 	memory_arena Arena;
 
 	uint32 BitmapCount;
+	asset_bitmap_info* BitmapInfos;
 	asset_slot* Bitmaps;
 
 	uint32 SoundCount;
@@ -95,15 +90,15 @@ struct game_assets
 	asset* Assets;
 
 	asset_type AssetTypes[(uint32)asset_type_id::Count];
-
+	
 	// NOTE: Structured assets
 	hero_bitmaps Hero[4];
 	loaded_bitmap Sword[4];
 
-	// NOTE: Arrayed assets
-	loaded_bitmap Grass;
-	loaded_bitmap Soil[3];
-	loaded_bitmap Tuft[2];
+	// TODO: These should go away once we actually load an asset pack file
+	uint32 DEBUGUsedBitmapCount;
+	uint32 DEBUGUsedAssetCount;
+	asset_type* DEBUGAssetType;
 };
 
 struct bitmap_id

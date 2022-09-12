@@ -264,6 +264,8 @@ struct ground_buffer
 
 struct game_state
 {
+	bool32 IsInitialized;
+
 	memory_arena WorldArena;
 	world* World;
 

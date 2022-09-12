@@ -45,7 +45,7 @@ struct bitmap_header
 #pragma pack(pop)
 
 internal loaded_bitmap
-DEBUGLoadBMP(char* Filename, int32 AlignX, int32 AlignY)
+DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
 {
 	loaded_bitmap Result = {};
 
@@ -57,10 +57,7 @@ DEBUGLoadBMP(char* Filename, int32 AlignX, int32 AlignY)
 		Result.Memory = Memory;
 		Result.Width = Header->Width;
 		Result.Height = Header->Height;
-		Result.AlignPercentage = V2(
-			SafeRatio0(AlignX, (real32)Header->Width),
-			SafeRatio0(AlignY, (real32)Header->Height)
-		);
+		Result.AlignPercentage = AlignPercentage;
 		Result.WidthOverHeight = SafeRatio0((real32)Header->Width, (real32)Header->Height);
 
 		Assert(Result.Height > 0);
@@ -122,7 +119,7 @@ DEBUGLoadBMP(char* Filename, int32 AlignX, int32 AlignY)
 			}
 		}
 	}
-
+	
 	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
 
 #if 0
@@ -133,40 +130,20 @@ DEBUGLoadBMP(char* Filename, int32 AlignX, int32 AlignY)
 	return(Result);
 }
 
-internal loaded_bitmap
-DEBUGLoadBMP(char* Filename)
-{
-	loaded_bitmap Result = DEBUGLoadBMP(Filename, 0, 0);
-	Result.AlignPercentage = V2(0.5f, 0.5f);
-	return(Result);
-}
-
 struct load_bitmap_work
 {
 	game_assets* Assets;
-	char* Filename;
 	bitmap_id ID;
 	task_with_memory* Task;
 	loaded_bitmap* Bitmap;
-
-	bool32 HasAlignment;
-	int32 AlignX;
-	int32 AlignY;
-
 	asset_state FinalState;
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(LoadBitmapWork)
 {
 	load_bitmap_work* Work = (load_bitmap_work*)Data;
 
-	if (Work->HasAlignment)
-	{
-		*Work->Bitmap = DEBUGLoadBMP(Work->Filename, Work->AlignX, Work->AlignY);
-	}
-	else
-	{
-		*Work->Bitmap = DEBUGLoadBMP(Work->Filename);
-	}
+	asset_bitmap_info* Info = Work->Assets->BitmapInfos + Work->ID.Value;
+	*Work->Bitmap = DEBUGLoadBMP(Info->Filename, Info->AlignPercentage);
 
 	CompletePreviousWritesBeforeFutureWrites;
 
@@ -185,58 +162,12 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 		if (Task)
 		{
 			load_bitmap_work* Work = PushStruct(&Task->Arena, load_bitmap_work);
+
 			Work->Assets = Assets;
-			Work->Filename = (char*)"";
 			Work->ID = ID;
-			Work->HasAlignment = false;
-			Work->AlignX = 0;
-			Work->AlignY = 0;
 			Work->Task = Task;
 			Work->Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
 			Work->FinalState = asset_state::Loaded;
-
-			switch (ID.Value)
-			{
-				case (uint32)asset_type_id::Backdrop:
-				{
-					Work->Filename = (char*)"../data/bg.bmp";
-				} break;
-
-				case (uint32)asset_type_id::Shadow:
-				{
-					Work->Filename = (char*)"../data/shadow.bmp";
-					Work->HasAlignment = true;
-					Work->AlignX = 24;
-					Work->AlignY = 12;
-				} break;
-
-				case (uint32)asset_type_id::Stairs:
-				{
-					Work->Filename = (char*)"../data/stairs.bmp";
-				} break;
-
-				case (uint32)asset_type_id::Tree:
-				{
-					Work->Filename = (char*)"../data/tree.bmp";
-					Work->HasAlignment = true;
-					Work->AlignX = 32;
-					Work->AlignY = 32;
-				} break;
-
-				case (uint32)asset_type_id::Monstar:
-				{
-					Work->Filename = (char*)"../data/enemy.bmp";
-					Work->HasAlignment = true;
-					Work->AlignX = 32;
-				} break;
-
-				case (uint32)asset_type_id::Familiar:
-				{
-					Work->Filename = (char*)"../data/orb.bmp";
-					Work->HasAlignment = true;
-					Work->AlignX = 32;
-				} break;
-			}
 
 			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadBitmapWork, Work);
 		}
@@ -247,6 +178,24 @@ internal void
 LoadSound()
 {
 	
+}
+
+internal bitmap_id
+RandomAssetFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series)
+{
+	bitmap_id Result = {};
+
+	asset_type* Type = Assets->AssetTypes + (uint32)TypeID;
+	if (Type->FirstAssetIndex != Type->OnePastLastAssetIndex)
+	{
+		uint32 Count = (Type->OnePastLastAssetIndex - Type->FirstAssetIndex);
+		uint32 Choice = RandomChoice(Series, Count);
+
+		asset* Asset = Assets->Assets + Type->FirstAssetIndex + Choice;
+		Result.Value = Asset->SlotID;
+	}
+
+	return(Result);
 }
 
 internal bitmap_id
@@ -264,6 +213,46 @@ GetFirstBitmapID(game_assets* Assets, asset_type_id TypeID)
 	return(Result);
 }
 
+internal bitmap_id
+DEBUGAddBitmapInfo(game_assets* Assets, char* Filename, v2 AlignPercentage)
+{
+	Assert(Assets->DEBUGUsedBitmapCount < Assets->BitmapCount);
+	bitmap_id ID = { Assets->DEBUGUsedBitmapCount++ };
+
+	asset_bitmap_info* Info = Assets->BitmapInfos + ID.Value;
+	Info->Filename = Filename;
+	Info->AlignPercentage = AlignPercentage;
+
+	return(ID);
+}
+
+internal void
+BeginAssetType(game_assets* Assets, asset_type_id TypeID)
+{
+	Assert(Assets->DEBUGAssetType == 0);
+	Assets->DEBUGAssetType = Assets->AssetTypes + (uint32)TypeID;
+	Assets->DEBUGAssetType->FirstAssetIndex = Assets->DEBUGUsedAssetCount;
+	Assets->DEBUGAssetType->OnePastLastAssetIndex = Assets->DEBUGAssetType->FirstAssetIndex;
+}
+
+internal void
+AddBitmapAsset(game_assets* Assets, char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
+{
+	Assert(Assets->DEBUGAssetType);
+	asset* Asset = Assets->Assets + Assets->DEBUGAssetType->OnePastLastAssetIndex++;
+	Asset->FirstTagIndex = 0;
+	Asset->OnePastLastTagIndex = 0;
+	Asset->SlotID = DEBUGAddBitmapInfo(Assets, Filename, AlignPercentage).Value;
+}
+
+internal void
+EndAssetType(game_assets* Assets)
+{
+	Assert(Assets->DEBUGAssetType);
+	Assets->DEBUGUsedAssetCount = Assets->DEBUGAssetType->OnePastLastAssetIndex;
+	Assets->DEBUGAssetType = 0;
+}
+
 internal game_assets*
 AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* TransientState)
 {
@@ -271,36 +260,50 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	SubArena(&Assets->Arena, Arena, Size);
 	Assets->TransientState = TransientState;
 
-	Assets->BitmapCount = (uint32)asset_type_id::Count;
+	Assets->BitmapCount = 256 * (uint32)asset_type_id::Count;
+	Assets->DEBUGUsedBitmapCount = 1;
+	Assets->BitmapInfos = PushArray(Arena, Assets->BitmapCount, asset_bitmap_info);
 	Assets->Bitmaps = PushArray(Arena, Assets->BitmapCount, asset_slot);
 
 	Assets->SoundCount = 1;
 	Assets->Sounds = PushArray(Arena, Assets->SoundCount, asset_slot);
 
-	Assets->TagCount = 0;
-	Assets->Tags = 0;
-
-	Assets->AssetCount = Assets->BitmapCount;
+	Assets->AssetCount = Assets->SoundCount + Assets->BitmapCount;
 	Assets->Assets = PushArray(Arena, Assets->AssetCount, asset);
 
-	for (uint32 AssetID = 0; AssetID < (uint32)asset_type_id::Count; ++AssetID)
-	{
-		asset_type* Type = Assets->AssetTypes + AssetID;
-		Type->FirstAssetIndex = AssetID;
-		Type->OnePastLastAssetIndex = AssetID + 1;
+	Assets->DEBUGUsedBitmapCount = 1;
+	Assets->DEBUGUsedBitmapCount = 1;
 
-		asset* Asset = Assets->Assets + Type->FirstAssetIndex;
-		Asset->FirstTagIndex = 0;
-		Asset->OnePastLastTagIndex = 0;
-		Asset->SlotID = Type->FirstAssetIndex;
-	}
+	BeginAssetType(Assets, asset_type_id::Shadow);
+	AddBitmapAsset(Assets, (char*)"../data/shadow.bmp", V2(0.5f, 1.09090912f));
+	EndAssetType(Assets);
 
-	Assets->Grass = DEBUGLoadBMP((char*)"../data/grass1.bmp");
-	Assets->Soil[0] = DEBUGLoadBMP((char*)"../data/soil1.bmp");
-	Assets->Soil[1] = DEBUGLoadBMP((char*)"../data/soil2.bmp");
-	Assets->Soil[2] = DEBUGLoadBMP((char*)"../data/soil4.bmp");
-	Assets->Tuft[0] = DEBUGLoadBMP((char*)"../data/tuft1.bmp");
-	Assets->Tuft[1] = DEBUGLoadBMP((char*)"../data/tuft2.bmp");
+	BeginAssetType(Assets, asset_type_id::Tree);
+	AddBitmapAsset(Assets, (char*)"../data/tree.bmp", V2(0.5f, 0.340425521f));
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Monstar);
+	AddBitmapAsset(Assets, (char*)"../data/enemy.bmp", V2(0.5f, 0.0f));
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Familiar);
+	AddBitmapAsset(Assets, (char*)"../data/orb.bmp", V2(0.5f, 0.0f));
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Grass);
+	AddBitmapAsset(Assets, (char*)"../data/grass1.bmp", V2(0.5f, 0.5f));
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Soil);
+	AddBitmapAsset(Assets, (char*)"../data/soil1.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/soil2.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/soil4.bmp");
+	EndAssetType(Assets);
+	
+	BeginAssetType(Assets, asset_type_id::Tuft);
+	AddBitmapAsset(Assets, (char*)"../data/tuft1.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/tuft2.bmp");
+	EndAssetType(Assets);
 
 	hero_bitmaps* HeroBitmap;
 
@@ -321,13 +324,17 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	loaded_bitmap* SwordBitmap;
 
 	SwordBitmap = Assets->Sword;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-right.bmp", 32, 10);
+	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-right.bmp");
+	TopDownAlign(SwordBitmap, V2(32, 10));
 	++SwordBitmap;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-back.bmp", 32, 10);
+	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-back.bmp");
+	TopDownAlign(SwordBitmap, V2(32, 10));
 	++SwordBitmap;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-left.bmp", 32, 10);
+	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-left.bmp");
+	TopDownAlign(SwordBitmap, V2(32, 10));
 	++SwordBitmap;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-front.bmp", 32, 10);
+	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-front.bmp");
+	TopDownAlign(SwordBitmap, V2(32, 10));
 	++SwordBitmap;
 
 	return(Assets);
