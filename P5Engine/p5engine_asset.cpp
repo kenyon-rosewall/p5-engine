@@ -179,6 +179,35 @@ LoadSound()
 {
 	
 }
+internal bitmap_id
+BestMatchAsset(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVector, asset_vector* WeightVector)
+{
+	bitmap_id Result = {};
+
+	real32 BestDiff = Real32Maximum;
+	asset_type* Type = Assets->AssetTypes + (uint32)TypeID;
+	for (uint32 AssetIndex = Type->FirstAssetIndex; AssetIndex < Type->OnePastLastAssetIndex; ++AssetIndex)
+	{
+		asset* Asset = Assets->Assets + AssetIndex;
+
+		real32 TotalWeightedDiff = 0.0f;
+		for (uint32 TagIndex = Asset->FirstTagIndex; TagIndex < Asset->OnePastLastTagIndex; ++TagIndex)
+		{
+			asset_tag* Tag = Assets->Tags + TagIndex;
+			real32 Difference = MatchVector->E[(uint32)Tag->ID] - Tag->Value;
+			real32 Weighted = WeightVector->E[(uint32)Tag->ID] * AbsoluteValue(Difference);
+			TotalWeightedDiff += Weighted;
+		}
+
+		if (BestDiff > TotalWeightedDiff)
+		{
+			BestDiff = TotalWeightedDiff;
+			Result.Value = Asset->SlotID;
+		}
+	}
+
+	return(Result);
+}
 
 internal bitmap_id
 RandomAssetFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series)
@@ -239,10 +268,25 @@ internal void
 AddBitmapAsset(game_assets* Assets, char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
 {
 	Assert(Assets->DEBUGAssetType);
+	Assert(Assets->DEBUGAssetType->OnePastLastAssetIndex < Assets->AssetCount);
 	asset* Asset = Assets->Assets + Assets->DEBUGAssetType->OnePastLastAssetIndex++;
-	Asset->FirstTagIndex = 0;
-	Asset->OnePastLastTagIndex = 0;
+	Asset->FirstTagIndex = Assets->DEBUGUsedTagCount;
+	Asset->OnePastLastTagIndex = Asset->FirstTagIndex;
 	Asset->SlotID = DEBUGAddBitmapInfo(Assets, Filename, AlignPercentage).Value;
+
+	Assets->DEBUGAsset = Asset;
+}
+
+internal void
+AddTag(game_assets* Assets, asset_tag_id TagID, real32 Value)
+{
+	Assert(Assets->DEBUGAsset);
+
+	++Assets->DEBUGAsset->OnePastLastTagIndex;
+	asset_tag* Tag = Assets->Tags + Assets->DEBUGUsedTagCount++;
+
+	Tag->ID = TagID;
+	Tag->Value = Value;
 }
 
 internal void
@@ -251,6 +295,7 @@ EndAssetType(game_assets* Assets)
 	Assert(Assets->DEBUGAssetType);
 	Assets->DEBUGUsedAssetCount = Assets->DEBUGAssetType->OnePastLastAssetIndex;
 	Assets->DEBUGAssetType = 0;
+	Assets->DEBUGAsset = 0;
 }
 
 internal game_assets*
@@ -270,6 +315,9 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 
 	Assets->AssetCount = Assets->SoundCount + Assets->BitmapCount;
 	Assets->Assets = PushArray(Arena, Assets->AssetCount, asset);
+
+	Assets->TagCount = 1024 * (uint32)asset_type_id::Count;
+	Assets->Tags = PushArray(Arena, Assets->TagCount, asset_tag);
 
 	Assets->DEBUGUsedBitmapCount = 1;
 	Assets->DEBUGUsedBitmapCount = 1;
@@ -305,6 +353,23 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	AddBitmapAsset(Assets, (char*)"../data/tuft2.bmp");
 	EndAssetType(Assets);
 
+	real32 AngleRight = 0.0f * Pi32;
+	real32 AngleBack = 0.5f * Pi32;
+	real32 AngleLeft = 1.0f * Pi32;
+	real32 AngleFront = 1.5f * Pi32;
+
+	BeginAssetType(Assets, asset_type_id::Character);
+	AddBitmapAsset(Assets, (char*)"../data/char-right-0.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleRight);
+	AddBitmapAsset(Assets, (char*)"../data/char-back-0.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleBack);
+	AddBitmapAsset(Assets, (char*)"../data/char-left-0.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
+	AddBitmapAsset(Assets, (char*)"../data/char-front-0.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
+	EndAssetType(Assets);
+
+#if 0
 	hero_bitmaps* HeroBitmap;
 
 	HeroBitmap = Assets->Hero;
@@ -320,7 +385,20 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	HeroBitmap->Character = DEBUGLoadBMP((char*)"../data/char-front-0.bmp");
 	SetTopDownAlign(HeroBitmap, V2(32, 56));
 	++HeroBitmap;
+#endif
 
+	BeginAssetType(Assets, asset_type_id::Sword);
+	AddBitmapAsset(Assets, (char*)"../data/sword-right.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleRight);
+	AddBitmapAsset(Assets, (char*)"../data/sword-back.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleBack);
+	AddBitmapAsset(Assets, (char*)"../data/sword-left.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
+	AddBitmapAsset(Assets, (char*)"../data/sword-front.bmp");
+	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
+	EndAssetType(Assets);
+
+#if 0
 	loaded_bitmap* SwordBitmap;
 
 	SwordBitmap = Assets->Sword;
@@ -336,6 +414,7 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-front.bmp");
 	TopDownAlign(SwordBitmap, V2(32, 10));
 	++SwordBitmap;
+#endif
 
 	return(Assets);
 }

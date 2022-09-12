@@ -90,7 +90,7 @@ struct sim_entity
 
 	sim_entity_collision_volume_group* Collision;
 
-	uint32 FacingDirection;
+	real32 FacingDirection;
 	real32 tBob;
 
 	int32 dAbsTileZ;

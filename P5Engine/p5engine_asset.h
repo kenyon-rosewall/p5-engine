@@ -25,6 +25,7 @@ enum class asset_tag_id
 {
 	Smoothness,
 	Flatness,
+	FacingDirection,
 
 	Count,
 };
@@ -42,6 +43,9 @@ enum class asset_type_id
 	Soil,
 	Tuft,
 
+	Character,
+	Sword,
+
 	Count,
 };
 
@@ -56,6 +60,11 @@ struct asset
 	uint32 FirstTagIndex;
 	uint32 OnePastLastTagIndex;
 	uint32 SlotID;
+};
+
+struct asset_vector
+{
+	real32 E[(uint32)asset_tag_id::Count];
 };
 
 struct asset_type
@@ -98,7 +107,9 @@ struct game_assets
 	// TODO: These should go away once we actually load an asset pack file
 	uint32 DEBUGUsedBitmapCount;
 	uint32 DEBUGUsedAssetCount;
+	uint32 DEBUGUsedTagCount;
 	asset_type* DEBUGAssetType;
+	asset* DEBUGAsset;
 };
 
 struct bitmap_id

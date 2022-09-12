@@ -262,6 +262,11 @@ struct ground_buffer
 	loaded_bitmap Bitmap;
 };
 
+struct hero_bitmap_ids
+{
+	bitmap_id Character;
+};
+
 struct game_state
 {
 	bool32 IsInitialized;

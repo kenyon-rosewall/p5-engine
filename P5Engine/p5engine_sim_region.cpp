@@ -715,26 +715,8 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, rea
 	{
 		// NOTE: Leave FacingDirection whatever it was
 	}
-	else if (AbsoluteValue(Entity->dPos.x) > AbsoluteValue(Entity->dPos.y))
-	{
-		if (Entity->dPos.x > 0)
-		{
-			Entity->FacingDirection = 0;
-		}
-		else
-		{
-			Entity->FacingDirection = 2;
-		}
-	}
 	else
 	{
-		if (Entity->dPos.y > 0)
-		{
-			Entity->FacingDirection = 1;
-		}
-		else
-		{
-			Entity->FacingDirection = 3;
-		}
+		Entity->FacingDirection = ATan2(Entity->dPos.y, Entity->dPos.x);
 	}
 }

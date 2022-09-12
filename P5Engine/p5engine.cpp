@@ -365,35 +365,6 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 	EndTaskWithMemory(Work->Task);
 }
 
-#if 0
-internal int32
-PickBest(int32 InfoCount, asset_bitmap_info* Infos, asset_tag* Tags, real32* MatchVector, real32* WeightVector)
-{
-	real32 BestDiff = Real32Maximum;
-	int32 BestIndex = 0;
-
-	for (int32 InfoIndex = 0; InfoIndex < InfoCount; ++InfoIndex)
-	{
-		asset_bitmap_info* Info = Infos + InfoIndex;
-
-		real32 TotalWeightedDiff = 0.0f;
-		for (uint32 TagIndex = Info->FirstTagIndex; TagIndex < Info->OnePastLastTagIndex; ++TagIndex)
-		{
-			asset_tag* Tag = Tags + TagIndex;
-			real32 Difference = MatchVector[Tag->ID] - Tag->Value;
-			real32 Weighted = WeightVector[Tag->ID] * AbsoluteValue(Difference);
-			TotalWeightedDiff += Weighted;
-		}
-
-		if (BestDiff > TotalWeightedDiff)
-		{
-			BestDiff = TotalWeightedDiff;
-			BestIndex = InfoIndex;
-		}
-	}
-}
-#endif
-
 internal void
 FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_buffer* GroundBuffer, world_position* ChunkPos)
 {
@@ -1012,27 +983,28 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			if (Controller->ActionLeft.EndedDown)
 			{
 				sim_entity ControllingEntity = GetLowEntity(GameState, ConHero->EntityIndex)->Sim;
-				switch (ControllingEntity.FacingDirection)
+				uint32 Direction = (uint32)((ControllingEntity.FacingDirection * 2) / Pi32);
+				switch (Direction)
 				{
-				case 0:
-				{
-					ConHero->dSword = V3(1.0f, 0.0f, 0.0f);
-				} break;
+					case 0:
+					{
+						ConHero->dSword = V3(1.0f, 0.0f, 0.0f);
+					} break;
 
-				case 1:
-				{
-					ConHero->dSword = V3(0.0f, 1.0f, 0.0f);
-				} break;
+					case 1:
+					{
+						ConHero->dSword = V3(0.0f, 1.0f, 0.0f);
+					} break;
 
-				case 2:
-				{
-					ConHero->dSword = V3(-1.0f, 0.0f, 0.0f);
-				} break;
+					case 2:
+					{
+						ConHero->dSword = V3(-1.0f, 0.0f, 0.0f);
+					} break;
 
-				case 3:
-				{
-					ConHero->dSword = V3(0.0f, -1.0f, 0.0f);
-				} break;
+					case 3:
+					{
+						ConHero->dSword = V3(0.0f, -1.0f, 0.0f);
+					} break;
 				}
 			}
 		}
@@ -1304,14 +1276,25 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			//
 			// NOTE: Post-physics entity work
 			//
+			hero_bitmap_ids HeroBitmaps = {};
+			bitmap_id Sword = {};
+
+			asset_vector MatchVector = {};
+			MatchVector.E[(uint32)asset_tag_id::FacingDirection] = Entity->FacingDirection;
+			asset_vector WeightVector = {};
+			WeightVector.E[(uint32)asset_tag_id::FacingDirection] = 1.0f;
+			
+			HeroBitmaps.Character = BestMatchAsset(TransientState->Assets, asset_type_id::Character, &MatchVector, &WeightVector);
+			Sword = BestMatchAsset(TransientState->Assets, asset_type_id::Sword, &MatchVector, &WeightVector);
+
 			switch (Entity->Type)
 			{
 				case entity_type::Hero:
 				{
+					
 					real32 CharacterSizeC = 0.9f;
-					hero_bitmaps* HeroBitmaps = &TransientState->Assets->Hero[Entity->FacingDirection];
 					PushBitmap(RenderGroup, GetFirstBitmapID(TransientState->Assets, asset_type_id::Shadow), V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, &HeroBitmaps->Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
+					PushBitmap(RenderGroup, HeroBitmaps.Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
@@ -1329,7 +1312,13 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 				case entity_type::Sword:
 				{
-					loaded_bitmap* Sword = &TransientState->Assets->Sword[Entity->FacingDirection];
+					bitmap_id Sword = {};
+					asset_vector MatchVector = {};
+					MatchVector.E[(uint32)asset_tag_id::FacingDirection] = Entity->FacingDirection;
+					asset_vector WeightVector = {};
+					WeightVector.E[(uint32)asset_tag_id::FacingDirection] = 1.0f;
+					Sword = BestMatchAsset(TransientState->Assets, asset_type_id::Sword, &MatchVector, &WeightVector);
+
 					PushBitmap(RenderGroup, GetFirstBitmapID(TransientState->Assets, asset_type_id::Shadow), V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
 					PushBitmap(RenderGroup, Sword, V3(0, 0, 0), 0.5f);
 				} break;
