@@ -21,6 +21,8 @@
 	- Final Optimization
 
   - Asset streaming
+	- File format
+	- Memory management
 
   - Debug code
     - Fonts

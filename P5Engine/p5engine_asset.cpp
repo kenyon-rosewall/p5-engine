@@ -130,6 +130,57 @@ DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
 	return(Result);
 }
 
+struct WAVE_header
+{
+	uint32 RIFFID;
+	uint32 Size;
+	uint32 WAVEID;
+};
+
+#define RIFF_CODE(a, b, c, d) (((uint32)(a) << 0) | ((uint32)(b) << 8) | ((uint32)(c) << 16) | ((uint32)(d) << 24))
+
+enum
+{
+	WAVE_ChunkID_fmt = RIFF_CODE('f', 'm', 't', ' '),
+	WAVE_ChunkID_RIFF = RIFF_CODE('R', 'I', 'F', 'F'),
+	WAVE_ChunkID_WAVE = RIFF_CODE('W', 'A', 'V', 'E'),
+};
+struct WAVE_chunk
+{
+	uint32 ID;
+	uint32 Size;
+};
+
+struct WAVE_fmt
+{
+	uint16 wFormatTag;
+	uint16 nChannels;
+	uint32 nSamplesPerSec;
+	uint32 nAvgBytesPerSec;
+	uint32 nBlockAlign;
+	uint16 wBitsPerSample;
+	uint16 cbSize;
+	uint16 wValidBitsPerSample;
+	uint32 dwChannelMask;
+	uint8 SubFormat[16];
+};
+
+internal loaded_sound
+DEBUGLoadWAV(char* Filename)
+{
+	loaded_sound Result = {};
+	                                                                                                                                                                                                                                                                                           
+	debug_read_file_result ReadResult = PlatformReadEntireFile(Filename);
+	if (ReadResult.ContentsSize != 0)
+	{
+		WAVE_header* Header = (WAVE_header*)ReadResult.Contents;
+		Assert(Header->RIFFID == WAVE_ChunkID_RIFF);
+		Assert(Header->WAVEID == WAVE_ChunkID_WAVE);
+	}
+
+	return(Result);
+}
+
 struct load_bitmap_work
 {
 	game_assets* Assets;
@@ -174,11 +225,51 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 	}
 }
 
-internal void
-LoadSound()
+struct load_sound_work
 {
-	
+	game_assets* Assets;
+	sound_id ID;
+	task_with_memory* Task;
+	loaded_sound* Sound;
+	asset_state FinalState;
+};
+
+internal PLATFORM_WORK_QUEUE_CALLBACK(LoadSoundWork)
+{
+	load_sound_work* Work = (load_sound_work*)Data;
+
+	asset_sound_info* Info = Work->Assets->SoundInfos + Work->ID.Value;
+	*Work->Sound = DEBUGLoadWAV(Info->Filename);
+
+	CompletePreviousWritesBeforeFutureWrites;
+
+	Work->Assets->Sounds[Work->ID.Value].Sound = Work->Sound;
+	Work->Assets->Sounds[Work->ID.Value].State = Work->FinalState;
+
+	EndTaskWithMemory(Work->Task);
 }
+
+internal void
+LoadSound(game_assets* Assets, sound_id ID)
+{
+	if (ID.Value && (AtomicCompareExchangeUInt32((uint32*)&Assets->Sounds[ID.Value].State, (uint32)asset_state::Unloaded, (uint32)asset_state::Queued) == (uint32)asset_state::Unloaded))
+	{
+		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
+		if (Task)
+		{
+			load_sound_work* Work = PushStruct(&Task->Arena, load_sound_work);
+
+			Work->Assets = Assets;
+			Work->ID = ID;
+			Work->Task = Task;
+			Work->Sound = PushStruct(&Assets->Arena, loaded_sound);
+			Work->FinalState = asset_state::Loaded;
+
+			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadSoundWork, Work);
+		}
+	}
+}
+
 internal bitmap_id
 BestMatchAsset(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVector, asset_vector* WeightVector)
 {
@@ -194,7 +285,13 @@ BestMatchAsset(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVec
 		for (uint32 TagIndex = Asset->FirstTagIndex; TagIndex < Asset->OnePastLastTagIndex; ++TagIndex)
 		{
 			asset_tag* Tag = Assets->Tags + TagIndex;
-			real32 Difference = MatchVector->E[(uint32)Tag->ID] - Tag->Value;
+			
+			real32 A = MatchVector->E[(uint32)Tag->ID];
+			real32 B = Tag->Value;
+			real32 D0 = AbsoluteValue(A - B);
+			real32 D1 = AbsoluteValue((A - Assets->TagRange[(uint32)Tag->ID] * SignOf(A)) - B);
+			real32 Difference = Minimum(D0, D1);
+
 			real32 Weighted = WeightVector->E[(uint32)Tag->ID] * AbsoluteValue(Difference);
 			TotalWeightedDiff += Weighted;
 		}
@@ -305,6 +402,12 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	SubArena(&Assets->Arena, Arena, Size);
 	Assets->TransientState = TransientState;
 
+	for (uint32 TagType = 0; TagType < (uint32)asset_tag_id::Count; ++TagType)
+	{
+		Assets->TagRange[TagType] = 1000000.0f;
+	}
+	Assets->TagRange[(uint32)asset_tag_id::FacingDirection] = Tau32;
+
 	Assets->BitmapCount = 256 * (uint32)asset_type_id::Count;
 	Assets->DEBUGUsedBitmapCount = 1;
 	Assets->BitmapInfos = PushArray(Arena, Assets->BitmapCount, asset_bitmap_info);
@@ -347,7 +450,7 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	AddBitmapAsset(Assets, (char*)"../data/soil2.bmp");
 	AddBitmapAsset(Assets, (char*)"../data/soil4.bmp");
 	EndAssetType(Assets);
-	
+
 	BeginAssetType(Assets, asset_type_id::Tuft);
 	AddBitmapAsset(Assets, (char*)"../data/tuft1.bmp");
 	AddBitmapAsset(Assets, (char*)"../data/tuft2.bmp");
@@ -358,63 +461,31 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	real32 AngleLeft = 1.0f * Pi32;
 	real32 AngleFront = 1.5f * Pi32;
 
+	v2 HeroAlign = V2(0.5f, 0.109375f);
+
 	BeginAssetType(Assets, asset_type_id::Character);
-	AddBitmapAsset(Assets, (char*)"../data/char-right-0.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/char-right-0.bmp", HeroAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleRight);
-	AddBitmapAsset(Assets, (char*)"../data/char-back-0.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/char-back-0.bmp", HeroAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleBack);
-	AddBitmapAsset(Assets, (char*)"../data/char-left-0.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/char-left-0.bmp", HeroAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
-	AddBitmapAsset(Assets, (char*)"../data/char-front-0.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/char-front-0.bmp", HeroAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
 	EndAssetType(Assets);
 
-#if 0
-	hero_bitmaps* HeroBitmap;
-
-	HeroBitmap = Assets->Hero;
-	HeroBitmap->Character = DEBUGLoadBMP((char*)"../data/char-right-0.bmp");
-	SetTopDownAlign(HeroBitmap, V2(32, 56));
-	++HeroBitmap;
-	HeroBitmap->Character = DEBUGLoadBMP((char*)"../data/char-back-0.bmp");
-	SetTopDownAlign(HeroBitmap, V2(32, 56));
-	++HeroBitmap;
-	HeroBitmap->Character = DEBUGLoadBMP((char*)"../data/char-left-0.bmp");
-	SetTopDownAlign(HeroBitmap, V2(32, 56));
-	++HeroBitmap;
-	HeroBitmap->Character = DEBUGLoadBMP((char*)"../data/char-front-0.bmp");
-	SetTopDownAlign(HeroBitmap, V2(32, 56));
-	++HeroBitmap;
-#endif
+	v2 SwordAlign = V2(0.5f, 0.828125f);
 
 	BeginAssetType(Assets, asset_type_id::Sword);
-	AddBitmapAsset(Assets, (char*)"../data/sword-right.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/sword-right.bmp", SwordAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleRight);
-	AddBitmapAsset(Assets, (char*)"../data/sword-back.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/sword-back.bmp", SwordAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleBack);
-	AddBitmapAsset(Assets, (char*)"../data/sword-left.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/sword-left.bmp", SwordAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
-	AddBitmapAsset(Assets, (char*)"../data/sword-front.bmp");
+	AddBitmapAsset(Assets, (char*)"../data/sword-front.bmp", SwordAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
 	EndAssetType(Assets);
-
-#if 0
-	loaded_bitmap* SwordBitmap;
-
-	SwordBitmap = Assets->Sword;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-right.bmp");
-	TopDownAlign(SwordBitmap, V2(32, 10));
-	++SwordBitmap;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-back.bmp");
-	TopDownAlign(SwordBitmap, V2(32, 10));
-	++SwordBitmap;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-left.bmp");
-	TopDownAlign(SwordBitmap, V2(32, 10));
-	++SwordBitmap;
-	*SwordBitmap = DEBUGLoadBMP((char*)"../data/sword-front.bmp");
-	TopDownAlign(SwordBitmap, V2(32, 10));
-	++SwordBitmap;
-#endif
 
 	return(Assets);
 }

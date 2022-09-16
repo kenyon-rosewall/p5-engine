@@ -983,8 +983,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			if (Controller->ActionLeft.EndedDown)
 			{
 				sim_entity ControllingEntity = GetLowEntity(GameState, ConHero->EntityIndex)->Sim;
-				uint32 Direction = (uint32)((ControllingEntity.FacingDirection * 2) / Pi32);
-				switch (Direction)
+
+				switch ((uint32)ControllingEntity.FacingDirection)
 				{
 					case 0:
 					{
@@ -1334,9 +1334,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				case entity_type::Familiar:
 				{
 					Entity->tBob += dt;
-					if (Entity->tBob > 2.0f * Pi32)
+					if (Entity->tBob > Tau32)
 					{
-						Entity->tBob -= 2.0f * Pi32;
+						Entity->tBob -= Tau32;
 					}
 					real32 BobSin = Sin(2.0f * Entity->tBob);
 

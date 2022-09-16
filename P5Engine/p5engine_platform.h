@@ -85,6 +85,7 @@ typedef double real64;
 #define internal static
 
 #define Pi32 3.14159265359f
+#define Tau32 6.28318530717958647692f
 
 #if P5ENGINE_SLOW
 #define Assert(Expression) if (!(Expression)) {*(int *)0  = 0;}
