@@ -1107,7 +1107,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			{
 				MonitorRefreshHz = Win32RefreshRate;
 			}
-			real32 GameUpdateHz = ((real32)MonitorRefreshHz / 2.0f);
+			real32 GameUpdateHz = (real32)(MonitorRefreshHz / 2.0f);
 			real32 TargetSecondsPerFrame = 1.0f / GameUpdateHz;
 
 			// NOTE: Sound test

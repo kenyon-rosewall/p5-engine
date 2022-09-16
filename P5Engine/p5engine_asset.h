@@ -10,8 +10,9 @@ struct hero_bitmaps
 
 struct loaded_sound
 {
-	int32 SampleCount;
-	void* Memory;
+	uint32 SampleCount;
+	uint32 ChannelCount;
+	int16* Samples[2];
 };
 
 enum class asset_state
