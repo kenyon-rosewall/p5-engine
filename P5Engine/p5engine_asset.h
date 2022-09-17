@@ -25,12 +25,9 @@ enum class asset_state
 struct asset_slot
 {
 	asset_state State;
-	struct
+	union
 	{
 		loaded_bitmap* Bitmap;
-	};
-	struct
-	{
 		loaded_sound* Sound;
 	};
 };
@@ -48,6 +45,10 @@ enum class asset_type_id
 {
 	None,
 
+	//
+	// NOTE: Bitmaps
+	//
+
 	Shadow,
 	Tree,
 	Monstar,
@@ -59,6 +60,17 @@ enum class asset_type_id
 
 	Character,
 	Sword,
+
+	//
+	// NOTE: Sounds
+	//
+
+	Bloop,
+	Crack,
+	Drop,
+	Glide,
+	Music,
+	Puhp,
 
 	Count,
 };
@@ -128,6 +140,7 @@ struct game_assets
 
 	// TODO: These should go away once we actually load an asset pack file
 	uint32 DEBUGUsedBitmapCount;
+	uint32 DEBUGUsedSoundCount;
 	uint32 DEBUGUsedAssetCount;
 	uint32 DEBUGUsedTagCount;
 	asset_type* DEBUGAssetType;
@@ -147,6 +160,13 @@ struct sound_id
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
 {
 	loaded_bitmap* Result = Assets->Bitmaps[ID.Value].Bitmap;
+
+	return(Result);
+}
+
+inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
+{
+	loaded_sound* Result = Assets->Sounds[ID.Value].Sound;
 
 	return(Result);
 }

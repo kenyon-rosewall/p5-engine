@@ -331,7 +331,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadBitmapWork)
 internal void
 LoadBitmap(game_assets* Assets, bitmap_id ID)
 {
-	if (ID.Value && (AtomicCompareExchangeUInt32((uint32*)&Assets->Bitmaps[ID.Value].State, (uint32)asset_state::Unloaded, (uint32)asset_state::Queued) == (uint32)asset_state::Unloaded))
+	if (ID.Value && (AtomicCompareExchangeUInt32((uint32*)&Assets->Bitmaps[ID.Value].State, (uint32)asset_state::Queued, (uint32)asset_state::Unloaded) == (uint32)asset_state::Unloaded))
 	{
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
@@ -345,6 +345,10 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 			Work->FinalState = asset_state::Loaded;
 
 			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadBitmapWork, Work);
+		}
+		else
+		{
+			Assets->Bitmaps[ID.Value].State = asset_state::Unloaded;
 		}
 	}
 }
@@ -376,7 +380,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadSoundWork)
 internal void
 LoadSound(game_assets* Assets, sound_id ID)
 {
-	if (ID.Value && (AtomicCompareExchangeUInt32((uint32*)&Assets->Sounds[ID.Value].State, (uint32)asset_state::Unloaded, (uint32)asset_state::Queued) == (uint32)asset_state::Unloaded))
+	if (ID.Value && (AtomicCompareExchangeUInt32((uint32*)&Assets->Sounds[ID.Value].State, (uint32)asset_state::Queued, (uint32)asset_state::Unloaded) == (uint32)asset_state::Unloaded))
 	{
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
@@ -391,13 +395,17 @@ LoadSound(game_assets* Assets, sound_id ID)
 
 			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadSoundWork, Work);
 		}
+		else
+		{
+			Assets->Sounds[ID.Value].State = asset_state::Unloaded;
+		}
 	}
 }
 
-internal bitmap_id
-BestMatchAsset(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVector, asset_vector* WeightVector)
+internal uint32
+GetBestMatchAssetFrom(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVector, asset_vector* WeightVector)
 {
-	bitmap_id Result = {};
+	uint32 Result = 0;
 
 	real32 BestDiff = Real32Maximum;
 	asset_type* Type = Assets->AssetTypes + (uint32)TypeID;
@@ -423,17 +431,17 @@ BestMatchAsset(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVec
 		if (BestDiff > TotalWeightedDiff)
 		{
 			BestDiff = TotalWeightedDiff;
-			Result.Value = Asset->SlotID;
+			Result = Asset->SlotID;
 		}
 	}
 
 	return(Result);
 }
 
-internal bitmap_id
-RandomAssetFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series)
+internal uint32
+GetRandomAssetFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series)
 {
-	bitmap_id Result = {};
+	uint32 Result = 0;
 
 	asset_type* Type = Assets->AssetTypes + (uint32)TypeID;
 	if (Type->FirstAssetIndex != Type->OnePastLastAssetIndex)
@@ -442,23 +450,71 @@ RandomAssetFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series
 		uint32 Choice = RandomChoice(Series, Count);
 
 		asset* Asset = Assets->Assets + Type->FirstAssetIndex + Choice;
-		Result.Value = Asset->SlotID;
+		Result = Asset->SlotID;
+	}
+
+	return(Result);
+}
+
+internal uint32
+GetFirstAssetFrom(game_assets* Assets, asset_type_id TypeID)
+{
+	uint32 Result = 0;
+	
+	asset_type* Type = Assets->AssetTypes + (uint32)TypeID;
+	if (Type->FirstAssetIndex != Type->OnePastLastAssetIndex)
+	{
+		asset* Asset = Assets->Assets + Type->FirstAssetIndex;
+		Result = Asset->SlotID;
 	}
 
 	return(Result);
 }
 
 internal bitmap_id
-GetFirstBitmapID(game_assets* Assets, asset_type_id TypeID)
+GetBestMatchBitmapFrom(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVector, asset_vector* WeightVector)
 {
-	bitmap_id Result = {};
-	
-	asset_type* Type = Assets->AssetTypes + (uint32)TypeID;
-	if (Type->FirstAssetIndex != Type->OnePastLastAssetIndex)
-	{
-		asset* Asset = Assets->Assets + Type->FirstAssetIndex;
-		Result.Value = Asset->SlotID;
-	}
+	bitmap_id Result = { GetBestMatchAssetFrom(Assets, TypeID, MatchVector, WeightVector) };
+
+	return(Result);
+}
+
+internal bitmap_id
+GetFirstBitmapFrom(game_assets* Assets, asset_type_id TypeID)
+{
+	bitmap_id Result = { GetFirstAssetFrom(Assets, TypeID) };
+
+	return(Result);
+}
+
+internal bitmap_id
+GetRandomBitmapFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series)
+{
+	bitmap_id Result = { GetRandomAssetFrom(Assets, TypeID, Series) };
+
+	return(Result);
+}
+
+inline sound_id
+GetBestMatchSoundFrom(game_assets* Assets, asset_type_id TypeID, asset_vector* MatchVector, asset_vector* WeightVector)
+{
+	sound_id Result = { GetBestMatchAssetFrom(Assets, TypeID, MatchVector, WeightVector) };
+
+	return(Result);
+}
+
+internal sound_id
+GetFirstSoundFrom(game_assets* Assets, asset_type_id TypeID)
+{
+	sound_id Result = { GetFirstAssetFrom(Assets, TypeID) };
+
+	return(Result);
+}
+
+internal sound_id
+GetRandomSoundFrom(game_assets* Assets, asset_type_id TypeID, random_series* Series)
+{
+	sound_id Result = { GetRandomAssetFrom(Assets, TypeID, Series) };
 
 	return(Result);
 }
@@ -472,6 +528,18 @@ DEBUGAddBitmapInfo(game_assets* Assets, char* Filename, v2 AlignPercentage)
 	asset_bitmap_info* Info = Assets->BitmapInfos + ID.Value;
 	Info->Filename = Filename;
 	Info->AlignPercentage = AlignPercentage;
+
+	return(ID);
+}
+
+internal sound_id
+DEBUGAddSoundInfo(game_assets* Assets, char* Filename)
+{
+	Assert(Assets->DEBUGUsedSoundCount < Assets->SoundCount);
+	sound_id ID = { Assets->DEBUGUsedSoundCount++ };
+
+	asset_sound_info* Info = Assets->SoundInfos + ID.Value;
+	Info->Filename = Filename;
 
 	return(ID);
 }
@@ -490,10 +558,25 @@ AddBitmapAsset(game_assets* Assets, char* Filename, v2 AlignPercentage = V2(0.5f
 {
 	Assert(Assets->DEBUGAssetType);
 	Assert(Assets->DEBUGAssetType->OnePastLastAssetIndex < Assets->AssetCount);
+
 	asset* Asset = Assets->Assets + Assets->DEBUGAssetType->OnePastLastAssetIndex++;
 	Asset->FirstTagIndex = Assets->DEBUGUsedTagCount;
 	Asset->OnePastLastTagIndex = Asset->FirstTagIndex;
 	Asset->SlotID = DEBUGAddBitmapInfo(Assets, Filename, AlignPercentage).Value;
+
+	Assets->DEBUGAsset = Asset;
+}
+
+internal void
+AddSoundAsset(game_assets* Assets, char* Filename)
+{
+	Assert(Assets->DEBUGAssetType);
+	Assert(Assets->DEBUGAssetType->OnePastLastAssetIndex < Assets->AssetCount);
+
+	asset* Asset = Assets->Assets + Assets->DEBUGAssetType->OnePastLastAssetIndex++;
+	Asset->FirstTagIndex = Assets->DEBUGUsedTagCount;
+	Asset->OnePastLastTagIndex = Asset->FirstTagIndex;
+	Asset->SlotID = DEBUGAddSoundInfo(Assets, Filename).Value;
 
 	Assets->DEBUGAsset = Asset;
 }
@@ -514,6 +597,7 @@ internal void
 EndAssetType(game_assets* Assets)
 {
 	Assert(Assets->DEBUGAssetType);
+
 	Assets->DEBUGUsedAssetCount = Assets->DEBUGAssetType->OnePastLastAssetIndex;
 	Assets->DEBUGAssetType = 0;
 	Assets->DEBUGAsset = 0;
@@ -533,11 +617,11 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	Assets->TagRange[(uint32)asset_tag_id::FacingDirection] = Tau32;
 
 	Assets->BitmapCount = 256 * (uint32)asset_type_id::Count;
-	Assets->DEBUGUsedBitmapCount = 1;
 	Assets->BitmapInfos = PushArray(Arena, Assets->BitmapCount, asset_bitmap_info);
 	Assets->Bitmaps = PushArray(Arena, Assets->BitmapCount, asset_slot);
 
-	Assets->SoundCount = 1;
+	Assets->SoundCount = 256 * (uint32)asset_type_id::Count;
+	Assets->SoundInfos = PushArray(Arena, Assets->SoundCount, asset_sound_info);
 	Assets->Sounds = PushArray(Arena, Assets->SoundCount, asset_slot);
 
 	Assets->AssetCount = Assets->SoundCount + Assets->BitmapCount;
@@ -547,7 +631,12 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	Assets->Tags = PushArray(Arena, Assets->TagCount, asset_tag);
 
 	Assets->DEBUGUsedBitmapCount = 1;
-	Assets->DEBUGUsedBitmapCount = 1;
+	Assets->DEBUGUsedSoundCount = 1;
+	Assets->DEBUGUsedAssetCount = 1;
+
+	//
+	// BITMAPS
+	//
 
 	BeginAssetType(Assets, asset_type_id::Shadow);
 	AddBitmapAsset(Assets, (char*)"../data/bitmaps/shadow.bmp", V2(0.5f, 1.09090912f));
@@ -609,6 +698,39 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
 	AddBitmapAsset(Assets, (char*)"../data/bitmaps/sword-front.bmp", SwordAlign);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
+	EndAssetType(Assets);
+
+	//
+	// SOUNDS
+	//
+
+	BeginAssetType(Assets, asset_type_id::Bloop);
+	AddSoundAsset(Assets, (char*)"../data/audio/bloop_00.wav");
+	AddSoundAsset(Assets, (char*)"../data/audio/bloop_01.wav");
+	AddSoundAsset(Assets, (char*)"../data/audio/bloop_02.wav");
+	AddSoundAsset(Assets, (char*)"../data/audio/bloop_03.wav");
+	AddSoundAsset(Assets, (char*)"../data/audio/bloop_04.wav");
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Crack);
+	AddSoundAsset(Assets, (char*)"../data/audio/crack_00.wav");
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Drop);
+	AddSoundAsset(Assets, (char*)"../data/audio/drop_00.wav");
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Glide);
+	AddSoundAsset(Assets, (char*)"../data/audio/glide_00.wav");
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Music);
+	AddSoundAsset(Assets, (char*)"../data/audio/music_test.wav");
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Puhp);
+	AddSoundAsset(Assets, (char*)"../data/audio/puhp_00.wav");
+	AddSoundAsset(Assets, (char*)"../data/audio/puhp_01.wav");
 	EndAssetType(Assets);
 
 	return(Assets);

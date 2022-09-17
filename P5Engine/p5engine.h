@@ -223,6 +223,7 @@ ZeroSize(memory_index Size, void* Ptr)
 
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
+#include "p5engine_random.h"
 #include "p5engine_world.h"
 #include "p5engine_sim_region.h"
 #include "p5engine_entity.h"
@@ -269,10 +270,19 @@ struct hero_bitmap_ids
 	bitmap_id Character;
 };
 
+struct playing_sound
+{
+	real32 Volume[2];
+	sound_id ID;
+	int32 SamplesPlayed;
+	playing_sound* Next;
+};
+
 struct game_state
 {
 	bool32 IsInitialized;
 
+	memory_arena MetaArena;
 	memory_arena WorldArena;
 	world* World;
 
@@ -307,9 +317,11 @@ struct game_state
 	loaded_bitmap TestDiffuse;
 	loaded_bitmap TestNormal;
 
-	loaded_sound TestSound;
+	random_series GeneralEntropy;
 	real32 tSine;
-	uint32 TestSampleIndex;
+
+	playing_sound* FirstPlayingSound;
+	playing_sound* FirstFreePlayingSound;
 };
 
 struct task_with_memory
