@@ -11,9 +11,9 @@ struct world_position
 	// in entities WITHOUT going through their word_chunk, and thus
 	// still need to know the Chunk*
 
-	int32 ChunkX;
-	int32 ChunkY;
-	int32 ChunkZ;
+	s32 ChunkX;
+	s32 ChunkY;
+	s32 ChunkZ;
 
 	// NOTE: These are offsets from the chunk center
 	v3 Offset;
@@ -23,14 +23,14 @@ struct world_position
 // TODO: Could make this just world_chunk and then allow multiple tile chunks per x/y/z
 struct world_entity_block
 {
-	uint32 EntityCount;
-	uint32 LowEntityIndex[16];
+	u32 EntityCount;
+	u32 LowEntityIndex[16];
 	world_entity_block* Next;
 };
 
 struct world_chunk
 {
-	int32 x, y, z;
+	s32 x, y, z;
 
 	world_entity_block FirstBlock;
 

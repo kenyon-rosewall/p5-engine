@@ -144,7 +144,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FloatingPointModel>Fast</FloatingPointModel>
       <CallingConvention>FastCall</CallingConvention>
@@ -194,6 +194,7 @@
   <ItemGroup>
     <ClInclude Include="p5engine.h" />
     <ClInclude Include="p5engine_asset.h" />
+    <ClInclude Include="p5engine_audio.h" />
     <ClInclude Include="p5engine_entity.h" />
     <ClInclude Include="p5engine_intrinsics.h" />
     <ClInclude Include="p5engine_math.h" />
@@ -207,6 +208,9 @@
   <ItemGroup>
     <ClCompile Include="p5engine.cpp" />
     <ClCompile Include="p5engine_asset.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="p5engine_audio.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="p5engine_entity.cpp">

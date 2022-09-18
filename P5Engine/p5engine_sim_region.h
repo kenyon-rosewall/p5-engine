@@ -5,18 +5,18 @@
 
 struct move_spec
 {
-	bool32 UnitMaxAccelVector;
-	real32 Drag;
-	real32 Speed;
-	real32 SpeedMult;
+	b32 UnitMaxAccelVector;
+	f32 Drag;
+	f32 Speed;
+	f32 SpeedMult;
 };
 
 #define HIT_POINT_SUB_COUNT 4
 struct hit_point
 {
 	// TODO: Bake this down into one variable 
-	uint8 Flags;
-	uint8 FilledAmount;
+	u08 Flags;
+	u08 FilledAmount;
 };
 
 enum class entity_type
@@ -38,7 +38,7 @@ struct sim_entity;
 union entity_reference
 {
 	sim_entity* Ptr;
-	uint32 Index;
+	u32 Index;
 };
 
 enum class entity_flag
@@ -68,42 +68,42 @@ struct sim_entity_collision_volume_group
 	// has any volume... in the future, this could be compressed if necessary to say
 	// that the VolumeCount can be 0 if the TotalVolume should be used as the only
 	// collision volume for the entity.
-	uint32 VolumeCount;
+	u32 VolumeCount;
 	sim_entity_collision_volume* Volumes;
 };
 
 struct sim_entity
 {
 	// NOTE: These are only for the sim region
-	uint32 StorageIndex;
-	bool32 Updatable;
+	u32 StorageIndex;
+	b32 Updatable;
 
 	// 
 
 	entity_type Type;
-	uint32 Flags;
+	u32 Flags;
 
 	v3 Pos;
 	v3 dPos;
 
-	real32 DistanceLimit;
+	f32 DistanceLimit;
 
 	sim_entity_collision_volume_group* Collision;
 
-	real32 FacingDirection;
-	real32 tBob;
+	f32 FacingDirection;
+	f32 tBob;
 
-	int32 dAbsTileZ;
+	s32 dAbsTileZ;
 
 	// TODO: Should hitpoints themselves be entities?
-	uint32 HitPointMax;
+	u32 HitPointMax;
 	hit_point HitPoint[16];
 
 	entity_reference Sword;
 
 	// TODO: Only for stairs
 	v2 WalkableDim;
-	real32 WalkableHeight;
+	f32 WalkableHeight;
 
 	// TODO: Generation index so we know how "up to date" this entity is
 };
@@ -111,7 +111,7 @@ struct sim_entity
 struct sim_entity_hash
 {
 	sim_entity* Ptr;
-	uint32 Index;
+	u32 Index;
 };
 
 struct sim_region
@@ -120,18 +120,18 @@ struct sim_region
 	// to sim entities
 
 	world* World;
-	real32 MaxEntityRadius;
-	real32 MaxEntityVelocity;
+	f32 MaxEntityRadius;
+	f32 MaxEntityVelocity;
 
 	world_position Origin;
 	rectangle3 Bounds;
 	rectangle3 UpdatableBounds;
 
-	uint32 MaxEntityCount;
-	uint32 EntityCount;
+	u32 MaxEntityCount;
+	u32 EntityCount;
 	sim_entity* Entities;
 
-	real32 GroundZBase;
+	f32 GroundZBase;
 
 	// TODO: Do I really want a hash for this?
 	// NOTE: Must be a power of two

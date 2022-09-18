@@ -59,24 +59,24 @@ extern "C" {
 #include <limits.h>
 #include <float.h>
 
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-typedef int32 bool32;
+typedef int8_t s08;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
+typedef s32 b32;
 
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
+typedef uint8_t u08;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
 typedef intptr_t intptr;
 typedef uintptr_t uintptr;
 
 typedef size_t memory_index;
 
-typedef float real32;
-typedef double real64;
+typedef float f32;
+typedef double f64;
 
 #define Real32Maximum FLT_MAX
 
@@ -106,12 +106,12 @@ typedef double real64;
 
 #define Align16(Value) ((Value + 15) & ~15)
 
-inline uint32
-SafeTruncateUInt64(uint64 Value)
+inline u32
+SafeTruncateUInt64(u64 Value)
 {
 	// TODO: Defines for maximum values
 	Assert(Value <= 0xFFFFFFFF);
-	uint32 Result = (uint32)Value;
+	u32 Result = (u32)Value;
 	return(Result);
 }
 
@@ -133,7 +133,7 @@ blocking and the write doesn't protect against lost data!
 */
 typedef struct debug_read_file_result
 {
-	uint32 ContentsSize;
+	u32 ContentsSize;
 	void* Contents;
 }  debug_read_file_result;
 
@@ -143,7 +143,7 @@ typedef DEBUG_PLATFORM_FREE_FILE_MEMORY(debug_platform_free_file_memory);
 #define DEBUG_PLATFORM_READ_ENTIRE_FILE(name) debug_read_file_result name(char* Filename)
 typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
 
-#define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) bool32 name(char* Filename, uint32 MemorySize, void* Memory)
+#define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) b32 name(char* Filename, u32 MemorySize, void* Memory)
 typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
 
 enum class debug_cycle_counter_id
@@ -158,18 +158,18 @@ enum class debug_cycle_counter_id
 
 typedef struct debug_cycle_counter
 {
-	uint64 CycleCount;
-	uint32 HitCount;
+	u64 CycleCount;
+	u32 HitCount;
 } debug_cycle_counter;
 
 extern struct game_memory* DebugGlobalMemory;
 
 #if _MSC_VER
 
-#define BEGIN_TIMED_BLOCK(ID) uint64 StartCycleCount##ID = __rdtsc();
-#define END_TIMED_BLOCK(ID) DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; ++DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].HitCount;
+#define BEGIN_TIMED_BLOCK(ID) u64 StartCycleCount##ID = __rdtsc();
+#define END_TIMED_BLOCK(ID) DebugGlobalMemory->Counters[(u32)debug_cycle_counter_id::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; ++DebugGlobalMemory->Counters[(u32)debug_cycle_counter_id::##ID].HitCount;
 // TODO: Clamp counters so that if the calc is wrong, it won't overflow
-#define END_TIMED_BLOCK_COUNTED(ID, Count) DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; DebugGlobalMemory->Counters[(uint32)debug_cycle_counter_id::##ID].HitCount += Count;
+#define END_TIMED_BLOCK_COUNTED(ID, Count) DebugGlobalMemory->Counters[(u32)debug_cycle_counter_id::##ID].CycleCount += __rdtsc() - StartCycleCount##ID; DebugGlobalMemory->Counters[(u32)debug_cycle_counter_id::##ID].HitCount += Count;
 
 #else
 
@@ -202,25 +202,25 @@ typedef struct game_sound_output_buffer
 {
 	int SamplesPerSecond;
 	int  SampleCount;
-	int16* Samples;
+	s16* Samples;
 } game_sound_output_buffer;
 
 typedef struct game_button_state
 {
 	int HalfTransitionCount;
-	bool32 EndedDown;
+	b32 EndedDown;
 } game_button_state;
 
 typedef struct game_controller_input
 {
-	bool32 IsConnected;
-	bool32 IsAnalogL;
-	bool32 IsAnalogR;
+	b32 IsConnected;
+	b32 IsAnalogL;
+	b32 IsAnalogR;
 
-	real32 StickAverageLX;
-	real32 StickAverageLY;
-	real32 StickAverageRX;
-	real32 StickAverageRY;
+	f32 StickAverageLX;
+	f32 StickAverageLY;
+	f32 StickAverageRX;
+	f32 StickAverageRY;
 
 	union
 	{
@@ -253,10 +253,10 @@ typedef struct game_controller_input
 typedef struct game_input
 {
 	game_button_state MouseButtons[5];
-	int32 MouseX, MouseY, MouseZ;
+	s32 MouseX, MouseY, MouseZ;
 
-	bool32 ExecutableReloaded;
-	real32 dtForFrame;
+	b32 ExecutableReloaded;
+	f32 dtForFrame;
 
 	game_controller_input Controllers[5];
 } game_input;
@@ -270,10 +270,10 @@ typedef void platform_complete_all_work(platform_work_queue* Queue);
 
 typedef struct game_memory
 {
-	uint64 PermanentStorageSize;
+	u64 PermanentStorageSize;
 	void* PermanentStorage; // NOTE: REQUIRED to be cleared to zero at startup
 
-	uint64 TransientStorageSize;
+	u64 TransientStorageSize;
 	void* TransientStorage; // NOTE: REQUIRED to be cleared to zero at startup
 
 	platform_work_queue* HighPriorityQueue;
@@ -287,7 +287,7 @@ typedef struct game_memory
 	debug_platform_write_entire_file* DEBUGPlatformWriteEntireFile;
 
 #if P5ENGINE_INTERNAL
-	debug_cycle_counter Counters[(uint32)debug_cycle_counter_id::Count];
+	debug_cycle_counter Counters[(u32)debug_cycle_counter_id::Count];
 #endif
 } game_memory;
 

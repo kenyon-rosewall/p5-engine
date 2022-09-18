@@ -108,10 +108,10 @@
 struct memory_arena
 {
 	memory_index Size;
-	uint8* Base;
+	u08* Base;
 	memory_index Used;
 
-	uint32 TempCount;
+	u32 TempCount;
 };
 
 struct temporary_memory
@@ -124,7 +124,7 @@ inline void
 InitializeArena(memory_arena* Arena, memory_index Size, void* Base)
 {
 	Arena->Size = Size;
-	Arena->Base = (uint8*)Base;
+	Arena->Base = (u08*)Base;
 	Arena->Used = 0;
 	Arena->TempCount = 0;
 }
@@ -204,7 +204,7 @@ inline void
 SubArena(memory_arena* Result, memory_arena* Arena, memory_index Size, memory_index Alignment = 16)
 {
 	Result->Size = Size;
-	Result->Base = (uint8*)PushSize_(Arena, Size, Alignment);
+	Result->Base = (u08*)PushSize_(Arena, Size, Alignment);
 	Result->Used = 0;
 	Result->TempCount = 0;
 }
@@ -214,7 +214,7 @@ inline void
 ZeroSize(memory_index Size, void* Ptr)
 {
 	// TODO: Check this guy for performance
-	uint8* Byte = (uint8*)Ptr;
+	u08* Byte = (u08*)Ptr;
 	while (Size--)
 	{
 		*Byte++ = 0;
@@ -229,6 +229,7 @@ ZeroSize(memory_index Size, void* Ptr)
 #include "p5engine_entity.h"
 #include "p5engine_render_group.h"
 #include "p5engine_asset.h"
+#include "p5engine_audio.h"
 
 struct low_entity
 {
@@ -241,20 +242,20 @@ struct low_entity
 
 struct controlled_hero
 {
-	uint32 EntityIndex;
-	real32 SpeedMultiplier;
+	u32 EntityIndex;
+	f32 SpeedMultiplier;
 
 	// NOTE: These are the controller requests for simulation
 	v3 ddP;
 	v3 dSword;
-	real32 dZ;
+	f32 dZ;
 };
 
 struct pairwise_collision_rule
 {
-	bool32 CanCollide;
-	uint32 StorageIndexA;
-	uint32 StorageIndexB;
+	b32 CanCollide;
+	u32 StorageIndexA;
+	u32 StorageIndexB;
 
 	pairwise_collision_rule* NextInHash;
 };
@@ -270,32 +271,24 @@ struct hero_bitmap_ids
 	bitmap_id Character;
 };
 
-struct playing_sound
-{
-	real32 Volume[2];
-	sound_id ID;
-	int32 SamplesPlayed;
-	playing_sound* Next;
-};
-
 struct game_state
 {
-	bool32 IsInitialized;
+	b32 IsInitialized;
 
 	memory_arena MetaArena;
 	memory_arena WorldArena;
 	world* World;
 
-	real32 TypicalFloorHeight;
+	f32 TypicalFloorHeight;
 
 	// TODO: Should we allow split-screen?
-	uint32 CameraFollowingEntityIndex;
+	u32 CameraFollowingEntityIndex;
 	world_position CameraP;
 	
 	controlled_hero ControlledHeroes[ArrayCount(((game_input*)0)->Controllers)];
 
 	// TODO: Change the name to stored entity
-	uint32 LowEntityCount;
+	u32 LowEntityCount;
 	low_entity LowEntities[100000];
 
 	// TODO: Must be power of two
@@ -311,22 +304,21 @@ struct game_state
 	sim_entity_collision_volume_group* WallCollision;
 	sim_entity_collision_volume_group* StandardRoomCollision;
 
-	real32 Time;
+	f32 Time;
 
 	// TODO: Re-fill this guy with gray
 	loaded_bitmap TestDiffuse;
 	loaded_bitmap TestNormal;
 
 	random_series GeneralEntropy;
-	real32 tSine;
+	f32 tSine;
 
-	playing_sound* FirstPlayingSound;
-	playing_sound* FirstFreePlayingSound;
+	audio_state AudioState;
 };
 
 struct task_with_memory
 {
-	bool32 BeingUsed;
+	b32 BeingUsed;
 	memory_arena Arena;
 
 	temporary_memory MemoryFlush;
@@ -334,28 +326,28 @@ struct task_with_memory
 
 struct transient_state
 {
-	bool32 IsInitialized;
+	b32 IsInitialized;
 	memory_arena TransientArena;
 
 	task_with_memory Tasks[4];
 
 	game_assets* Assets;
 
-	uint32 GroundBufferCount;
+	u32 GroundBufferCount;
 	ground_buffer* GroundBuffers;
 
 	platform_work_queue* HighPriorityQueue;
 	platform_work_queue* LowPriorityQueue;
 
-	uint32 EnvMapWidth;
-	uint32 EnvMapHeight;
+	u32 EnvMapWidth;
+	u32 EnvMapHeight;
 	// NOTE: 0 is bottom, 1 is middle, 2 is top
 
 	environment_map EnvMaps[3];
 };
 
 inline low_entity*
-GetLowEntity(game_state* GameState, uint32 LowIndex)
+GetLowEntity(game_state* GameState, u32 LowIndex)
 {
 	low_entity* Result = 0;
 
@@ -372,9 +364,9 @@ global_variable platform_complete_all_work* PlatformCompleteAllWork;
 global_variable debug_platform_read_entire_file* PlatformReadEntireFile;
 
 internal void
-AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide);
+AddCollisionRule(game_state* GameState, u32 StorageIndexA, u32 StorageIndexB, b32 ShouldCollide);
 internal void
-ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex);
+ClearCollisionRulesFor(game_state* GameState, u32 StorageIndex);
 
 internal task_with_memory* BeginTaskWithMemory(transient_state* TransientState);
 internal void EndTaskWithMemory(task_with_memory* Task);

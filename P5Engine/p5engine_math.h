@@ -7,26 +7,26 @@
 //
 
 
-inline real32
-Square(real32 A)
+inline f32
+Square(f32 A)
 {
-	real32 Result = A * A;
+	f32 Result = A * A;
 
 	return(Result);
 }
 
-inline real32
-Lerp(real32 A, real32 t, real32 B)
+inline f32
+Lerp(f32 A, f32 t, f32 B)
 {
-	real32 Result = (1.0f - t) * A + t * B;
+	f32 Result = (1.0f - t) * A + t * B;
 
 	return(Result);
 }
 
-inline real32
-SafeRatioN(real32 Numerator, real32 Divisor, real32 N)
+inline f32
+SafeRatioN(f32 Numerator, f32 Divisor, f32 N)
 {
-	real32 Result = N;
+	f32 Result = N;
 
 	if (Divisor != 0.0f)
 	{
@@ -36,26 +36,26 @@ SafeRatioN(real32 Numerator, real32 Divisor, real32 N)
 	return(Result);
 }
 
-inline real32
-SafeRatio0(real32 Numerator, real32 Divisor)
+inline f32
+SafeRatio0(f32 Numerator, f32 Divisor)
 {
-	real32 Result = SafeRatioN(Numerator, Divisor, 0.0f);
+	f32 Result = SafeRatioN(Numerator, Divisor, 0.0f);
 
 	return(Result);
 }
 
-inline real32
-SafeRatio1(real32 Numerator, real32 Divisor)
+inline f32
+SafeRatio1(f32 Numerator, f32 Divisor)
 {
-	real32 Result = SafeRatioN(Numerator, Divisor, 1.0f);
+	f32 Result = SafeRatioN(Numerator, Divisor, 1.0f);
 
 	return(Result);
 }
 
-inline real32
-Clamp(real32 Min, real32 Value, real32 Max)
+inline f32
+Clamp(f32 Min, f32 Value, f32 Max)
 {
-	real32 Result = Value;
+	f32 Result = Value;
 
 	if (Result < Min)
 	{
@@ -69,20 +69,20 @@ Clamp(real32 Min, real32 Value, real32 Max)
 	return(Result);
 }
 
-inline real32
-Clamp01(real32 Value)
+inline f32
+Clamp01(f32 Value)
 {
-	real32 Result = Clamp(0.0f, Value, 1.0f);
+	f32 Result = Clamp(0.0f, Value, 1.0f);
 
 	return(Result);
 }
 
-inline real32
-Clamp01MapToRange(real32 Min, real32 t, real32 Max)
+inline f32
+Clamp01MapToRange(f32 Min, f32 t, f32 Max)
 {
-	real32 Result = 0.0f;
+	f32 Result = 0.0f;
 
-	real32 Range = Max - Min;
+	f32 Range = Max - Min;
 	if (Range != 0.0f)
 	{
 		Result = Clamp01((t - Min) / Range);
@@ -97,19 +97,19 @@ Clamp01MapToRange(real32 Min, real32 t, real32 Max)
 
 union v2
 {
-	real32 E[2];
+	f32 E[2];
 	struct
 	{
-		real32 x, y;
+		f32 x, y;
 	};
 	struct
 	{
-		real32 u, v;
+		f32 u, v;
 	};
 };
 
 inline v2
-V2(real32 X, real32 Y)
+V2(f32 X, f32 Y)
 {
 	v2 Result = {};
 
@@ -120,23 +120,23 @@ V2(real32 X, real32 Y)
 }
 
 inline v2
-V2i(int32 X, int32 Y)
+V2i(s32 X, s32 Y)
 {
-	v2 Result = V2((real32)X, (real32)Y);
+	v2 Result = V2((f32)X, (f32)Y);
 
 	return(Result);
 }
 
 inline v2
-V2i(uint32 X, uint32 Y)
+V2i(u32 X, u32 Y)
 {
-	v2 Result = V2((real32)X, (real32)Y);
+	v2 Result = V2((f32)X, (f32)Y);
 
 	return(Result);
 }
 
 inline v2
-operator*(real32 A, v2 B)
+operator*(f32 A, v2 B)
 {
 	v2 Result = {};
 
@@ -147,7 +147,7 @@ operator*(real32 A, v2 B)
 }
 
 inline v2
-operator*(v2 B, real32 A)
+operator*(v2 B, f32 A)
 {
 	v2 Result = A * B;
 
@@ -155,7 +155,7 @@ operator*(v2 B, real32 A)
 }
 
 inline v2&
-operator*=(v2& B, real32 A)
+operator*=(v2& B, f32 A)
 {
 	B = A * B;
 
@@ -163,7 +163,7 @@ operator*=(v2& B, real32 A)
 }
 
 inline v2
-operator/(v2 A, real32 B)
+operator/(v2 A, f32 B)
 {
 	v2 Result = {};
 
@@ -174,7 +174,7 @@ operator/(v2 A, real32 B)
 }
 
 inline v2&
-operator/=(v2& B, real32 A)
+operator/=(v2& B, f32 A)
 {
 	B = B / A;
 
@@ -238,26 +238,26 @@ Hadamard(v2 A, v2 B)
 	return(Result);
 }
 
-inline real32
+inline f32
 Inner(v2 A, v2 B)
 {
-	real32 Result = A.x * B.x + A.y * B.y;
+	f32 Result = A.x * B.x + A.y * B.y;
 
 	return(Result);
 }
 
-inline real32
+inline f32
 LengthSq(v2 A)
 {
-	real32 Result = Inner(A, A);
+	f32 Result = Inner(A, A);
 
 	return(Result);
 }
 
-inline real32
+inline f32
 Length(v2 A)
 {
-	real32 Result = SquareRoot(LengthSq(A));
+	f32 Result = SquareRoot(LengthSq(A));
 
 	return(Result);
 }
@@ -289,7 +289,7 @@ Perp(v2 A)
 }
 
 inline v2
-Lerp(v2 A, real32 t, v2 B)
+Lerp(v2 A, f32 t, v2 B)
 {
 	v2 Result = (1.0f - t) * A + t * B;
 
@@ -302,43 +302,43 @@ Lerp(v2 A, real32 t, v2 B)
 
 union v3
 {
-	real32 E[3];
+	f32 E[3];
 	struct
 	{
-		real32 x, y, z;
+		f32 x, y, z;
 	};
 	struct
 	{
-		real32 u, v, w;
+		f32 u, v, w;
 	};
 	struct
 	{
-		real32 r, g, b;
+		f32 r, g, b;
 	};
 	struct
 	{
 		v2 xy;
-		real32 Ignored0;
+		f32 Ignored0;
 	};
 	struct
 	{
-		real32 Ignored1;
+		f32 Ignored1;
 		v2 yz;
 	};
 	struct
 	{
 		v2 uv;
-		real32 Ignored2;
+		f32 Ignored2;
 	};
 	struct
 	{
-		real32 Ignored3;
+		f32 Ignored3;
 		v2 vw;
 	};
 };
 
 inline v3
-V3(real32 X, real32 Y, real32 Z)
+V3(f32 X, f32 Y, f32 Z)
 {
 	v3 Result = {};
 
@@ -350,7 +350,7 @@ V3(real32 X, real32 Y, real32 Z)
 }
 
 inline v3
-ToV3(v2 XY, real32 Z)
+ToV3(v2 XY, f32 Z)
 {
 	v3 Result = {};
 
@@ -361,7 +361,7 @@ ToV3(v2 XY, real32 Z)
 }
 
 inline v3
-operator*(real32 A, v3 B)
+operator*(f32 A, v3 B)
 {
 	v3 Result = {};
 
@@ -373,7 +373,7 @@ operator*(real32 A, v3 B)
 }
 
 inline v3
-operator*(v3 B, real32 A)
+operator*(v3 B, f32 A)
 {
 	v3 Result = A * B;
 
@@ -381,7 +381,7 @@ operator*(v3 B, real32 A)
 }
 
 inline v3&
-operator*=(v3& B, real32 A)
+operator*=(v3& B, f32 A)
 {
 	B = A * B;
 
@@ -389,7 +389,7 @@ operator*=(v3& B, real32 A)
 }
 
 inline v3
-operator/(v3 A, real32 B)
+operator/(v3 A, f32 B)
 {
 	v3 Result = {};
 
@@ -401,7 +401,7 @@ operator/(v3 A, real32 B)
 }
 
 inline v3&
-operator/=(v3& B, real32 A)
+operator/=(v3& B, f32 A)
 {
 	B = B / A;
 
@@ -468,26 +468,26 @@ Hadamard(v3 A, v3 B)
 	return(Result);
 }
 
-inline real32
+inline f32
 Inner(v3 A, v3 B)
 {
-	real32 Result = A.x * B.x + A.y * B.y + A.z * B.z;
+	f32 Result = A.x * B.x + A.y * B.y + A.z * B.z;
 
 	return(Result);
 }
 
-inline real32
+inline f32
 LengthSq(v3 A)
 {
-	real32 Result = Inner(A, A);
+	f32 Result = Inner(A, A);
 
 	return(Result);
 }
 
-inline real32
+inline f32
 Length(v3 A)
 {
-	real32 Result = SquareRoot(LengthSq(A));
+	f32 Result = SquareRoot(LengthSq(A));
 
 	return(Result);
 }
@@ -513,7 +513,7 @@ Clamp01(v3 Value)
 }
 
 inline v3
-Lerp(v3 A, real32 t, v3 B)
+Lerp(v3 A, f32 t, v3 B)
 {
 	v3 Result = (1.0f - t) * A + t * B;
 
@@ -526,47 +526,47 @@ Lerp(v3 A, real32 t, v3 B)
 
 union v4
 {
-	real32 E[4];
+	f32 E[4];
 	struct
 	{
-		real32 x, y, z, w;
+		f32 x, y, z, w;
 	};
 	struct
 	{
-		real32 r, g, b, a;
+		f32 r, g, b, a;
 	};
 	struct
 	{
 		v3 rgb;
-		real32 Ignored0;
+		f32 Ignored0;
 	};
 	struct
 	{
 		v3 xyz;
-		real32 Ignored1;
+		f32 Ignored1;
 	};
 	struct
 	{
 		v2 xy;
-		real32 Ignored2;
-		real32 Ignored3;
+		f32 Ignored2;
+		f32 Ignored3;
 	};
 	struct
 	{
-		real32 Ignored4;
+		f32 Ignored4;
 		v2 yz;
-		real32 Ignored5;
+		f32 Ignored5;
 	};
 	struct
 	{
-		real32 Ignored6;
-		real32 Ignored7;
+		f32 Ignored6;
+		f32 Ignored7;
 		v2 zw;
 	};
 };
 
 inline v4
-V4(real32 X, real32 Y, real32 Z, real32 W)
+V4(f32 X, f32 Y, f32 Z, f32 W)
 {
 	v4 Result = {};
 
@@ -579,7 +579,7 @@ V4(real32 X, real32 Y, real32 Z, real32 W)
 }
 
 inline v4
-ToV4(v3 XYZ, real32 W)
+ToV4(v3 XYZ, f32 W)
 {
 	v4 Result;
 
@@ -590,7 +590,7 @@ ToV4(v3 XYZ, real32 W)
 }
 
 inline v4
-operator*(real32 A, v4 B)
+operator*(f32 A, v4 B)
 {
 	v4 Result = {};
 
@@ -603,7 +603,7 @@ operator*(real32 A, v4 B)
 }
 
 inline v4
-operator*(v4 B, real32 A)
+operator*(v4 B, f32 A)
 {
 	v4 Result = A * B;
 
@@ -611,7 +611,7 @@ operator*(v4 B, real32 A)
 }
 
 inline v4&
-operator*=(v4& B, real32 A)
+operator*=(v4& B, f32 A)
 {
 	B = A * B;
 
@@ -619,7 +619,7 @@ operator*=(v4& B, real32 A)
 }
 
 inline v4
-operator/(v4 A, real32 B)
+operator/(v4 A, f32 B)
 {
 	v4 Result = {};
 
@@ -632,7 +632,7 @@ operator/(v4 A, real32 B)
 }
 
 inline v4&
-operator/=(v4& B, real32 A)
+operator/=(v4& B, f32 A)
 {
 	B = B / A;
 
@@ -702,26 +702,26 @@ Hadamard(v4 A, v4 B)
 	return(Result);
 }
 
-inline real32
+inline f32
 Inner(v4 A, v4 B)
 {
-	real32 Result = A.x * B.x + A.y * B.y + A.z * B.z + A.w * B.w;
+	f32 Result = A.x * B.x + A.y * B.y + A.z * B.z + A.w * B.w;
 
 	return(Result);
 }
 
-inline real32
+inline f32
 LengthSq(v4 A)
 {
-	real32 Result = Inner(A, A);
+	f32 Result = Inner(A, A);
 
 	return(Result);
 }
 
-inline real32
+inline f32
 Length(v4 A)
 {
-	real32 Result = SquareRoot(LengthSq(A));
+	f32 Result = SquareRoot(LengthSq(A));
 
 	return(Result);
 }
@@ -748,7 +748,7 @@ Clamp01(v4 Value)
 }
 
 inline v4
-Lerp(v4 A, real32 t, v4 B)
+Lerp(v4 A, f32 t, v4 B)
 {
 	v4 Result = (1.0f - t) * A + t * B;
 
@@ -855,10 +855,10 @@ RectCenterDim(v2 Center, v2 Dim)
 	return(Result);
 }
 
-inline bool32
+inline b32
 IsInRectangle(rectangle2 Rectangle, v2 Test)
 {
-	bool32 Result = ((Test.x >= Rectangle.Min.x) &&
+	b32 Result = ((Test.x >= Rectangle.Min.x) &&
 					 (Test.y >= Rectangle.Min.y) &&
 					 (Test.x <  Rectangle.Max.x) &&
 					 (Test.y <  Rectangle.Max.y));
@@ -866,10 +866,10 @@ IsInRectangle(rectangle2 Rectangle, v2 Test)
 	return(Result);
 }
 
-inline bool32
+inline b32
 RectanglesIntersect(rectangle2 A, rectangle2 B)
 {
-	bool32 Result = !((B.Max.x < A.Min.x) || (B.Min.x > A.Max.x) ||
+	b32 Result = !((B.Max.x < A.Min.x) || (B.Min.x > A.Max.x) ||
 					  (B.Max.y < A.Min.y) || (B.Min.y > A.Max.y));
 
 	return(Result);
@@ -892,8 +892,8 @@ GetBarycentric(rectangle2 A, v2 P)
 
 struct rectangle2i
 {
-	int32 MinX, MinY;
-	int32 MaxX, MaxY;
+	s32 MinX, MinY;
+	s32 MaxX, MaxY;
 };
 
 inline rectangle2i
@@ -922,13 +922,13 @@ Union(rectangle2i A, rectangle2i B)
 	return(Result);
 }
 
-inline int32
+inline s32
 GetClampedRectArea(rectangle2i A)
 {
-	int32 Width = (A.MaxX - A.MinX);
-	int32 Height = (A.MaxY - A.MinY);
+	s32 Width = (A.MaxX - A.MinX);
+	s32 Height = (A.MaxY - A.MinY);
 
-	int32 Result = 0;
+	s32 Result = 0;
 
 	if ((Width > 0) && (Height > 0))
 	{
@@ -938,10 +938,10 @@ GetClampedRectArea(rectangle2i A)
 	return(Result);
 }
 
-inline bool32
+inline b32
 HasArea(rectangle2i A)
 {
-	bool32 Result = ((A.MinX < A.MaxX) && (A.MinY < A.MaxY));
+	b32 Result = ((A.MinX < A.MaxX) && (A.MinY < A.MaxY));
 
 	return(Result);
 }
@@ -1057,10 +1057,10 @@ RectCenterDim(v3 Center, v3 Dim)
 	return(Result);
 }
 
-inline bool32
+inline b32
 IsInRectangle(rectangle3 Rectangle, v3 Test)
 {
-	bool32 Result = ((Test.x >= Rectangle.Min.x) &&
+	b32 Result = ((Test.x >= Rectangle.Min.x) &&
 					 (Test.y >= Rectangle.Min.y) &&
 					 (Test.z >= Rectangle.Min.z) &&
 					 (Test.x <  Rectangle.Max.x) &&
@@ -1070,10 +1070,10 @@ IsInRectangle(rectangle3 Rectangle, v3 Test)
 	return(Result);
 }
 
-inline bool32
+inline b32
 RectanglesIntersect(rectangle3 A, rectangle3 B)
 {
-	bool32 Result = !((B.Max.x <= A.Min.x) || (B.Min.x >= A.Max.x) ||
+	b32 Result = !((B.Max.x <= A.Min.x) || (B.Min.x >= A.Max.x) ||
 					  (B.Max.y <= A.Min.y) || (B.Min.y >= A.Max.y) ||
 					  (B.Max.z <= A.Min.z) || (B.Min.z >= A.Max.z));
 

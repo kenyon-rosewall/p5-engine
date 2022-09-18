@@ -28,12 +28,12 @@ Just a partial list of stuff!!
 #include "Win32P5Engine.h"
 
 // TODO: This is a global for now
-global_variable bool32 GlobalRunning;
-global_variable bool32 GlobalPause;
+global_variable b32 GlobalRunning;
+global_variable b32 GlobalPause;
 global_variable win32_offscreen_buffer GlobalBackbuffer;
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryBuffer;
-global_variable int64 PerfCountFrequency;
-global_variable bool32 DEBUGGlobalShowCursor;
+global_variable s64 PerfCountFrequency;
+global_variable b32 DEBUGGlobalShowCursor;
 global_variable WINDOWPLACEMENT GlobalWindowPosition = { sizeof(GlobalWindowPosition) };
 
 // NOTE: XInputGetState
@@ -131,7 +131,7 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile)
 		LARGE_INTEGER FileSize;
 		if (GetFileSizeEx(FileHandle, &FileSize))
 		{
-			uint32 FileSize32 = SafeTruncateUInt64(FileSize.QuadPart);
+			u32 FileSize32 = SafeTruncateUInt64(FileSize.QuadPart);
 			Result.Contents = VirtualAlloc(0, FileSize.QuadPart, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			if (Result.Contents)
 			{
@@ -169,7 +169,7 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile)
 
 DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUGPlatformWriteEntireFile)
 {
-	bool32 Result = false;
+	b32 Result = false;
 
 	HANDLE FileHandle = CreateFileA(Filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (FileHandle != INVALID_HANDLE_VALUE)
@@ -290,7 +290,7 @@ Win32LoadXInput(void)
 }
 
 internal void
-Win32InitDSound(HWND Window, int32 SamplesPerSecond, int32 BufferSize)
+Win32InitDSound(HWND Window, s32 SamplesPerSecond, s32 BufferSize)
 {
 	HMODULE DSoundLibrary = LoadLibraryA("dsound.dll");
 
@@ -528,13 +528,13 @@ Win32ClearBuffer(win32_sound_output* SoundOutput)
 	if (SUCCEEDED(GlobalSecondaryBuffer->Lock(0, SoundOutput->SecondaryBufferSize, &Region1, &Region1Size, &Region2, &Region2Size, 0)))
 	{
 		// TODO: assert that Region1Size/Region2Size is valid
-		uint8* DestSample = (uint8*)Region1;
+		u08* DestSample = (u08*)Region1;
 		for (DWORD ByteIndex = 0; ByteIndex < Region1Size; ++ByteIndex)
 		{
 			*DestSample++ = 0;
 		}
 
-		DestSample = (uint8*)Region2;
+		DestSample = (u08*)Region2;
 		for (DWORD ByteIndex = 0; ByteIndex < Region2Size; ++ByteIndex)
 		{
 			*DestSample++ = 0;
@@ -558,8 +558,8 @@ Win32FillSoundBuffer(win32_sound_output* SoundOutput, DWORD ByteToLock, DWORD By
 
 		// TODO: Collapse two loops
 		DWORD Region1SampleCount = Region1Size / SoundOutput->BytesPerSample;
-		int16* DestSample = (int16*)Region1;
-		int16* SourceSample = SourceBuffer->Samples;
+		s16* DestSample = (s16*)Region1;
+		s16* SourceSample = SourceBuffer->Samples;
 		for (DWORD SampleIndex = 0; SampleIndex < Region1SampleCount; ++SampleIndex)
 		{
 			*DestSample++ = *SourceSample++;
@@ -568,7 +568,7 @@ Win32FillSoundBuffer(win32_sound_output* SoundOutput, DWORD ByteToLock, DWORD By
 		}
 
 		DWORD Region2SampleCount = Region2Size / SoundOutput->BytesPerSample;
-		DestSample = (int16*)Region2;
+		DestSample = (s16*)Region2;
 		for (DWORD SampleIndex = 0; SampleIndex < Region2SampleCount; ++SampleIndex)
 		{
 			*DestSample++ = *SourceSample++;
@@ -581,7 +581,7 @@ Win32FillSoundBuffer(win32_sound_output* SoundOutput, DWORD ByteToLock, DWORD By
 }
 
 internal void
-Win32ProcessKeyboardMessage(game_button_state* NewState, bool32 IsDown)
+Win32ProcessKeyboardMessage(game_button_state* NewState, b32 IsDown)
 {
 	if (NewState->EndedDown != IsDown)
 	{
@@ -597,25 +597,25 @@ Win32ProcessXInputDigitalButton(DWORD XInputButtonState, DWORD ButtonBit, game_b
 	NewState->HalfTransitionCount = (OldState->EndedDown != NewState->EndedDown) ? 1 : 0;
 }
 
-internal real32
+internal f32
 Win32ProcessXInputStickValue(SHORT Value, SHORT DeadZone)
 {
-	real32 Result = 0;
+	f32 Result = 0;
 
 	if (Value < -DeadZone)
 	{
-		Result = (real32)((Value + DeadZone) / (32768.0f - DeadZone));
+		Result = (f32)((Value + DeadZone) / (32768.0f - DeadZone));
 	}
 	else if (Value > DeadZone)
 	{
-		Result = (real32)((Value - DeadZone) / (32767.0f - DeadZone));
+		Result = (f32)((Value - DeadZone) / (32767.0f - DeadZone));
 	}
 
 	return(Result);
 }
 
 internal void
-Win32GetInputFileLocation(win32_state* State, bool32 InputStream, int SlotIndex, int DestCount, char* Dest)
+Win32GetInputFileLocation(win32_state* State, b32 InputStream, int SlotIndex, int DestCount, char* Dest)
 {
 	char Temp[64];
 	wsprintf(Temp, "p5_input_recording_%d_%s.p5i", SlotIndex, InputStream ? "input" : "state");
@@ -742,19 +742,19 @@ Win32ProcessPendingMessages(game_controller_input* KeyboardController, win32_sta
 			case WM_KEYDOWN:
 			case WM_KEYUP:
 			{
-				uint32 VKCode = (uint32)Message.wParam;
+				u32 VKCode = (u32)Message.wParam;
 
 				// NOTE: Since we are comparing WasDown to IsDown,
 				// we MUST use == and != to convert these bit tests to actual
 				// 0 or 1 values.
 				bool WasDown = ((Message.lParam & (1 << 30)) != 0);
-				bool IsDown = ((Message.lParam & ((uint64)1 << 31)) == 0);
+				bool IsDown = ((Message.lParam & ((u64)1 << 31)) == 0);
 
 				if (WasDown != IsDown)
 				{
 					if (!GlobalPause)
 					{
-						if (VKCode == 'W')
+						if (VKCode == 188)
 						{
 							Win32ProcessKeyboardMessage(&KeyboardController->MoveUp, IsDown);
 						}
@@ -762,19 +762,19 @@ Win32ProcessPendingMessages(game_controller_input* KeyboardController, win32_sta
 						{
 							Win32ProcessKeyboardMessage(&KeyboardController->MoveLeft, IsDown);
 						}
-						else if (VKCode == 'S')
+						else if (VKCode == 'O')
 						{
 							Win32ProcessKeyboardMessage(&KeyboardController->MoveDown, IsDown);
 						}
-						else if (VKCode == 'D')
+						else if (VKCode == 'E')
 						{
 							Win32ProcessKeyboardMessage(&KeyboardController->MoveRight, IsDown);
 						}
-						else if (VKCode == 'Q')
+						else if (VKCode == 222)
 						{
 							Win32ProcessKeyboardMessage(&KeyboardController->LeftShoulder, IsDown);
 						}
-						else if (VKCode == 'E')
+						else if (VKCode == 190)
 						{
 							Win32ProcessKeyboardMessage(&KeyboardController->RightShoulder, IsDown);
 						}
@@ -804,7 +804,7 @@ Win32ProcessPendingMessages(game_controller_input* KeyboardController, win32_sta
 						}
 					}
 	#if P5ENGINE_INTERNAL
-					if (VKCode == 'P')
+					if (VKCode == 'L')
 					{
 						if (IsDown)
 						{
@@ -815,7 +815,7 @@ Win32ProcessPendingMessages(game_controller_input* KeyboardController, win32_sta
 							}
 						}
 					}
-					if (VKCode == 'L')
+					if (VKCode == 'N')
 					{
 						if (IsDown)
 						{
@@ -840,7 +840,7 @@ Win32ProcessPendingMessages(game_controller_input* KeyboardController, win32_sta
 	#endif
 					if (IsDown)
 					{
-						bool32 AltKeyWasDown = (Message.lParam & (1 << 29));
+						b32 AltKeyWasDown = (Message.lParam & (1 << 29));
 						if ((VKCode == VK_F4) && AltKeyWasDown)
 						{
 							GlobalRunning = false;
@@ -879,10 +879,10 @@ Win32GetWallClock()
 	return(Result);
 }
 
-inline real32
+inline f32
 Win32GetSecondsElapsed(LARGE_INTEGER Start, LARGE_INTEGER End)
 {
-	real32 Result = ((real32)(End.QuadPart - Start.QuadPart) / (real32)PerfCountFrequency);
+	f32 Result = ((f32)(End.QuadPart - Start.QuadPart) / (f32)PerfCountFrequency);
 
 	return(Result);
 }
@@ -923,11 +923,11 @@ struct platform_work_queue_entry
 
 struct platform_work_queue
 {
-	uint32 volatile NextEntryToRead;
-	uint32 volatile NextEntryToWrite;
+	u32 volatile NextEntryToRead;
+	u32 volatile NextEntryToWrite;
 
-	uint32 volatile CompletionGoal;
-	uint32 volatile CompletionCount;
+	u32 volatile CompletionGoal;
+	u32 volatile CompletionCount;
 	
 	HANDLE SemaphoreHandle;
 
@@ -937,8 +937,8 @@ struct platform_work_queue
 void
 Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* Data)
 {
-	uint32 NextEntryToWrite = Queue->NextEntryToWrite;
-	uint32 NewNextEntryToWrite = (NextEntryToWrite + 1) % ArrayCount(Queue->Entries);
+	u32 NextEntryToWrite = Queue->NextEntryToWrite;
+	u32 NewNextEntryToWrite = (NextEntryToWrite + 1) % ArrayCount(Queue->Entries);
 	Assert(NewNextEntryToWrite != Queue->NextEntryToRead);
 
 	platform_work_queue_entry* Entry = Queue->Entries + NextEntryToWrite;
@@ -953,16 +953,16 @@ Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback
 	ReleaseSemaphore(Queue->SemaphoreHandle, 1, 0);
 }
 
-internal bool32
+internal b32
 Win32DoNextWorkQueueEntry(platform_work_queue* Queue)
 {
-	bool32 WeShouldSleep = false;
+	b32 WeShouldSleep = false;
 
-	uint32 NextEntryToRead = Queue->NextEntryToRead;
-	uint32 NewNextEntryToRead = (NextEntryToRead + 1) % ArrayCount(Queue->Entries);
+	u32 NextEntryToRead = Queue->NextEntryToRead;
+	u32 NewNextEntryToRead = (NextEntryToRead + 1) % ArrayCount(Queue->Entries);
 	if (NextEntryToRead != Queue->NextEntryToWrite)
 	{
-		uint32 Index = InterlockedCompareExchange((LONG volatile*)&Queue->NextEntryToRead, NewNextEntryToRead, NextEntryToRead);
+		u32 Index = InterlockedCompareExchange((LONG volatile*)&Queue->NextEntryToRead, NewNextEntryToRead, NextEntryToRead);
 
 		if (Index == NextEntryToRead)
 		{
@@ -1016,17 +1016,17 @@ PLATFORM_WORK_QUEUE_CALLBACK(DoWorkerWork)
 }
 
 internal void
-Win32MakeQueue(platform_work_queue* Queue, uint32 ThreadCount)
+Win32MakeQueue(platform_work_queue* Queue, u32 ThreadCount)
 {
 	Queue->CompletionGoal = 0;
 	Queue->CompletionCount = 0;
 	Queue->NextEntryToWrite = 0;
 	Queue->NextEntryToRead = 0;
 
-	uint32 InitialCount = 0;
+	u32 InitialCount = 0;
 	Queue->SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
 
-	for (uint32 ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+	for (u32 ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
 	{
 		DWORD ThreadID;
 		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Queue, 0, &ThreadID);
@@ -1061,7 +1061,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 	// NOTE: Set the Windows scheduler granularity to 1ms
 	// so that our Sleep() can be more granular.
 	UINT DesriredSchedulerMS = 1;
-	bool32 SleepIsGranular = (timeBeginPeriod(DesriredSchedulerMS) == TIMERR_NOERROR);
+	b32 SleepIsGranular = (timeBeginPeriod(DesriredSchedulerMS) == TIMERR_NOERROR);
 
 	Win32LoadXInput();
 
@@ -1107,17 +1107,17 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			{
 				MonitorRefreshHz = Win32RefreshRate;
 			}
-			real32 GameUpdateHz = (real32)(MonitorRefreshHz / 2.0f);
-			real32 TargetSecondsPerFrame = 1.0f / GameUpdateHz;
+			f32 GameUpdateHz = (f32)(MonitorRefreshHz / 2.0f);
+			f32 TargetSecondsPerFrame = 1.0f / GameUpdateHz;
 
 			// NOTE: Sound test
 			win32_sound_output SoundOutput = {};
-			SoundOutput.SamplesPerSecond = 48000;
-			SoundOutput.BytesPerSample = sizeof(int16) * 2;
+			SoundOutput.SamplesPerSecond = 44100;
+			SoundOutput.BytesPerSample = sizeof(s16) * 2;
 			SoundOutput.SecondaryBufferSize = SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample;
 			// TODO: Actually compute this variance and see
 			// what the lowest reasonable value is.
-			SoundOutput.SafetyBytes = (int)(((real32)SoundOutput.SamplesPerSecond * (real32)SoundOutput.BytesPerSample / MonitorRefreshHz));
+			SoundOutput.SafetyBytes = (int)(((f32)SoundOutput.SamplesPerSecond * (f32)SoundOutput.BytesPerSample / MonitorRefreshHz));
 			Win32InitDSound(Window, SoundOutput.SamplesPerSecond, SoundOutput.SecondaryBufferSize);
 			Win32ClearBuffer(&SoundOutput);
 			GlobalSecondaryBuffer->Play(0, 0, DSBPLAY_LOOPING);
@@ -1125,7 +1125,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			GlobalRunning = true;
 
 			// TODO: Pool with bitmap VirtualAlloc
-			int16* Samples = (int16*)VirtualAlloc(0, SoundOutput.SecondaryBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			s16* Samples = (s16*)VirtualAlloc(0, SoundOutput.SecondaryBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 #if P5ENGINE_INTERNAL
 			LPVOID BaseAddress = (LPVOID)Terabytes(2);
@@ -1154,7 +1154,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			Win32State.TotalSize = GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
 			Win32State.GameMemoryBlock = VirtualAlloc(BaseAddress, (size_t)Win32State.TotalSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			GameMemory.PermanentStorage = Win32State.GameMemoryBlock;
-			GameMemory.TransientStorage = ((uint8*)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
+			GameMemory.TransientStorage = ((u08*)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
 
 			for (int ReplayIndex = 0; ReplayIndex < ArrayCount(Win32State.ReplayBuffers); ++ReplayIndex)
 			{
@@ -1196,12 +1196,12 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 				win32_debug_time_marker DebugTimeMarkers[30] = {};
 
 				DWORD AudioLatencyBytes = 0;
-				real32 AudioLatencySeconds = 0;
-				bool32 SoundIsValid = false;
+				f32 AudioLatencySeconds = 0;
+				b32 SoundIsValid = false;
 
 				win32_game_code Game = Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 
-				uint64 LastCycleCount = __rdtsc();
+				u64 LastCycleCount = __rdtsc();
 				while (GlobalRunning)
 				{
 					NewInput->dtForFrame = TargetSecondsPerFrame;
@@ -1305,7 +1305,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 									NewController->IsAnalogL = false;
 								}
 
-								real32 Threshold = 0.5f;
+								f32 Threshold = 0.5f;
 								DWORD FakeMoveUp = (NewController->StickAverageLY > Threshold) ? 1 : 0;
 								DWORD FakeMoveDown = (NewController->StickAverageLY < -Threshold) ? 1 : 0;
 								DWORD FakeMoveLeft = (NewController->StickAverageLX < -Threshold) ? 1 : 0;
@@ -1358,7 +1358,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 
 						LARGE_INTEGER AudioCounter = Win32GetWallClock();
-						real32 FromBeginToAudioSeconds = Win32GetSecondsElapsed(FlipWallClock, AudioCounter);
+						f32 FromBeginToAudioSeconds = Win32GetSecondsElapsed(FlipWallClock, AudioCounter);
 
 						DWORD PlayCursor;
 						DWORD WriteCursor;
@@ -1393,9 +1393,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 							DWORD ByteToLock = (SoundOutput.RunningSampleIndex * SoundOutput.BytesPerSample) % SoundOutput.SecondaryBufferSize;
 
-							DWORD ExpectedSoundBytesPerFrame = (DWORD)((real32)(SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample) / GameUpdateHz);
-							real32 SecondsLeftUntilFlip = (TargetSecondsPerFrame - FromBeginToAudioSeconds);
-							DWORD ExpectedBytesUntilFlip = (DWORD)((SecondsLeftUntilFlip / TargetSecondsPerFrame) * (real32)ExpectedSoundBytesPerFrame);
+							DWORD ExpectedSoundBytesPerFrame = (DWORD)((f32)(SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample) / GameUpdateHz);
+							f32 SecondsLeftUntilFlip = (TargetSecondsPerFrame - FromBeginToAudioSeconds);
+							DWORD ExpectedBytesUntilFlip = (DWORD)((SecondsLeftUntilFlip / TargetSecondsPerFrame) * (f32)ExpectedSoundBytesPerFrame);
 							DWORD ExpectedFrameBoundaryByte = PlayCursor + ExpectedBytesUntilFlip;
 
 							DWORD SafeWriteCursor = WriteCursor;
@@ -1406,7 +1406,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 							Assert(SafeWriteCursor >= PlayCursor);
 							SafeWriteCursor += SoundOutput.SafetyBytes;
 
-							bool32 AudioCardIsLowLatency = (SafeWriteCursor < ExpectedFrameBoundaryByte);
+							b32 AudioCardIsLowLatency = (SafeWriteCursor < ExpectedFrameBoundaryByte);
 
 							DWORD TargetCursor = 0;
 							if (AudioCardIsLowLatency)
@@ -1454,7 +1454,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 								UnwrappedWriteCursor += SoundOutput.SecondaryBufferSize;
 							}
 							AudioLatencyBytes = UnwrappedWriteCursor - PlayCursor;
-							AudioLatencySeconds = ((real32)AudioLatencyBytes / (real32)SoundOutput.BytesPerSample) / (real32)SoundOutput.SamplesPerSecond;
+							AudioLatencySeconds = ((f32)AudioLatencyBytes / (f32)SoundOutput.BytesPerSample) / (f32)SoundOutput.SamplesPerSecond;
 #endif
 							Win32FillSoundBuffer(&SoundOutput, ByteToLock, BytesToWrite, &SoundBuffer);
 						}
@@ -1464,10 +1464,10 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 
 						LARGE_INTEGER WorkCounter = Win32GetWallClock();
-						real32 WorkSecondsElapsed = Win32GetSecondsElapsed(LastCounter, WorkCounter);
+						f32 WorkSecondsElapsed = Win32GetSecondsElapsed(LastCounter, WorkCounter);
 
 						// TODO: NOT TESTED YET! PROBABLY BUGGY!!!!!
-						real32 SecondsElapsedForFrame = WorkSecondsElapsed;
+						f32 SecondsElapsedForFrame = WorkSecondsElapsed;
 						if (SecondsElapsedForFrame < TargetSecondsPerFrame)
 						{
 							if (SleepIsGranular)
@@ -1479,7 +1479,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 								}
 							}
 
-							real32 TestSecondsElapsedForFrame = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+							f32 TestSecondsElapsedForFrame = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
 							if (TestSecondsElapsedForFrame < TargetSecondsPerFrame)
 							{
 								// TODO: LOG MISSED SLEEP HERE
@@ -1497,7 +1497,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 
 						LARGE_INTEGER EndCounter = Win32GetWallClock();
-						real32 MSPerFrame = 1000.0f * Win32GetSecondsElapsed(LastCounter, EndCounter);
+						f32 MSPerFrame = 1000.0f * Win32GetSecondsElapsed(LastCounter, EndCounter);
 						LastCounter = EndCounter;
 
 						win32_window_dimension Dim = Win32GetWindowDimension(Window);

@@ -10,9 +10,9 @@
 
 #if COMPILER_MSVC
 #define CompletePreviousWritesBeforeFutureWrites _WriteBarrier()
-inline uint32 AtomicCompareExchangeUInt32(uint32 volatile* Value, uint32 New, uint32 Expected)
+inline u32 AtomicCompareExchangeUInt32(u32 volatile* Value, u32 New, u32 Expected)
 {
-	uint32 Result = _InterlockedCompareExchange((long*)Value, New, Expected);
+	u32 Result = _InterlockedCompareExchange((long*)Value, New, Expected);
 
 	return(Result);
 }
@@ -20,7 +20,7 @@ inline uint32 AtomicCompareExchangeUInt32(uint32 volatile* Value, uint32 New, ui
 #define CompletePreviousWritesBeforeFutureWrites asm volatile("" ::: "memory")
 inline uint32 AtomicCompareExchangeUInt32(uint32 volatile* Value, uint32 New, uint32 Expected)
 {
-	uint32 Result = __sync_val_compare_and_swap((long*)Value, Expected, New);
+	uint32 Result = __sync_val_compare_and_swap(Value, Expected, New);
 
 	return(Result);
 }
@@ -28,43 +28,43 @@ inline uint32 AtomicCompareExchangeUInt32(uint32 volatile* Value, uint32 New, ui
 // TODO: Need GCC/LLVM equivalents!
 #endif
 
-inline int32
-SignOf(int32 Value)
+inline s32
+SignOf(s32 Value)
 {
-	int32 Result = (Value >= 0) ? 1 : -1;
+	s32 Result = (Value >= 0) ? 1 : -1;
 
 	return(Result);
 }
 
-inline real32
-SignOf(real32 Value)
+inline f32
+SignOf(f32 Value)
 {
-	real32 Result = (Value >= 0) ? 1.0f : -1.0f;
+	f32 Result = (Value >= 0) ? 1.0f : -1.0f;
 
 	return(Result);
 }
 
-inline real32
-SquareRoot(real32 Real32)
+inline f32
+SquareRoot(f32 Real32)
 {
-	real32 Result = sqrtf(Real32);
+	f32 Result = sqrtf(Real32);
 
 	return(Result);
 }
 
-inline real32
-AbsoluteValue(real32 Real32)
+inline f32
+AbsoluteValue(f32 Real32)
 {
-	real32 Result = (real32)fabs(Real32);
+	f32 Result = (f32)fabs(Real32);
 
 	return(Result);
 }
 
-inline uint32
-RotateLeft(uint32 Value, int32 Amount)
+inline u32
+RotateLeft(u32 Value, s32 Amount)
 {
 #if COMPILER_MSVC
-	uint32 Result = _rotl(Value, Amount);
+	u32 Result = _rotl(Value, Amount);
 #else
 	// TODO: Actually port this to other compiler platforms
 	uint32 Result = ((Amount > 0) ? 
@@ -75,11 +75,11 @@ RotateLeft(uint32 Value, int32 Amount)
 	return(Result);
 }
 
-inline uint32
-RotateRight(uint32 Value, int32 Amount)
+inline u32
+RotateRight(u32 Value, s32 Amount)
 {
 #if COMPILER_MSVC
-	uint32 Result = _rotr(Value, Amount);
+	u32 Result = _rotr(Value, Amount);
 #else
 	// TODO: Actually port this to other compiler platforms
 	uint32 Result = ((Amount > 0) ? 
@@ -90,70 +90,70 @@ RotateRight(uint32 Value, int32 Amount)
 	return(Result);
 }
 
-inline int32
-RoundReal32ToInt32(real32 Real32)
+inline s32
+RoundReal32ToInt32(f32 Real32)
 {
-	int32 Result = (int32)roundf(Real32);
+	s32 Result = (s32)roundf(Real32);
 	return(Result);
 }
 
-inline uint32
-RoundReal32ToUInt32(real32 Real32)
+inline u32
+RoundReal32ToUInt32(f32 Real32)
 {
-	uint32 Result = (uint32)roundf(Real32);
+	u32 Result = (u32)roundf(Real32);
 	return(Result);
 }
 
-inline int32
-FloorReal32ToInt32(real32 Real32)
+inline s32
+FloorReal32ToInt32(f32 Real32)
 {
-	int32 Result = (int32)floorf(Real32);
+	s32 Result = (s32)floorf(Real32);
 	return(Result);
 }
 
-inline int32
-CeilReal32ToInt32(real32 Real32)
+inline s32
+CeilReal32ToInt32(f32 Real32)
 {
-	int32 Result = (int32)ceilf(Real32);
+	s32 Result = (s32)ceilf(Real32);
 
 	return(Result);
 }
 
-inline int32
-TruncateReal32ToInt32(real32 Real32)
+inline s32
+TruncateReal32ToInt32(f32 Real32)
 {
-	int32 Result = (int32)Real32;
+	s32 Result = (s32)Real32;
 	return(Result);
 }
 
-inline real32
-Sin(real32 Angle)
+inline f32
+Sin(f32 Angle)
 {
-	real32 Result = sinf(Angle);
+	f32 Result = sinf(Angle);
 	return(Result);
 }
 
-inline real32
-Cos(real32 Angle)
+inline f32
+Cos(f32 Angle)
 {
-	real32 Result = cosf(Angle);
+	f32 Result = cosf(Angle);
 	return(Result);
 }
 
-inline real32
-ATan2(real32 y, real32 x)
+inline f32
+ATan2(f32 y, f32 x)
 {
-	real32 Result = (real32)atan2(y, x);
+	f32 Result = (f32)atan2(y, x);
 	return(Result);
 }
 
 struct bit_scan_result
 {
-	bool32 Found;
-	int32 Index;
+	b32 Found;
+	s32 Index;
 };
 inline bit_scan_result
-FindLeastSignificantSetBit(uint32 Value)
+FindLeastSignificantSetBit(u32 Value)
 {
 	bit_scan_result Result = {};
 

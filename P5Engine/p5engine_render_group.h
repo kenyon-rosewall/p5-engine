@@ -29,18 +29,18 @@
 struct loaded_bitmap
 {
 	v2 AlignPercentage;
-	real32 WidthOverHeight;
+	f32 WidthOverHeight;
 
-	int32 Width;
-	int32 Height;
-	int32 Pitch;
+	s32 Width;
+	s32 Height;
+	s32 Pitch;
 	void* Memory;
 };
 
 struct environment_map
 {
 	loaded_bitmap LOD[4];
-	real32 Pz;
+	f32 Pz;
 };
 
 enum class render_group_entry_type
@@ -63,7 +63,7 @@ struct render_entry_clear
 
 struct render_entry_saturation
 {
-	real32 Level;
+	f32 Level;
 };
 
 struct render_entry_bitmap
@@ -94,7 +94,7 @@ struct render_entry_coordinate_system
 	loaded_bitmap* NormalMap;
 
 	// TODO: Need to store this for lighting
-	real32 MetersToPixels;
+	f32 MetersToPixels;
 
 	environment_map* Top;
 	environment_map* Middle;
@@ -104,34 +104,34 @@ struct render_entry_coordinate_system
 
 struct render_transform
 {
-	bool32 Orthographic;
+	b32 Orthographic;
 
 	// NOTE: This translates meters _on the monitor_ into pixels _on the monitor_
-	real32 MetersToPixels;
+	f32 MetersToPixels;
 	v2 ScreenCenter;
 
 	// NOTE: Camera parameters
-	real32 FocalLength;
-	real32 DistanceAboveTarget;
+	f32 FocalLength;
+	f32 DistanceAboveTarget;
 
 	v3 OffsetPos;
-	real32 Scale;
+	f32 Scale;
 };
 
 struct render_group
 {
 	struct game_assets* Assets;
-	real32 GlobalAlpha;
+	f32 GlobalAlpha;
 
 	v2 MonitorHalfDimInMeters;
 
 	render_transform Transform;
 
-	uint32 MaxPushBufferSize;
-	uint32 PushBufferSize;
-	uint8* PushBufferBase;
+	u32 MaxPushBufferSize;
+	u32 PushBufferSize;
+	u08* PushBufferBase;
 
-	uint32 MissingResourceCount;
+	u32 MissingResourceCount;
 };
 
 #endif // !P5ENGINE_RENDER_GROUP_H
