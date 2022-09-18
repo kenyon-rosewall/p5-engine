@@ -11,9 +11,9 @@ struct world_position
 	// in entities WITHOUT going through their word_chunk, and thus
 	// still need to know the Chunk*
 
-	s32 ChunkX;
-	s32 ChunkY;
-	s32 ChunkZ;
+	i32 ChunkX;
+	i32 ChunkY;
+	i32 ChunkZ;
 
 	// NOTE: These are offsets from the chunk center
 	v3 Offset;
@@ -30,7 +30,7 @@ struct world_entity_block
 
 struct world_chunk
 {
-	s32 x, y, z;
+	i32 x, y, z;
 
 	world_entity_block FirstBlock;
 

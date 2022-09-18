@@ -57,7 +57,7 @@ AreInSameChunk(world* World, world_position* A, world_position* b)
 }
 
 inline world_chunk*
-GetWorldChunk(world* World, s32 x, s32 y, s32 z, memory_arena* Arena = 0)
+GetWorldChunk(world* World, i32 x, i32 y, i32 z, memory_arena* Arena = 0)
 {
 	Assert(x > -TILE_CHUNK_SAFE_MARGIN);
 	Assert(y > -TILE_CHUNK_SAFE_MARGIN);
@@ -117,7 +117,7 @@ InitializeWorld(world* World, v3 ChunkDimInMeters)
 }
 
 inline void
-RecanonicalizeCoord(f32 ChunkDim, s32* Tile, f32* TileRel)
+RecanonicalizeCoord(f32 ChunkDim, i32* Tile, f32* TileRel)
 {
 	// TODO: Need to do something that doesn't use the divide/multiply method
 	// for recanonicalizing because this can end up rounding back on to the tile
@@ -126,7 +126,7 @@ RecanonicalizeCoord(f32 ChunkDim, s32* Tile, f32* TileRel)
 	// NOTO: World is assumed to be toroidal, if you step off one end you
 	// come back on the other.
 
-	s32 Offset = RoundReal32ToInt32(*TileRel / ChunkDim);
+	i32 Offset = RoundReal32ToInt32(*TileRel / ChunkDim);
 	*Tile += Offset;
 	*TileRel -= Offset * ChunkDim;
 
@@ -147,7 +147,7 @@ MapIntoChunkSpace(world* World, world_position BasePos, v3 Offset)
 }
 
 inline world_position
-ChunkPositionFromTilePosition(world* World, s32 AbsTileX, s32 AbsTileY, s32 AbsTileZ, v3 AdditionalOffset = V3(0, 0, 0))
+ChunkPositionFromTilePosition(world* World, i32 AbsTileX, i32 AbsTileY, i32 AbsTileZ, v3 AdditionalOffset = V3(0, 0, 0))
 {
 	world_position BasePos = {};
 

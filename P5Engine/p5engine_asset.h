@@ -22,7 +22,7 @@ struct loaded_sound
 {
 	u32 SampleCount;
 	u32 ChannelCount;
-	s16* Samples[2];
+	i16* Samples[2];
 };
 
 enum class asset_state

@@ -120,7 +120,7 @@ V2(f32 X, f32 Y)
 }
 
 inline v2
-V2i(s32 X, s32 Y)
+V2i(i32 X, i32 Y)
 {
 	v2 Result = V2((f32)X, (f32)Y);
 
@@ -892,8 +892,8 @@ GetBarycentric(rectangle2 A, v2 P)
 
 struct rectangle2i
 {
-	s32 MinX, MinY;
-	s32 MaxX, MaxY;
+	i32 MinX, MinY;
+	i32 MaxX, MaxY;
 };
 
 inline rectangle2i
@@ -922,13 +922,13 @@ Union(rectangle2i A, rectangle2i B)
 	return(Result);
 }
 
-inline s32
+inline i32
 GetClampedRectArea(rectangle2i A)
 {
-	s32 Width = (A.MaxX - A.MinX);
-	s32 Height = (A.MaxY - A.MinY);
+	i32 Width = (A.MaxX - A.MinX);
+	i32 Height = (A.MaxY - A.MinY);
 
-	s32 Result = 0;
+	i32 Result = 0;
 
 	if ((Width > 0) && (Height > 0))
 	{

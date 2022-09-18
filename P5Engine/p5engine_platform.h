@@ -59,11 +59,11 @@ extern "C" {
 #include <limits.h>
 #include <float.h>
 
-typedef int8_t s08;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
-typedef s32 b32;
+typedef int8_t i08;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
+typedef i32 b32;
 
 typedef uint8_t u08;
 typedef uint16_t u16;
@@ -202,7 +202,7 @@ typedef struct game_sound_output_buffer
 {
 	int SamplesPerSecond;
 	int  SampleCount;
-	s16* Samples;
+	i16* Samples;
 } game_sound_output_buffer;
 
 typedef struct game_button_state
@@ -253,7 +253,7 @@ typedef struct game_controller_input
 typedef struct game_input
 {
 	game_button_state MouseButtons[5];
-	s32 MouseX, MouseY, MouseZ;
+	i32 MouseX, MouseY, MouseZ;
 
 	b32 ExecutableReloaded;
 	f32 dtForFrame;

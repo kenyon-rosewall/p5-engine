@@ -102,7 +102,7 @@ struct bilinear_sample
 };
 
 inline bilinear_sample
-BilinearSample(loaded_bitmap* Texture, s32 X, s32 Y)
+BilinearSample(loaded_bitmap* Texture, i32 X, i32 Y)
 {
 	bilinear_sample Result = {};
 
@@ -175,8 +175,8 @@ SampleEnvironmentMap(v2 ScreenSpaceUV, v3 SampleDirection, f32 Roughness, enviro
 	f32 tX = ((UV.x * (f32)(LOD->Width - 2)));
 	f32 tY = ((UV.y * (f32)(LOD->Height - 2)));
 
-	s32 X = (s32)tX;
-	s32 Y = (s32)tY;
+	i32 X = (i32)tX;
+	i32 Y = (i32)tY;
 
 	f32 fX = tX - (f32)X;
 	f32 fY = tY - (f32)Y;
@@ -236,10 +236,10 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	f32 OriginY = (Origin + 0.5f * XAxis + 0.5f * YAxis).y;
 	f32 FixedCastY = InvHeightMax * OriginY;
 
-	s32 XMin = WidthMax;
-	s32 XMax = 0;
-	s32 YMin = HeightMax;
-	s32 YMax = 0;
+	i32 XMin = WidthMax;
+	i32 XMax = 0;
+	i32 YMin = HeightMax;
+	i32 YMax = 0;
 
 	v2 P[4] = { Origin, Origin + XAxis, Origin + XAxis + YAxis, Origin + YAxis };
 	for (int PointIndex = 0; PointIndex < ArrayCount(P); ++PointIndex)
@@ -303,8 +303,8 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 				f32 tX = ((U * (f32)(Texture->Width - 2)));
 				f32 tY = ((V * (f32)(Texture->Height - 2)));
 
-				s32 X = (s32)tX;
-				s32 Y = (s32)tY;
+				i32 X = (i32)tX;
+				i32 Y = (i32)tY;
 
 				f32 fX = tX - (f32)X;
 				f32 fY = tY - (f32)Y;
@@ -492,8 +492,8 @@ DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Co
 		}
 
 		u08* Row = ((u08*)Buffer->Memory + FillRect.MinX * BITMAP_BYTES_PER_PIXEL + FillRect.MinY * Buffer->Pitch);
-		s32 RowAdvance = 2 * Buffer->Pitch;
-		s32 TexturePitch = Texture->Pitch;
+		i32 RowAdvance = 2 * Buffer->Pitch;
+		i32 TexturePitch = Texture->Pitch;
 		void* TextureMemory = Texture->Memory;
 
 		__m128i TexturePitch_4x = _mm_set1_epi32(TexturePitch);
@@ -582,10 +582,10 @@ DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Co
 											 _mm_slli_epi32(_mm_mulhi_epi16(FetchY_4x, TexturePitch_4x), 16));
 					__m128i Fetch_4x = _mm_add_epi32(FetchX_4x, FetchY_4x);
 
-					s32 Fetch0 = Mi(Fetch_4x, 0);
-					s32 Fetch1 = Mi(Fetch_4x, 1);
-					s32 Fetch2 = Mi(Fetch_4x, 2);
-					s32 Fetch3 = Mi(Fetch_4x, 3);
+					i32 Fetch0 = Mi(Fetch_4x, 0);
+					i32 Fetch1 = Mi(Fetch_4x, 1);
+					i32 Fetch2 = Mi(Fetch_4x, 2);
+					i32 Fetch3 = Mi(Fetch_4x, 3);
 
 					u08* TexelPtr0 = ((u08*)TextureMemory) + Fetch0;
 					u08* TexelPtr1 = ((u08*)TextureMemory) + Fetch1;
@@ -755,10 +755,10 @@ internal void
 ChangeSaturation(loaded_bitmap* Buffer, f32 Level)
 {
 	u08* DestRow = (u08*)Buffer->Memory;
-	for (s32 y = 0; y < Buffer->Height; ++y)
+	for (i32 y = 0; y < Buffer->Height; ++y)
 	{
 		u32* Dest = (u32*)DestRow;
-		for (s32 x = 0; x < Buffer->Width; ++x)
+		for (i32 x = 0; x < Buffer->Width; ++x)
 		{
 			v4 D = Unpack4x8(*Dest);
 			D = SRGB255ToLinear1(D);
@@ -785,19 +785,19 @@ ChangeSaturation(loaded_bitmap* Buffer, f32 Level)
 internal void
 DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f32 CAlpha = 1.0f)
 {
-	s32 MinX = RoundReal32ToInt32(RealX);
-	s32 MinY = RoundReal32ToInt32(RealY);
-	s32 MaxX = MinX + Bitmap->Width;
-	s32 MaxY = MinY + Bitmap->Height;
+	i32 MinX = RoundReal32ToInt32(RealX);
+	i32 MinY = RoundReal32ToInt32(RealY);
+	i32 MaxX = MinX + Bitmap->Width;
+	i32 MaxY = MinY + Bitmap->Height;
 
-	s32 SourceOffsetX = 0;
+	i32 SourceOffsetX = 0;
 	if (MinX < 0)
 	{
 		SourceOffsetX = -MinX;
 		MinX = 0;
 	}
 
-	s32 SourceOffsetY = 0;
+	i32 SourceOffsetY = 0;
 	if (MinY < 0)
 	{
 		SourceOffsetY = -MinY;
@@ -816,11 +816,11 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f
 
 	u08* SourceRow = (u08*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
 	u08* DestRow = ((u08*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
-	for (s32 y = MinY; y < MaxY; ++y)
+	for (i32 y = MinY; y < MaxY; ++y)
 	{
 		u32* Dest = (u32*)DestRow;
 		u32* Source = (u32*)SourceRow;
-		for (s32 x = MinX; x < MaxX; ++x)
+		for (i32 x = MinX; x < MaxX; ++x)
 		{
 			v4 Texel = Unpack4x8(*Source);
 			Texel = SRGB255ToLinear1(Texel);
@@ -849,19 +849,19 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f
 internal void
 DrawMatte(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f32 CAlpha = 1.0f)
 {
-	s32 MinX = RoundReal32ToInt32(RealX);
-	s32 MinY = RoundReal32ToInt32(RealY);
-	s32 MaxX = MinX + Bitmap->Width;
-	s32 MaxY = MinY + Bitmap->Height;
+	i32 MinX = RoundReal32ToInt32(RealX);
+	i32 MinY = RoundReal32ToInt32(RealY);
+	i32 MaxX = MinX + Bitmap->Width;
+	i32 MaxY = MinY + Bitmap->Height;
 
-	s32 SourceOffsetX = 0;
+	i32 SourceOffsetX = 0;
 	if (MinX < 0)
 	{
 		SourceOffsetX = -MinX;
 		MinX = 0;
 	}
 
-	s32 SourceOffsetY = 0;
+	i32 SourceOffsetY = 0;
 	if (MinY < 0)
 	{
 		SourceOffsetY = -MinY;
@@ -880,11 +880,11 @@ DrawMatte(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f3
 
 	u08* SourceRow = (u08*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
 	u08* DestRow = ((u08*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
-	for (s32 y = MinY; y < MaxY; ++y)
+	for (i32 y = MinY; y < MaxY; ++y)
 	{
 		u32* Dest = (u32*)DestRow;
 		u32* Source = (u32*)SourceRow;
-		for (s32 x = MinX; x < MaxX; ++x)
+		for (i32 x = MinX; x < MaxX; ++x)
 		{
 			f32 SA = (f32)((*Source >> 24) & 0xFF);
 			f32 RSA = (SA / 255.0f) * CAlpha;
@@ -1254,14 +1254,14 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 
 	*/
 
-	s32 const TileCountX = 4;
-	s32 const TileCountY = 4;
+	i32 const TileCountX = 4;
+	i32 const TileCountY = 4;
 	tile_render_work WorkArray[TileCountX * TileCountY];
 
 	Assert(((uintptr)OutputTarget->Memory & 15) == 0);
 
-	s32 TileWidth = OutputTarget->Width / TileCountX;
-	s32 TileHeight = OutputTarget->Height / TileCountY;
+	i32 TileWidth = OutputTarget->Width / TileCountX;
+	i32 TileHeight = OutputTarget->Height / TileCountY;
 
 	TileWidth = ((TileWidth + 3) / 4) * 4;
 
@@ -1332,7 +1332,7 @@ AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferS
 }
 
 inline void
-Perspective(render_group* RenderGroup, s32 PixelWidth, s32 PixelHeight, f32 MetersToPixels, f32 FocalLength, f32 DistanceAboveTarget)
+Perspective(render_group* RenderGroup, i32 PixelWidth, i32 PixelHeight, f32 MetersToPixels, f32 FocalLength, f32 DistanceAboveTarget)
 {
 	v2 Dim = V2(PixelWidth, PixelHeight);
 
@@ -1349,7 +1349,7 @@ Perspective(render_group* RenderGroup, s32 PixelWidth, s32 PixelHeight, f32 Mete
 }
 
 inline void
-Orthographic(render_group* RenderGroup, s32 PixelWidth, s32 PixelHeight, f32 MetersToPixels)
+Orthographic(render_group* RenderGroup, i32 PixelWidth, i32 PixelHeight, f32 MetersToPixels)
 {
 	v2 Dim = V2(PixelWidth, PixelHeight);
 

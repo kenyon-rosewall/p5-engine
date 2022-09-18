@@ -8,14 +8,14 @@ struct bitmap_header
 	u16 Reserved2;
 	u32 BitmapOffset;
 	u32 Size;
-	s32 Width;
-	s32 Height;
+	i32 Width;
+	i32 Height;
 	u16 Planes;
 	u16 BitsPerPixel;
 	u32 Compression;
 	u32 SizeOfBitmap;
-	s32 HorzResolution;
-	s32 VertResolution;
+	i32 HorzResolution;
+	i32 VertResolution;
 	u32 ColorsUsed;
 	u32 ColorsImportant;
 
@@ -107,10 +107,10 @@ DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
 
 		// NOTE: Byte order in memory is determined by the Header itself, 
 		// so we have to read out the masks and convert the pixels ourselves.
-		s32 RedMask = Header->RedMask;
-		s32 GreenMask = Header->GreenMask;
-		s32 BlueMask = Header->BlueMask;
-		s32 AlphaMask = ~(RedMask | GreenMask | BlueMask);
+		i32 RedMask = Header->RedMask;
+		i32 GreenMask = Header->GreenMask;
+		i32 BlueMask = Header->BlueMask;
+		i32 AlphaMask = ~(RedMask | GreenMask | BlueMask);
 
 		bit_scan_result RedScan = FindLeastSignificantSetBit(RedMask);
 		bit_scan_result GreenScan = FindLeastSignificantSetBit(GreenMask);
@@ -122,15 +122,15 @@ DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
 		Assert(BlueScan.Found);
 		Assert(AlphaScan.Found);
 
-		s32 AlphaShiftDown = AlphaScan.Index;
-		s32 RedShiftDown = RedScan.Index;
-		s32 GreenShiftDown = GreenScan.Index;
-		s32 BlueShiftDown = BlueScan.Index;
+		i32 AlphaShiftDown = AlphaScan.Index;
+		i32 RedShiftDown = RedScan.Index;
+		i32 GreenShiftDown = GreenScan.Index;
+		i32 BlueShiftDown = BlueScan.Index;
 
 		u32* SourceDest = Memory;
-		for (s32 y = 0; y < Header->Height; ++y)
+		for (i32 y = 0; y < Header->Height; ++y)
 		{
-			for (s32 x = 0; x < Header->Width; ++x)
+			for (i32 x = 0; x < Header->Width; ++x)
 			{
 				u32 C = *SourceDest;
 
@@ -241,7 +241,7 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 
 		u32 ChannelCount = 0;
 		u32 SampleDataSize = 0;
-		s16* SampleData = 0;
+		i16* SampleData = 0;
 		for (riff_iterator Iter = ParseChunkAt(Header + 1, (u08*)(Header + 1) + Header->Size - 4); IsValid(Iter); Iter = NextChunk(Iter))
 		{
 			switch (GetType(Iter))
@@ -252,13 +252,13 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 					Assert(fmt->wFormatTag == 1); // NOTE: Only support PCM
 					Assert((fmt->nSamplesPerSec == 44100));
 					Assert((fmt->wBitsPerSample == 16));
-					Assert(fmt->nBlockAlign == (sizeof(s16) * fmt->nChannels));
+					Assert(fmt->nBlockAlign == (sizeof(i16) * fmt->nChannels));
 					ChannelCount = fmt->nChannels;
 				} break;
 
 				case WAVE_ChunkID_data:
 				{
-					SampleData = (s16*)GetChunkData(Iter);
+					SampleData = (i16*)GetChunkData(Iter);
 					SampleDataSize = GetChunkDataSize(Iter);
 				} break;
 			}
@@ -267,7 +267,7 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 		Assert(ChannelCount && SampleData);
 
 		Result.ChannelCount = ChannelCount;
-		Result.SampleCount = SampleDataSize / (ChannelCount * sizeof(s16));
+		Result.SampleCount = SampleDataSize / (ChannelCount * sizeof(i16));
 		if (ChannelCount == 1)
 		{
 			Result.Samples[0] = SampleData;
@@ -288,7 +288,7 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 
 			for (u32 SampleIndex = 0; SampleIndex < Result.SampleCount; ++SampleIndex)
 			{
-				s16 Source = SampleData[2 * SampleIndex];
+				i16 Source = SampleData[2 * SampleIndex];
 				SampleData[2 * SampleIndex] = SampleData[SampleIndex];
 				SampleData[SampleIndex] = Source;
 			}
@@ -750,8 +750,8 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	AddSoundAsset(Assets, (char*)"../data/audio/glide_00.wav");
 	EndAssetType(Assets);
 
-	u32 OneMusicChunk = 3 * 44100;
-	u32 TotalMusicSampleCount = 308532;
+	u32 OneMusicChunk = 10 * 44100;
+	u32 TotalMusicSampleCount = 13582800;
 	BeginAssetType(Assets, asset_type_id::Music);
 	asset* LastMusic = 0;
 	for (u32 FirstSampleIndex = 0; FirstSampleIndex < TotalMusicSampleCount; FirstSampleIndex += OneMusicChunk)

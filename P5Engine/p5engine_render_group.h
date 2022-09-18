@@ -31,9 +31,9 @@ struct loaded_bitmap
 	v2 AlignPercentage;
 	f32 WidthOverHeight;
 
-	s32 Width;
-	s32 Height;
-	s32 Pitch;
+	i32 Width;
+	i32 Height;
+	i32 Pitch;
 	void* Memory;
 };
 

@@ -5,9 +5,12 @@
 
 struct playing_sound
 {
-	f32 Volume[2];
+	v2 CurrentVolume;
+	v2 dCurrentVolume;
+	v2 TargetVolume;
+
 	sound_id ID;
-	s32 SamplesPlayed;
+	i32 SamplesPlayed;
 	playing_sound* Next;
 };
 

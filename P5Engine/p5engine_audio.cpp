@@ -2,15 +2,15 @@
 internal void
 OutputTestSineWave(game_state* GameState, game_sound_output_buffer* SoundBuffer, int ToneHz)
 {
-	s16 ToneVolume = 2000;
+	i16 ToneVolume = 2000;
 	int WavePeriod = SoundBuffer->SamplesPerSecond / ToneHz;
 
-	s16* SampleOut = SoundBuffer->Samples;
+	i16* SampleOut = SoundBuffer->Samples;
 	for (int SampleIndex = 0; SampleIndex < SoundBuffer->SampleCount; ++SampleIndex)
 	{
 #if 1
 		f32 SineValue = sinf(GameState->tSine);
-		s16 SampleValue = (s16)(SineValue * ToneVolume);
+		i16 SampleValue = (i16)(SineValue * ToneVolume);
 #else
 		int SampleValue = 0;
 #endif
@@ -41,8 +41,8 @@ PlaySound(audio_state* AudioState, sound_id SoundID)
 	AudioState->FirstFreePlayingSound = PlayingSound->Next;
 
 	PlayingSound->SamplesPlayed = 0;
-	PlayingSound->Volume[0] = 1.0f;
-	PlayingSound->Volume[1] = 1.0f;
+	PlayingSound->CurrentVolume = PlayingSound->TargetVolume = V2(1.0f, 1.0f);
+	PlayingSound->dCurrentVolume = V2(0, 0);
 	PlayingSound->ID = SoundID;
 
 	PlayingSound->Next = AudioState->FirstPlayingSound;
@@ -52,12 +52,30 @@ PlaySound(audio_state* AudioState, sound_id SoundID)
 }
 
 internal void
+ChangeVolume(audio_state* AudioState, playing_sound* Sound, f32 FadeDurationInSeconds, v2 Volume)
+{
+	if (FadeDurationInSeconds <= 0.0f)
+	{
+		Sound->CurrentVolume = Sound->TargetVolume = Volume;
+	}
+	else
+	{
+		f32 OneOverFade = 1.0f / FadeDurationInSeconds;
+		Sound->TargetVolume = Volume;
+		Sound->dCurrentVolume = OneOverFade * (Sound->TargetVolume - Sound->CurrentVolume);
+	}
+}
+
+internal void
 OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuffer, game_assets* Assets, memory_arena* TempArena)
 {
 	temporary_memory MixerMemory = BeginTemporaryMemory(TempArena);
 
 	f32* RealChannel0 = PushArray(TempArena, SoundBuffer->SampleCount, f32);
 	f32* RealChannel1 = PushArray(TempArena, SoundBuffer->SampleCount, f32);
+
+	f32 SecondsPerSample = 1.0f / (f32)SoundBuffer->SamplesPerSecond;
+	i32 const AudioStateOutputChannelCount = 2;
 
 	// NOTE: Clear out the mixer channels
 	{
@@ -88,9 +106,8 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 				asset_sound_info* Info = GetSoundInfo(Assets, PlayingSound->ID);
 				PrefetchSound(Assets, Info->NextIDToPlay);
 
-				// TODO: Handle stereo
-				f32 Volume0 = PlayingSound->Volume[0];
-				f32 Volume1 = PlayingSound->Volume[1];
+				v2 Volume = PlayingSound->CurrentVolume;
+				v2 dVolume = SecondsPerSample * PlayingSound->dCurrentVolume;
 
 				Assert(PlayingSound->SamplesPlayed >= 0);
 
@@ -101,11 +118,41 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 					SamplesToMix = SamplesRemainingInSound;
 				}
 
+				b32 VolumeEnded[AudioStateOutputChannelCount] = {};
+				for (u32 ChannelIndex = 0; ChannelIndex < ArrayCount(VolumeEnded); ++ChannelIndex)
+				{
+					if (dVolume.E[ChannelIndex] != 0.0f)
+					{
+						f32 DeltaVolume = (PlayingSound->TargetVolume.E[ChannelIndex] - Volume.E[ChannelIndex]);
+						u32 VolumeSampleCount = (u32)((DeltaVolume / dVolume.E[ChannelIndex]) + 0.5f);
+						if (SamplesToMix > VolumeSampleCount)
+						{
+							SamplesToMix = VolumeSampleCount;
+							VolumeEnded[ChannelIndex] = true;
+						}
+					}
+				}
+
+				// TODO: Handle stereo
 				for (u32 SampleIndex = PlayingSound->SamplesPlayed; SampleIndex < (PlayingSound->SamplesPlayed + SamplesToMix); ++SampleIndex)
 				{
 					f32 SampleValue = LoadedSound->Samples[0][SampleIndex];
-					*Dest0++ += Volume0 * SampleValue;
-					*Dest1++ += Volume1 * SampleValue;
+					*Dest0++ += Volume.E[0] * SampleValue;
+					*Dest1++ += Volume.E[1] * SampleValue;
+
+					Volume += dVolume;
+				}
+
+				PlayingSound->CurrentVolume = Volume;
+
+				// TODO: This is not correct yet. Need to truncate the loop.
+				for (u32 ChannelIndex = 0; ChannelIndex < ArrayCount(VolumeEnded); ++ChannelIndex)
+				{
+					if (VolumeEnded[ChannelIndex])
+					{
+						PlayingSound->CurrentVolume.E[ChannelIndex] = PlayingSound->TargetVolume.E[ChannelIndex];
+						PlayingSound->dCurrentVolume.E[ChannelIndex] = 0.0f;
+					}
 				}
 
 				Assert(TotalSamplesToMix >= SamplesToMix);
@@ -123,10 +170,6 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 					{
 						SoundFinished = true;
 					}
-				}
-				else
-				{
-					Assert(TotalSamplesToMix == 0);
 				}
 			}
 			else
@@ -153,11 +196,11 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 		f32* Source0 = RealChannel0;
 		f32* Source1 = RealChannel1;
 
-		s16* SampleOut = SoundBuffer->Samples;
+		i16* SampleOut = SoundBuffer->Samples;
 		for (int SampleIndex = 0; SampleIndex < SoundBuffer->SampleCount; ++SampleIndex)
 		{
-			*SampleOut++ = (s16)(*Source0++ + 0.5f);
-			*SampleOut++ = (s16)(*Source1++ + 0.5f);
+			*SampleOut++ = (i16)(*Source0++ + 0.5f);
+			*SampleOut++ = (i16)(*Source1++ + 0.5f);
 		}
 	}
 

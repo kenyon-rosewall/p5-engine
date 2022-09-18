@@ -28,10 +28,10 @@ inline uint32 AtomicCompareExchangeUInt32(uint32 volatile* Value, uint32 New, ui
 // TODO: Need GCC/LLVM equivalents!
 #endif
 
-inline s32
-SignOf(s32 Value)
+inline i32
+SignOf(i32 Value)
 {
-	s32 Result = (Value >= 0) ? 1 : -1;
+	i32 Result = (Value >= 0) ? 1 : -1;
 
 	return(Result);
 }
@@ -61,7 +61,7 @@ AbsoluteValue(f32 Real32)
 }
 
 inline u32
-RotateLeft(u32 Value, s32 Amount)
+RotateLeft(u32 Value, i32 Amount)
 {
 #if COMPILER_MSVC
 	u32 Result = _rotl(Value, Amount);
@@ -76,7 +76,7 @@ RotateLeft(u32 Value, s32 Amount)
 }
 
 inline u32
-RotateRight(u32 Value, s32 Amount)
+RotateRight(u32 Value, i32 Amount)
 {
 #if COMPILER_MSVC
 	u32 Result = _rotr(Value, Amount);
@@ -90,10 +90,10 @@ RotateRight(u32 Value, s32 Amount)
 	return(Result);
 }
 
-inline s32
+inline i32
 RoundReal32ToInt32(f32 Real32)
 {
-	s32 Result = (s32)roundf(Real32);
+	i32 Result = (i32)roundf(Real32);
 	return(Result);
 }
 
@@ -104,25 +104,25 @@ RoundReal32ToUInt32(f32 Real32)
 	return(Result);
 }
 
-inline s32
+inline i32
 FloorReal32ToInt32(f32 Real32)
 {
-	s32 Result = (s32)floorf(Real32);
+	i32 Result = (i32)floorf(Real32);
 	return(Result);
 }
 
-inline s32
+inline i32
 CeilReal32ToInt32(f32 Real32)
 {
-	s32 Result = (s32)ceilf(Real32);
+	i32 Result = (i32)ceilf(Real32);
 
 	return(Result);
 }
 
-inline s32
+inline i32
 TruncateReal32ToInt32(f32 Real32)
 {
-	s32 Result = (s32)Real32;
+	i32 Result = (i32)Real32;
 	return(Result);
 }
 
@@ -150,7 +150,7 @@ ATan2(f32 y, f32 x)
 struct bit_scan_result
 {
 	b32 Found;
-	s32 Index;
+	i32 Index;
 };
 inline bit_scan_result
 FindLeastSignificantSetBit(u32 Value)

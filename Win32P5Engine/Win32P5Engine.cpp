@@ -32,7 +32,7 @@ global_variable b32 GlobalRunning;
 global_variable b32 GlobalPause;
 global_variable win32_offscreen_buffer GlobalBackbuffer;
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryBuffer;
-global_variable s64 PerfCountFrequency;
+global_variable i64 PerfCountFrequency;
 global_variable b32 DEBUGGlobalShowCursor;
 global_variable WINDOWPLACEMENT GlobalWindowPosition = { sizeof(GlobalWindowPosition) };
 
@@ -290,7 +290,7 @@ Win32LoadXInput(void)
 }
 
 internal void
-Win32InitDSound(HWND Window, s32 SamplesPerSecond, s32 BufferSize)
+Win32InitDSound(HWND Window, i32 SamplesPerSecond, i32 BufferSize)
 {
 	HMODULE DSoundLibrary = LoadLibraryA("dsound.dll");
 
@@ -558,8 +558,8 @@ Win32FillSoundBuffer(win32_sound_output* SoundOutput, DWORD ByteToLock, DWORD By
 
 		// TODO: Collapse two loops
 		DWORD Region1SampleCount = Region1Size / SoundOutput->BytesPerSample;
-		s16* DestSample = (s16*)Region1;
-		s16* SourceSample = SourceBuffer->Samples;
+		i16* DestSample = (i16*)Region1;
+		i16* SourceSample = SourceBuffer->Samples;
 		for (DWORD SampleIndex = 0; SampleIndex < Region1SampleCount; ++SampleIndex)
 		{
 			*DestSample++ = *SourceSample++;
@@ -568,7 +568,7 @@ Win32FillSoundBuffer(win32_sound_output* SoundOutput, DWORD ByteToLock, DWORD By
 		}
 
 		DWORD Region2SampleCount = Region2Size / SoundOutput->BytesPerSample;
-		DestSample = (s16*)Region2;
+		DestSample = (i16*)Region2;
 		for (DWORD SampleIndex = 0; SampleIndex < Region2SampleCount; ++SampleIndex)
 		{
 			*DestSample++ = *SourceSample++;
@@ -1113,7 +1113,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			// NOTE: Sound test
 			win32_sound_output SoundOutput = {};
 			SoundOutput.SamplesPerSecond = 44100;
-			SoundOutput.BytesPerSample = sizeof(s16) * 2;
+			SoundOutput.BytesPerSample = sizeof(i16) * 2;
 			SoundOutput.SecondaryBufferSize = SoundOutput.SamplesPerSecond * SoundOutput.BytesPerSample;
 			// TODO: Actually compute this variance and see
 			// what the lowest reasonable value is.
@@ -1125,7 +1125,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			GlobalRunning = true;
 
 			// TODO: Pool with bitmap VirtualAlloc
-			s16* Samples = (s16*)VirtualAlloc(0, SoundOutput.SecondaryBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			i16* Samples = (i16*)VirtualAlloc(0, SoundOutput.SecondaryBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 #if P5ENGINE_INTERNAL
 			LPVOID BaseAddress = (LPVOID)Terabytes(2);

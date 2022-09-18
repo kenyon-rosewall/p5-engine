@@ -582,10 +582,10 @@ RandomBetween(random_series* Series, f32 Min, f32 Max)
 	return(Result);
 }
 
-inline s32
-RandomBetween(random_series* Series, s32 Min, s32 Max)
+inline i32
+RandomBetween(random_series* Series, i32 Min, i32 Max)
 {
-	s32 Result = Min + (RandomNextUInt32(Series) % ((Max + 1) - Min));
+	i32 Result = Min + (RandomNextUInt32(Series) % ((Max + 1) - Min));
 
 	return(Result);
 }

@@ -93,7 +93,7 @@ struct sim_entity
 	f32 FacingDirection;
 	f32 tBob;
 
-	s32 dAbsTileZ;
+	i32 dAbsTileZ;
 
 	// TODO: Should hitpoints themselves be entities?
 	u32 HitPointMax;

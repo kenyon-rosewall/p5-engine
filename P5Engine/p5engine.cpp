@@ -376,13 +376,13 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 		Work->RenderGroup = RenderGroup;
 		Work->Task = Task;
 
-		for (s32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
+		for (i32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 		{
-			for (s32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
+			for (i32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
 			{
-				s32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
-				s32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
-				s32 ChunkZ = ChunkPos->ChunkZ;
+				i32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
+				i32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
+				i32 ChunkZ = ChunkPos->ChunkZ;
 
 				// TODO: Make random number generation more systemic
 				// TODO: Look into wang hashing here or some other spatial seed generation
@@ -402,15 +402,15 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 			}
 		}
 
-		for (s32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
+		for (i32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
 		{
-			for (s32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
+			for (i32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
 			{
 				for (u32 GrassIndex = 0; GrassIndex < 5; ++GrassIndex)
 				{
-					s32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
-					s32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
-					s32 ChunkZ = ChunkPos->ChunkZ;
+					i32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
+					i32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
+					i32 ChunkZ = ChunkPos->ChunkZ;
 
 					// TODO: Make random number generation more systemic
 					// TODO: Look into wang hashing here or some other spatial seed generation
@@ -458,20 +458,20 @@ ClearBitmap(loaded_bitmap* Bitmap)
 {
 	if (Bitmap->Memory)
 	{
-		s32 TotalBitmapSize = Bitmap->Width * Bitmap->Height * BITMAP_BYTES_PER_PIXEL;
+		i32 TotalBitmapSize = Bitmap->Width * Bitmap->Height * BITMAP_BYTES_PER_PIXEL;
 		ZeroSize(TotalBitmapSize, Bitmap->Memory);
 	}
 }
 
 internal loaded_bitmap
-MakeEmptyBitmap(memory_arena* Arena, s32 Width, s32 Height, b32 ClearToZero = true)
+MakeEmptyBitmap(memory_arena* Arena, i32 Width, i32 Height, b32 ClearToZero = true)
 {
 	loaded_bitmap Result = {};
 
 	Result.Width = Width;
 	Result.Height = Height;
 	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
-	s32 TotalBitmapSize = Width * Height * BITMAP_BYTES_PER_PIXEL;
+	i32 TotalBitmapSize = Width * Height * BITMAP_BYTES_PER_PIXEL;
 	Result.Memory = (u32*)PushSize(Arena, TotalBitmapSize, 16);
 	if (ClearToZero)
 	{
@@ -488,10 +488,10 @@ MakeSphereDiffuseMap(loaded_bitmap* Bitmap, f32 Cx = 1.0f, f32 Cy = 1.0f)
 	f32 InvHeight = 1.0f / (f32)(Bitmap->Height - 1);
 
 	u08* Row = (u08*)Bitmap->Memory;
-	for (s32 Y = 0; Y < Bitmap->Height; ++Y)
+	for (i32 Y = 0; Y < Bitmap->Height; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
-		for (s32 X = 0; X < Bitmap->Width; ++X)
+		for (i32 X = 0; X < Bitmap->Width; ++X)
 		{
 			v2 BitmapUV = V2(InvWidth * (f32)X, InvHeight * (f32)Y);
 
@@ -535,10 +535,10 @@ MakeSphereNormalMap(loaded_bitmap* Bitmap, f32 Roughness, f32 Cx = 1.0f, f32 Cy 
 	f32 InvHeight = 1.0f / (f32)(Bitmap->Height - 1);
 
 	u08* Row = (u08*)Bitmap->Memory;
-	for (s32 Y = 0; Y < Bitmap->Height; ++Y)
+	for (i32 Y = 0; Y < Bitmap->Height; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
-		for (s32 X = 0; X < Bitmap->Width; ++X)
+		for (i32 X = 0; X < Bitmap->Width; ++X)
 		{
 			v2 BitmapUV = V2(InvWidth * (f32)X, InvHeight * (f32)Y);
 			
@@ -578,14 +578,14 @@ MakePyramidNormalMap(loaded_bitmap* Bitmap, f32 Roughness)
 	f32 InvHeight = 1.0f / (f32)(Bitmap->Height - 1);
 
 	u08* Row = (u08*)Bitmap->Memory;
-	for (s32 Y = 0; Y < Bitmap->Height; ++Y)
+	for (i32 Y = 0; Y < Bitmap->Height; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
-		for (s32 X = 0; X < Bitmap->Width; ++X)
+		for (i32 X = 0; X < Bitmap->Width; ++X)
 		{
 			v2 BitmapUV = V2(InvWidth * (f32)X, InvHeight * (f32)Y);
 
-			s32 InvX = (Bitmap->Width - 1) - X;
+			i32 InvX = (Bitmap->Width - 1) - X;
 			f32 Seven = 0.707106781188f;
 			v3 Normal = V3(0, 0, Seven);
 			if (X < Y)
@@ -868,7 +868,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
 
-		PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		GameState->Music = PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -995,6 +995,15 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					} break;
 				}
 			}
+
+			if (Controller->ActionUp.EndedDown)
+			{
+				ChangeVolume(&GameState->AudioState, GameState->Music, 2.0f, V2(1, 1));
+			}
+			if (Controller->ActionDown.EndedDown)
+			{
+				ChangeVolume(&GameState->AudioState, GameState->Music, 2.0f, V2(0, 0));
+			}
 		}
 	}
 
@@ -1055,11 +1064,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	world_position MinChunkPos = MapIntoChunkSpace(World, GameState->CameraP, GetMinCorner(CameraBoundsInMeters));
 	world_position MaxChunkPos = MapIntoChunkSpace(World, GameState->CameraP, GetMaxCorner(CameraBoundsInMeters));
 
-	for (s32 ChunkZ = MinChunkPos.ChunkZ; ChunkZ <= MaxChunkPos.ChunkZ; ++ChunkZ)
+	for (i32 ChunkZ = MinChunkPos.ChunkZ; ChunkZ <= MaxChunkPos.ChunkZ; ++ChunkZ)
 	{
-		for (s32 ChunkY = MinChunkPos.ChunkY; ChunkY <= MaxChunkPos.ChunkY; ++ChunkY)
+		for (i32 ChunkY = MinChunkPos.ChunkY; ChunkY <= MaxChunkPos.ChunkY; ++ChunkY)
 		{
-			for (s32 ChunkX = MinChunkPos.ChunkX; ChunkX <= MaxChunkPos.ChunkX; ++ChunkX)
+			for (i32 ChunkX = MinChunkPos.ChunkX; ChunkX <= MaxChunkPos.ChunkX; ++ChunkX)
 			{
 				world_position ChunkCenterPos = CenteredChunkPoint(ChunkX, ChunkY, ChunkZ);
 				v3 RelPos = Subtract(World, &ChunkCenterPos, &GameState->CameraP);
