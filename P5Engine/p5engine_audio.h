@@ -9,8 +9,10 @@ struct playing_sound
 	v2 dCurrentVolume;
 	v2 TargetVolume;
 
+	f32 dSample;
+
 	sound_id ID;
-	i32 SamplesPlayed;
+	f32 SamplesPlayed;
 	playing_sound* Next;
 };
 
@@ -19,6 +21,8 @@ struct audio_state
 	memory_arena* PermArena;
 	playing_sound* FirstPlayingSound;
 	playing_sound* FirstFreePlayingSound;
+
+	v2 MasterVolume;																																																																																																																																																																																																																																																																																																																																																																												
 };
 
 #endif // P5ENGINE_AUDIO_H	

@@ -340,10 +340,15 @@ Win32InitDSound(HWND Window, i32 SamplesPerSecond, i32 BufferSize)
 				// TODO: Diagnostic
 			}
 
+			// TODO: In release mode, should we not specify DSBCAPS_GLOBALFOCUS?
+
 			// TODO: DSBCAPS_GETCURRENTPOSITION2
 			DSBUFFERDESC BufferDescription = {};
 			BufferDescription.dwSize = sizeof(BufferDescription);
-			BufferDescription.dwFlags = 0;
+			BufferDescription.dwFlags = DSBCAPS_GETCURRENTPOSITION2;
+#if P5ENGINE_INTERNAL
+			BufferDescription.dwFlags |= DSBCAPS_GLOBALFOCUS;
+#endif
 			BufferDescription.dwBufferBytes = BufferSize;
 			BufferDescription.lpwfxFormat = &WaveFormat;
 
@@ -1210,6 +1215,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 					FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
 					if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) != 0)
 					{
+						Win32CompleteAllWork(&HighPriorityQueue);
+						Win32CompleteAllWork(&LowPriorityQueue);
 						Win32UnloadGameCode(&Game);
 						Game = Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 						NewInput->ExecutableReloaded = true;
