@@ -1130,7 +1130,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			GlobalRunning = true;
 
 			// TODO: Pool with bitmap VirtualAlloc
-			i16* Samples = (i16*)VirtualAlloc(0, SoundOutput.SecondaryBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			// TODO: Remove MaxPossibleOverrun
+			u32 MaxPossibleOverrun = 2 * 8 * sizeof(u16);
+			i16* Samples = (i16*)VirtualAlloc(0, SoundOutput.SecondaryBufferSize + MaxPossibleOverrun, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 #if P5ENGINE_INTERNAL
 			LPVOID BaseAddress = (LPVOID)Terabytes(2);
@@ -1439,7 +1441,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 
 							game_sound_output_buffer SoundBuffer = {};
 							SoundBuffer.SamplesPerSecond = SoundOutput.SamplesPerSecond;
-							SoundBuffer.SampleCount = BytesToWrite / SoundOutput.BytesPerSample;
+							SoundBuffer.SampleCount = Align8(BytesToWrite / SoundOutput.BytesPerSample);
+							BytesToWrite = SoundBuffer.SampleCount * SoundOutput.BytesPerSample;
 							SoundBuffer.Samples = Samples;
 
 							if (Game.GetSoundSamples)

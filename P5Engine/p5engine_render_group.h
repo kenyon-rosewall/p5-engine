@@ -134,4 +134,8 @@ struct render_group
 	u32 MissingResourceCount;
 };
 
+void DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Color,
+	loaded_bitmap* Texture, f32 PixelsToMeters,
+	rectangle2i ClipRect, b32 Even);
+
 #endif // !P5ENGINE_RENDER_GROUP_H
