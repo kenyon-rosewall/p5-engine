@@ -3,6 +3,15 @@
 #ifndef P5ENGINE_ASSET_TYPE_ID_H
 #define P5ENGINE_ASSET_TYPE_ID_H
 
+enum class asset_tag_id
+{
+	Smoothness,
+	Flatness,
+	FacingDirection,
+
+	Count,
+};
+
 enum class asset_type_id
 {
 	None,

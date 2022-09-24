@@ -644,8 +644,6 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	Assets->TagCount = 1024 * (u32)asset_type_id::Count;
 	Assets->Tags = PushArray(Arena, Assets->TagCount, asset_tag);
 
-	Assets->DEBUGUsedBitmapCount = 1;
-	Assets->DEBUGUsedSoundCount = 1;
 	Assets->DEBUGUsedAssetCount = 1;
 
 	//

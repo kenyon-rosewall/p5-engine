@@ -35,15 +35,6 @@ enum class asset_state
 	Locked
 };
 
-enum class asset_tag_id
-{
-	Smoothness,
-	Flatness,
-	FacingDirection,
-
-	Count,
-};
-
 struct asset_bitmap_info
 {
 	char* Filename;
@@ -115,8 +106,6 @@ struct game_assets
 	asset_type AssetTypes[(u32)asset_type_id::Count];
 
 	// TODO: These should go away once we actually load an asset pack file
-	u32 DEBUGUsedBitmapCount;
-	u32 DEBUGUsedSoundCount;
 	u32 DEBUGUsedAssetCount;
 	u32 DEBUGUsedTagCount;
 	asset_type* DEBUGAssetType;
