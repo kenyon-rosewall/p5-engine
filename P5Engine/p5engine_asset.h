@@ -3,6 +3,8 @@
 #ifndef P5ENGINE_ASSET_H
 #define P5ENGINE_ASSET_H
 
+#include "p5engine_asset_type_id.h"
+
 struct bitmap_id
 {
 	u32 Value;
@@ -32,15 +34,6 @@ enum class asset_state
 	Loaded,
 	Locked
 };
-struct asset_slot
-{
-	asset_state State;
-	union
-	{
-		loaded_bitmap* Bitmap;
-		loaded_sound* Sound;
-	};
-};
 
 enum class asset_tag_id
 {
@@ -49,64 +42,6 @@ enum class asset_tag_id
 	FacingDirection,
 
 	Count,
-};
-
-enum class asset_type_id
-{
-	None,
-
-	//
-	// NOTE: Bitmaps
-	//
-
-	Shadow,
-	Tree,
-	Monstar,
-	Familiar,
-	Grass,
-
-	Soil,
-	Tuft,
-
-	Character,
-	Sword,
-
-	//
-	// NOTE: Sounds
-	//
-
-	Bloop,
-	Crack,
-	Drop,
-	Glide,
-	Music,
-	Puhp,
-
-	Count,
-};
-
-struct asset_tag
-{
-	asset_tag_id ID;
-	f32 Value;
-};
-
-struct asset
-{
-	u32 FirstTagIndex;
-	u32 OnePastLastTagIndex;
-	u32 SlotID;
-};
-
-struct asset_vector
-{
-	f32 E[(u32)asset_tag_id::Count];
-};
-
-struct asset_type
-{
-	u32 FirstAssetIndex;
-	u32 OnePastLastAssetIndex;
 };
 
 struct asset_bitmap_info
@@ -123,6 +58,45 @@ struct asset_sound_info
 	sound_id NextIDToPlay;
 };
 
+struct asset_tag
+{
+	asset_tag_id ID;
+	f32 Value;
+};
+
+struct asset_slot
+{
+	asset_state State;
+	union
+	{
+		loaded_bitmap* Bitmap;
+		loaded_sound* Sound;
+	};
+};
+
+struct asset
+{
+	u32 FirstTagIndex;
+	u32 OnePastLastTagIndex;
+
+	union
+	{
+		asset_bitmap_info Bitmap;
+		asset_sound_info Sound;
+	};
+};
+
+struct asset_vector
+{
+	f32 E[(u32)asset_tag_id::Count];
+};
+
+struct asset_type
+{
+	u32 FirstAssetIndex;
+	u32 OnePastLastAssetIndex;
+};
+
 struct game_assets
 {
 	// TODO: Not crazy about this back pointer
@@ -131,25 +105,14 @@ struct game_assets
 
 	f32 TagRange[(u32)asset_tag_id::Count];
 
-	u32 BitmapCount;
-	asset_bitmap_info* BitmapInfos;
-	asset_slot* Bitmaps;
-
-	u32 SoundCount;
-	asset_sound_info* SoundInfos;
-	asset_slot* Sounds;
-
 	u32 TagCount;
 	asset_tag* Tags;
 
 	u32 AssetCount;
 	asset* Assets;
+	asset_slot* Slots;
 
 	asset_type AssetTypes[(u32)asset_type_id::Count];
-	
-	// NOTE: Structured assets
-	hero_bitmaps Hero[4];
-	loaded_bitmap Sword[4];
 
 	// TODO: These should go away once we actually load an asset pack file
 	u32 DEBUGUsedBitmapCount;
@@ -162,16 +125,16 @@ struct game_assets
 
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
 {
-	Assert(ID.Value <= Assets->BitmapCount);
-	loaded_bitmap* Result = Assets->Bitmaps[ID.Value].Bitmap;
+	Assert(ID.Value <= Assets->AssetCount);
+	loaded_bitmap* Result = Assets->Slots[ID.Value].Bitmap;
 
 	return(Result);
 }
 
 inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 {
-	Assert(ID.Value <= Assets->SoundCount);
-	loaded_sound* Result = Assets->Sounds[ID.Value].Sound;
+	Assert(ID.Value <= Assets->AssetCount);
+	loaded_sound* Result = Assets->Slots[ID.Value].Sound;
 
 	return(Result);
 }
@@ -179,8 +142,8 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 inline asset_sound_info* 
 GetSoundInfo(game_assets* Assets, sound_id ID)
 {
-	Assert(ID.Value <= Assets->SoundCount);
-	asset_sound_info* Result = Assets->SoundInfos + ID.Value;
+	Assert(ID.Value <= Assets->AssetCount);
+	asset_sound_info* Result = &Assets->Assets[ID.Value].Sound;
 
 	return(Result);
 }
