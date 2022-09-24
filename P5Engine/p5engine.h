@@ -110,7 +110,7 @@
 struct memory_arena
 {
 	memory_index Size;
-	u08* Base;
+	u8* Base;
 	memory_index Used;
 
 	u32 TempCount;
@@ -126,7 +126,7 @@ inline void
 InitializeArena(memory_arena* Arena, memory_index Size, void* Base)
 {
 	Arena->Size = Size;
-	Arena->Base = (u08*)Base;
+	Arena->Base = (u8*)Base;
 	Arena->Used = 0;
 	Arena->TempCount = 0;
 }
@@ -226,7 +226,7 @@ inline void
 SubArena(memory_arena* Result, memory_arena* Arena, memory_index Size, memory_index Alignment = 16)
 {
 	Result->Size = Size;
-	Result->Base = (u08*)PushSize_(Arena, Size, Alignment);
+	Result->Base = (u8*)PushSize_(Arena, Size, Alignment);
 	Result->Used = 0;
 	Result->TempCount = 0;
 }
@@ -236,7 +236,7 @@ inline void
 ZeroSize(memory_index Size, void* Ptr)
 {
 	// TODO: Check this guy for performance
-	u08* Byte = (u08*)Ptr;
+	u8* Byte = (u8*)Ptr;
 	while (Size--)
 	{
 		*Byte++ = 0;
@@ -245,6 +245,7 @@ ZeroSize(memory_index Size, void* Ptr)
 
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
+#include "p5engine_file_formats.h"
 #include "p5engine_random.h"
 #include "p5engine_world.h"
 #include "p5engine_sim_region.h"

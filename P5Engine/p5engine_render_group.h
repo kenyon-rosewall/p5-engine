@@ -129,7 +129,7 @@ struct render_group
 
 	u32 MaxPushBufferSize;
 	u32 PushBufferSize;
-	u08* PushBufferBase;
+	u8* PushBufferBase;
 
 	u32 MissingResourceCount;
 };

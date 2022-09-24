@@ -8,6 +8,8 @@
 #include "p5engine_types.h"
 #include "p5engine_asset_type_id.h"
 #include "p5engine_file_formats.h"
+#include "p5engine_intrinsics.h"
+#include "p5engine_math.h"
 
 struct bitmap_id
 {
@@ -19,43 +21,17 @@ struct sound_id
 	u32 Value;
 };
 
-struct asset_bitmap_info
+enum class asset_type
 {
-	char* Filename;
-	f32 AlignPercentage[2];
+	Sound,
+	Bitmap,
 };
 
-struct asset_sound_info
+struct asset_source
 {
+	asset_type Type;
 	char* Filename;
 	u32 FirstSampleIndex;
-	u32 SampleCount;
-	sound_id NextIDToPlay;
-};
-
-struct asset
-{
-	u64 DataOffset;
-	u32 FirstTagIndex;
-	u32 OnePastLastTagIndex;
-
-	union
-	{
-		asset_bitmap_info Bitmap;
-		asset_sound_info Sound;
-	};
-};
-
-struct asset_type
-{
-	u32 FirstAssetIndex;
-	u32 OnePastLastAssetIndex;
-};
-
-struct bitmap_asset
-{
-	char* Filename;
-	f32 Alignment[2];
 };
 
 #define VERY_LARGE_NUMBER 4096
@@ -69,10 +45,11 @@ struct game_assets
 	p5a_asset_type AssetTypes[(u32)asset_type_id::Count];
 
 	u32 AssetCount;
-	asset Assets[VERY_LARGE_NUMBER];
+	asset_source AssetSources[VERY_LARGE_NUMBER];
+	p5a_asset Assets[VERY_LARGE_NUMBER];
 
 	p5a_asset_type* DEBUGAssetType;
-	asset* DEBUGAsset;
+	u32 AssetIndex;
 };
 
 

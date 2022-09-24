@@ -124,8 +124,7 @@ NOTE: Services that the game provides to the platform layer.
 
 // FOUR THINGS - timing, controller/keyboard input, bitmap buffer to use, sound buffer to use
 
-// TODO: In the future, rendering _specifically_ will become a three-tiered abstraction!!!
-#define BITMAP_BYTES_PER_PIXEL 4
+// TODO: In the future, rendering _specifically_ will become a three-tiered abstraction
 typedef struct game_offscreen_buffer
 {
 	// NOTE: Memory are always 32-bits wide, Memory Order BB GG RR XX

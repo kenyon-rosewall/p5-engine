@@ -80,7 +80,7 @@ DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Co
 			FillRect.MaxX = (FillRect.MaxX & ~3) + 4;
 		}
 
-		u08* Row = ((u08*)Buffer->Memory + FillRect.MinX * BITMAP_BYTES_PER_PIXEL + FillRect.MinY * Buffer->Pitch);
+		u8* Row = ((u8*)Buffer->Memory + FillRect.MinX * BITMAP_BYTES_PER_PIXEL + FillRect.MinY * Buffer->Pitch);
 		i32 RowAdvance = 2 * Buffer->Pitch;
 		i32 TexturePitch = Texture->Pitch;
 		void* TextureMemory = Texture->Memory;
@@ -176,10 +176,10 @@ DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Co
 					i32 Fetch2 = Mi(Fetch_4x, 2);
 					i32 Fetch3 = Mi(Fetch_4x, 3);
 
-					u08* TexelPtr0 = ((u08*)TextureMemory) + Fetch0;
-					u08* TexelPtr1 = ((u08*)TextureMemory) + Fetch1;
-					u08* TexelPtr2 = ((u08*)TextureMemory) + Fetch2;
-					u08* TexelPtr3 = ((u08*)TextureMemory) + Fetch3;
+					u8* TexelPtr0 = ((u8*)TextureMemory) + Fetch0;
+					u8* TexelPtr1 = ((u8*)TextureMemory) + Fetch1;
+					u8* TexelPtr2 = ((u8*)TextureMemory) + Fetch2;
+					u8* TexelPtr3 = ((u8*)TextureMemory) + Fetch3;
 
 					__m128i SampleA = _mm_setr_epi32(*(u32*)(TexelPtr0),
 						*(u32*)(TexelPtr1),

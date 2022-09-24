@@ -487,7 +487,7 @@ MakeSphereDiffuseMap(loaded_bitmap* Bitmap, f32 Cx = 1.0f, f32 Cy = 1.0f)
 	f32 InvWidth = 1.0f / (f32)(Bitmap->Width - 1);
 	f32 InvHeight = 1.0f / (f32)(Bitmap->Height - 1);
 
-	u08* Row = (u08*)Bitmap->Memory;
+	u8* Row = (u8*)Bitmap->Memory;
 	for (i32 Y = 0; Y < Bitmap->Height; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
@@ -534,7 +534,7 @@ MakeSphereNormalMap(loaded_bitmap* Bitmap, f32 Roughness, f32 Cx = 1.0f, f32 Cy 
 	f32 InvWidth = 1.0f / (f32)(Bitmap->Width - 1);
 	f32 InvHeight = 1.0f / (f32)(Bitmap->Height - 1);
 
-	u08* Row = (u08*)Bitmap->Memory;
+	u8* Row = (u8*)Bitmap->Memory;
 	for (i32 Y = 0; Y < Bitmap->Height; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
@@ -577,7 +577,7 @@ MakePyramidNormalMap(loaded_bitmap* Bitmap, f32 Roughness)
 	f32 InvWidth = 1.0f / (f32)(Bitmap->Width - 1);
 	f32 InvHeight = 1.0f / (f32)(Bitmap->Height - 1);
 
-	u08* Row = (u08*)Bitmap->Memory;
+	u8* Row = (u8*)Bitmap->Memory;
 	for (i32 Y = 0; Y < Bitmap->Height; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
@@ -667,7 +667,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			GameState->TypicalFloorHeight
 		);
 
-		InitializeArena(&GameState->WorldArena, Memory->PermanentStorageSize - sizeof(game_state), (u08*)Memory->PermanentStorage + sizeof(game_state));
+		InitializeArena(&GameState->WorldArena, Memory->PermanentStorageSize - sizeof(game_state), (u8*)Memory->PermanentStorage + sizeof(game_state));
 
 		InitializeAudioState(&GameState->AudioState, &GameState->WorldArena);
 
@@ -854,7 +854,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	transient_state* TransientState = (transient_state*)Memory->TransientStorage;
 	if (!TransientState->IsInitialized)
 	{
-		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (u08*)Memory->TransientStorage + sizeof(transient_state));
+		InitializeArena(&TransientState->TransientArena, Memory->TransientStorageSize - sizeof(transient_state), (u8*)Memory->TransientStorage + sizeof(transient_state));
 
 		TransientState->HighPriorityQueue = Memory->HighPriorityQueue;
 		TransientState->LowPriorityQueue = Memory->LowPriorityQueue;

@@ -13,36 +13,6 @@ Unpack4x8(u32 Packed)
 }
 
 inline v4
-SRGB255ToLinear1(v4 C)
-{
-	v4 Result = {};
-
-	f32 Inv255 = 1.0f / 255.0f;
-
-	Result.r = Square(Inv255 * C.r);
-	Result.g = Square(Inv255 * C.g);
-	Result.b = Square(Inv255 * C.b);
-	Result.a = Inv255 * C.a;
-
-	return(Result);
-}
-
-inline v4
-Linear1ToSRGB255(v4 C)
-{
-	v4 Result = {};
-
-	f32 One255 = 255.0f;
-
-	Result.r = One255 * SquareRoot(C.r);
-	Result.g = One255 * SquareRoot(C.g);
-	Result.b = One255 * SquareRoot(C.b);
-	Result.a = One255 * C.a;
-
-	return(Result);
-}
-
-inline v4
 UnscaleAndBiasNormal(v4 Normal)
 {
 	v4 Result = {};
@@ -82,7 +52,7 @@ DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v4 Color, rectangle2i Cli
 					  (RoundReal32ToUInt32(G * 255.0f) <<  8) | 
 					  (RoundReal32ToUInt32(B * 255.0f) <<  0));
 
-	u08* Row = ((u08*)Buffer->Memory + FillRect.MinX * BITMAP_BYTES_PER_PIXEL + FillRect.MinY * Buffer->Pitch);
+	u8* Row = ((u8*)Buffer->Memory + FillRect.MinX * BITMAP_BYTES_PER_PIXEL + FillRect.MinY * Buffer->Pitch);
 
 	for (int y = FillRect.MinY; y < FillRect.MaxY; y += 2)
 	{
@@ -106,7 +76,7 @@ BilinearSample(loaded_bitmap* Texture, i32 X, i32 Y)
 {
 	bilinear_sample Result = {};
 
-	u08* TexelPtr = ((u08*)Texture->Memory) + Y * Texture->Pitch + X * BITMAP_BYTES_PER_PIXEL;
+	u8* TexelPtr = ((u8*)Texture->Memory) + Y * Texture->Pitch + X * BITMAP_BYTES_PER_PIXEL;
 	Result.A = *(u32*)(TexelPtr);
 	Result.B = *(u32*)(TexelPtr + BITMAP_BYTES_PER_PIXEL);
 	Result.C = *(u32*)(TexelPtr + Texture->Pitch);
@@ -261,7 +231,7 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	if (XMax > WidthMax) { XMax = WidthMax; }
 	if (YMax > HeightMax) { YMax = HeightMax; }
 
-	u08* Row = ((u08*)Buffer->Memory + XMin * BITMAP_BYTES_PER_PIXEL + YMin * Buffer->Pitch);
+	u8* Row = ((u8*)Buffer->Memory + XMin * BITMAP_BYTES_PER_PIXEL + YMin * Buffer->Pitch);
 
 	BEGIN_TIMED_BLOCK(ProcessPixel);
 	for (int Y = YMin; Y < YMax; ++Y)
@@ -415,7 +385,7 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 internal void
 ChangeSaturation(loaded_bitmap* Buffer, f32 Level)
 {
-	u08* DestRow = (u08*)Buffer->Memory;
+	u8* DestRow = (u8*)Buffer->Memory;
 	for (i32 y = 0; y < Buffer->Height; ++y)
 	{
 		u32* Dest = (u32*)DestRow;
@@ -475,8 +445,8 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f
 		MaxY = Buffer->Height;
 	}
 
-	u08* SourceRow = (u08*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
-	u08* DestRow = ((u08*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
+	u8* SourceRow = (u8*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
+	u8* DestRow = ((u8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
 	for (i32 y = MinY; y < MaxY; ++y)
 	{
 		u32* Dest = (u32*)DestRow;
@@ -539,8 +509,8 @@ DrawMatte(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f3
 		MaxY = Buffer->Height;
 	}
 
-	u08* SourceRow = (u08*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
-	u08* DestRow = ((u08*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
+	u8* SourceRow = (u8*)Bitmap->Memory + Bitmap->Pitch * SourceOffsetY + BITMAP_BYTES_PER_PIXEL * SourceOffsetX;
+	u8* DestRow = ((u8*)Buffer->Memory + MinX * BITMAP_BYTES_PER_PIXEL + MinY * Buffer->Pitch);
 	for (i32 y = MinY; y < MaxY; ++y)
 	{
 		u32* Dest = (u32*)DestRow;
@@ -639,7 +609,7 @@ PushRenderElement_(render_group* Group, u32 Size, render_group_entry_type Type)
 	{
 		render_group_entry_header* Header = (render_group_entry_header*)(Group->PushBufferBase + Group->PushBufferSize);
 		Header->Type = Type;
-		Result = (u08*)Header + sizeof(*Header);
+		Result = (u8*)Header + sizeof(*Header);
 		Group->PushBufferSize += Size;
 	}
 	else
@@ -765,7 +735,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 	{
 		render_group_entry_header* Header = (render_group_entry_header*)(RenderGroup->PushBufferBase + BaseAddress);
 		BaseAddress += sizeof(*Header);
-		void* Data = (u08*)Header + sizeof(*Header);
+		void* Data = (u8*)Header + sizeof(*Header);
 
 		switch (Header->Type)
 		{
@@ -976,7 +946,7 @@ AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferS
 		// TODO: Safe cast from memory_uint to uint32?
 		MaxPushBufferSize = (u32)GetArenaSizeRemaining(Arena);
 	}
-	Result->PushBufferBase = (u08*)PushSize(Arena, MaxPushBufferSize);
+	Result->PushBufferBase = (u8*)PushSize(Arena, MaxPushBufferSize);
 
 	Result->MaxPushBufferSize = MaxPushBufferSize;
 	Result->PushBufferSize = 0;

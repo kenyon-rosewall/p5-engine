@@ -533,13 +533,13 @@ Win32ClearBuffer(win32_sound_output* SoundOutput)
 	if (SUCCEEDED(GlobalSecondaryBuffer->Lock(0, SoundOutput->SecondaryBufferSize, &Region1, &Region1Size, &Region2, &Region2Size, 0)))
 	{
 		// TODO: assert that Region1Size/Region2Size is valid
-		u08* DestSample = (u08*)Region1;
+		u8* DestSample = (u8*)Region1;
 		for (DWORD ByteIndex = 0; ByteIndex < Region1Size; ++ByteIndex)
 		{
 			*DestSample++ = 0;
 		}
 
-		DestSample = (u08*)Region2;
+		DestSample = (u8*)Region2;
 		for (DWORD ByteIndex = 0; ByteIndex < Region2Size; ++ByteIndex)
 		{
 			*DestSample++ = 0;
@@ -1161,7 +1161,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			Win32State.TotalSize = GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
 			Win32State.GameMemoryBlock = VirtualAlloc(BaseAddress, (size_t)Win32State.TotalSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			GameMemory.PermanentStorage = Win32State.GameMemoryBlock;
-			GameMemory.TransientStorage = ((u08*)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
+			GameMemory.TransientStorage = ((u8*)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
 
 			for (int ReplayIndex = 0; ReplayIndex < ArrayCount(Win32State.ReplayBuffers); ++ReplayIndex)
 			{

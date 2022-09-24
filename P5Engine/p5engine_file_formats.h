@@ -44,8 +44,8 @@ struct p5a_bitmap
 
 struct p5a_sound
 {
-	u32 FirstSampleIndex;
 	u32 SampleCount;
+	u32 ChannelCount;
 	u32 NextIDToPlay;
 };
 

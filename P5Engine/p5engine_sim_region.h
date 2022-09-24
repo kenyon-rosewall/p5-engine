@@ -15,8 +15,8 @@ struct move_spec
 struct hit_point
 {
 	// TODO: Bake this down into one variable 
-	u08 Flags;
-	u08 FilledAmount;
+	u8 Flags;
+	u8 FilledAmount;
 };
 
 enum class entity_type

@@ -51,7 +51,7 @@ struct asset_sound_info
 
 struct asset_tag
 {
-	asset_tag_id ID;
+	u32 ID;
 	f32 Value;
 };
 
@@ -104,12 +104,6 @@ struct game_assets
 	asset_slot* Slots;
 
 	asset_type AssetTypes[(u32)asset_type_id::Count];
-
-	// TODO: These should go away once we actually load an asset pack file
-	u32 DEBUGUsedAssetCount;
-	u32 DEBUGUsedTagCount;
-	asset_type* DEBUGAssetType;
-	asset* DEBUGAsset;
 };
 
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)

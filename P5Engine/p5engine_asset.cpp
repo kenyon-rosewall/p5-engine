@@ -1,4 +1,6 @@
 
+#if 0
+
 #pragma pack(push, 1)
 struct bitmap_header
 {
@@ -60,25 +62,6 @@ struct WAVE_fmt
 	u08 SubFormat[16];
 };
 #pragma pack(pop)
-
-internal v2
-TopDownAlign(loaded_bitmap* Bitmap, v2 Align)
-{
-	Align.y = (f32)(Bitmap->Height - 1) - Align.y;
-
-	Align.x = SafeRatio0(Align.x, (f32)Bitmap->Width);
-	Align.y = SafeRatio0(Align.y, (f32)Bitmap->Height);
-
-	return(Align);
-}
-
-internal void
-SetTopDownAlign(hero_bitmaps* Bitmap, v2 Align)
-{
-	v2 AlignPercentage = TopDownAlign(&Bitmap->Character, Align);
-
-	Bitmap->Character.AlignPercentage = AlignPercentage;
-}
 
 internal loaded_bitmap
 DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
@@ -329,6 +312,27 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 
 	return(Result);
 }
+#endif 
+
+internal loaded_bitmap
+DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
+{
+	Assert(!"N ONO NO NON ONO NO NO NO");
+
+	loaded_bitmap Result = {};
+
+	return(Result);
+}
+
+internal loaded_sound
+DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount)
+{
+	Assert(!"NO NO NO NO NOO NO NO");
+
+	loaded_sound Result = {};
+
+	return(Result);
+}
 
 struct load_bitmap_work
 {
@@ -338,6 +342,7 @@ struct load_bitmap_work
 	loaded_bitmap* Bitmap;
 	asset_state FinalState;
 };
+
 internal PLATFORM_WORK_QUEUE_CALLBACK(LoadBitmapWork)
 {
 	load_bitmap_work* Work = (load_bitmap_work*)Data;
@@ -553,6 +558,7 @@ GetRandomSoundFrom(game_assets* Assets, asset_type_id TypeID, random_series* Ser
 	return(Result);
 }
 
+#if 0
 internal void
 BeginAssetType(game_assets* Assets, asset_type_id TypeID)
 {
@@ -623,6 +629,7 @@ EndAssetType(game_assets* Assets)
 	Assets->DEBUGAssetType = 0;
 	Assets->DEBUGAsset = 0;
 }
+#endif
 
 internal game_assets*
 AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* TransientState)
@@ -637,13 +644,48 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	}
 	Assets->TagRange[(u32)asset_tag_id::FacingDirection] = Tau32;
 
-	Assets->AssetCount = 2 * 256 * (u32)asset_type_id::Count;
-	Assets->Assets = PushArray(Arena, Assets->AssetCount, asset);
-	Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
+	debug_read_file_result ReadResult = PlatformReadEntireFile((char*)"../data/assets.p5a");
+	if (ReadResult.ContentsSize != 0)
+	{
+		p5a_header* Header = (p5a_header*)ReadResult.Contents;
 
-	Assets->TagCount = 1024 * (u32)asset_type_id::Count;
-	Assets->Tags = PushArray(Arena, Assets->TagCount, asset_tag);
+		Assert(Header->MagicValue == P5A_MAGIC_VALUE);
+		Assert(Header->Version == P5A_VERSION);
 
+		Assets->AssetCount = Header->AssetCount;
+		Assets->Assets = PushArray(Arena, Assets->AssetCount, asset);
+		Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
+
+		Assets->TagCount = Header->TagCount;
+		Assets->Tags = PushArray(Arena, Assets->TagCount, asset_tag);
+
+		// TODO: Decide what will be flat-loaded and what won't be
+
+		p5a_tag* P5ATags = (p5a_tag*)(u8*)ReadResult.Contents + Header->Tags;
+
+		for (u32 TagIndex = 0; TagIndex < Assets->TagCount; ++TagIndex)
+		{
+			p5a_tag* Source = P5ATags + TagIndex;
+			asset_tag* Dest = Assets->Tags + TagIndex;
+
+			Dest->ID = Source->ID;
+			Dest->Value = Source->Value;
+		}
+
+#if 0
+		for ()
+		{
+
+		}
+
+		for ()
+		{
+
+		}
+#endif
+	}
+
+#if 0
 	Assets->DEBUGUsedAssetCount = 1;
 
 	//
@@ -761,6 +803,7 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	AddSoundAsset(Assets, (char*)"../data/audio/puhp_00.wav");
 	AddSoundAsset(Assets, (char*)"../data/audio/puhp_01.wav");
 	EndAssetType(Assets);
+#endif
 
 	return(Assets);
 }

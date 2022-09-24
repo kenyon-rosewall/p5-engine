@@ -67,7 +67,7 @@ RotateLeft(u32 Value, i32 Amount)
 	u32 Result = _rotl(Value, Amount);
 #else
 	// TODO: Actually port this to other compiler platforms
-	uint32 Result = ((Amount > 0) ? 
+	u32 Result = ((Amount > 0) ? 
 		((Value << Amount) | (Value >> (32 - Amount))) : 
 		((Value >> -Amount) | (Value << (32 + Amount))));
 #endif
@@ -82,7 +82,7 @@ RotateRight(u32 Value, i32 Amount)
 	u32 Result = _rotr(Value, Amount);
 #else
 	// TODO: Actually port this to other compiler platforms
-	uint32 Result = ((Amount > 0) ? 
+	u32 Result = ((Amount > 0) ? 
 		((Value >> Amount) | (Value << (32 - Amount))) : 
 		((Value << -Amount) | (Value >> (32 + Amount))));
 #endif
@@ -160,7 +160,7 @@ FindLeastSignificantSetBit(u32 Value)
 #if COMPILER_MSVC
 	Result.Found = _BitScanForward((unsigned long *)&Result.Index, Value);
 #else
-	for (uint32 Test = 0; Test < 32; ++Test)
+	for (u32 Test = 0; Test < 32; ++Test)
 	{
 		if (Value & (1 << Test))
 		{

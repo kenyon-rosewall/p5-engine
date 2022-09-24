@@ -12,13 +12,13 @@
 #include <limits.h>
 #include <float.h>
 
-typedef int8_t i08;
+typedef int8_t i8;
 typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 typedef i32 b32;
 
-typedef uint8_t u08;
+typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
@@ -39,6 +39,7 @@ typedef double f64;
 #define global_variable static
 #define local_persist static
 
+#define BITMAP_BYTES_PER_PIXEL 4
 #define Pi32 3.14159265359f
 #define Tau32 6.28318530717958647692f
 
