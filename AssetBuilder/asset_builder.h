@@ -11,16 +11,6 @@
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
 
-struct bitmap_id
-{
-	u32 Value;
-};
-
-struct sound_id
-{
-	u32 Value;
-};
-
 enum class asset_type
 {
 	Sound,

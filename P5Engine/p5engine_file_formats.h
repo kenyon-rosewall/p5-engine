@@ -5,7 +5,17 @@
 
 #define P5A_CODE(a, b, c, d) (((u32)(a) << 0) | ((u32)(b) << 8) | ((u32)(c) << 16) | ((u32)(d) << 24))
 
-#pragma pack(push, 1) 
+#pragma pack(push, 1)
+struct bitmap_id
+{
+	u32 Value;
+};
+
+struct sound_id
+{
+	u32 Value;
+};
+
 struct p5a_header
 {
 #define P5A_MAGIC_VALUE P5A_CODE('p', '5', 'a', 'f')
@@ -46,7 +56,7 @@ struct p5a_sound
 {
 	u32 SampleCount;
 	u32 ChannelCount;
-	u32 NextIDToPlay;
+	sound_id NextIDToPlay;
 };
 
 struct p5a_asset

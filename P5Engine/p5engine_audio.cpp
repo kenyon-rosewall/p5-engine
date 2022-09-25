@@ -116,7 +116,7 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 			loaded_sound* LoadedSound = GetSound(Assets, PlayingSound->ID);
 			if (LoadedSound)
 			{
-				asset_sound_info* Info = GetSoundInfo(Assets, PlayingSound->ID);
+				p5a_sound* Info = GetSoundInfo(Assets, PlayingSound->ID);
 				PrefetchSound(Assets, Info->NextIDToPlay);
 
 				v2 Volume = PlayingSound->CurrentVolume;

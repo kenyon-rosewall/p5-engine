@@ -5,16 +5,6 @@
 
 #include "p5engine_asset_type_id.h"
 
-struct bitmap_id
-{
-	u32 Value;
-};
-
-struct sound_id
-{
-	u32 Value;
-};
-
 struct hero_bitmaps
 {
 	loaded_bitmap Character;
@@ -35,26 +25,6 @@ enum class asset_state
 	Locked
 };
 
-struct asset_bitmap_info
-{
-	char* Filename;
-	v2 AlignPercentage;
-};
-
-struct asset_sound_info
-{
-	char* Filename;
-	u32 FirstSampleIndex;
-	u32 SampleCount;
-	sound_id NextIDToPlay;
-};
-
-struct asset_tag
-{
-	u32 ID;
-	f32 Value;
-};
-
 struct asset_slot
 {
 	asset_state State;
@@ -62,18 +32,6 @@ struct asset_slot
 	{
 		loaded_bitmap* Bitmap;
 		loaded_sound* Sound;
-	};
-};
-
-struct asset
-{
-	u32 FirstTagIndex;
-	u32 OnePastLastTagIndex;
-
-	union
-	{
-		asset_bitmap_info Bitmap;
-		asset_sound_info Sound;
 	};
 };
 
@@ -88,6 +46,18 @@ struct asset_type
 	u32 OnePastLastAssetIndex;
 };
 
+struct asset_file
+{
+	// platform_file_handle Handle;
+
+	// TODO: If we ever do thread stacks, AssetTypeArray doesn't
+	// actually need to be kept here probably.
+	p5a_header Header;
+	p5a_asset_type* AssetTypeArray;
+
+	u32 TagBase;
+};
+
 struct game_assets
 {
 	// TODO: Not crazy about this back pointer
@@ -96,14 +66,19 @@ struct game_assets
 
 	f32 TagRange[(u32)asset_tag_id::Count];
 
+	u32 FileCount;
+	asset_file* Files;
+
 	u32 TagCount;
-	asset_tag* Tags;
+	p5a_tag* Tags;
 
 	u32 AssetCount;
-	asset* Assets;
+	p5a_asset* Assets;
 	asset_slot* Slots;
 
 	asset_type AssetTypes[(u32)asset_type_id::Count];
+
+	u8* P5AContents;
 };
 
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
@@ -122,11 +97,11 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 	return(Result);
 }
 
-inline asset_sound_info* 
+inline p5a_sound* 
 GetSoundInfo(game_assets* Assets, sound_id ID)
 {
 	Assert(ID.Value <= Assets->AssetCount);
-	asset_sound_info* Result = &Assets->Assets[ID.Value].Sound;
+	p5a_sound* Result = &Assets->Assets[ID.Value].Sound;
 
 	return(Result);
 }

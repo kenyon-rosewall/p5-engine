@@ -314,26 +314,6 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 }
 #endif 
 
-internal loaded_bitmap
-DEBUGLoadBMP(char* Filename, v2 AlignPercentage = V2(0.5f, 0.5f))
-{
-	Assert(!"N ONO NO NON ONO NO NO NO");
-
-	loaded_bitmap Result = {};
-
-	return(Result);
-}
-
-internal loaded_sound
-DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount)
-{
-	Assert(!"NO NO NO NO NOO NO NO");
-
-	loaded_sound Result = {};
-
-	return(Result);
-}
-
 struct load_bitmap_work
 {
 	game_assets* Assets;
@@ -347,8 +327,16 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadBitmapWork)
 {
 	load_bitmap_work* Work = (load_bitmap_work*)Data;
 
-	asset_bitmap_info* Info = &Work->Assets->Assets[Work->ID.Value].Bitmap;
-	*Work->Bitmap = DEBUGLoadBMP(Info->Filename, Info->AlignPercentage);
+	p5a_asset* P5AAsset = &Work->Assets->Assets[Work->ID.Value];
+	p5a_bitmap* Info = &P5AAsset->Bitmap;
+
+	loaded_bitmap* Bitmap = Work->Bitmap;
+	Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
+	Bitmap->Width = Info->Dim[0];
+	Bitmap->Height = Info->Dim[1];
+	Bitmap->Pitch = 4 * Info->Dim[0];
+	Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
+	Bitmap->Memory = Work->Assets->P5AContents + P5AAsset->DataOffset;
 
 	CompletePreviousWritesBeforeFutureWrites;
 
@@ -396,8 +384,20 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadSoundWork)
 {
 	load_sound_work* Work = (load_sound_work*)Data;
 
-	asset_sound_info* Info = &Work->Assets->Assets[Work->ID.Value].Sound;
-	*Work->Sound = DEBUGLoadWAV(Info->Filename, Info->FirstSampleIndex, Info->SampleCount);
+	p5a_asset* P5AAsset = &Work->Assets->Assets[Work->ID.Value];
+	p5a_sound* Info = &P5AAsset->Sound;
+
+	loaded_sound* Sound = Work->Sound;
+	Sound->SampleCount = Info->SampleCount;
+	Sound->ChannelCount = Info->ChannelCount;
+	Assert(Sound->ChannelCount < ArrayCount(Sound->Samples));
+
+	u64 SampleDataOffset = P5AAsset->DataOffset;
+	for (u32 ChannelIndex = 0; ChannelIndex < Sound->ChannelCount; ++ChannelIndex)
+	{
+		Sound->Samples[ChannelIndex] = (i16*)(Work->Assets->P5AContents + SampleDataOffset);
+		SampleDataOffset += Sound->SampleCount * sizeof(i16);
+	}
 
 	CompletePreviousWritesBeforeFutureWrites;
 
@@ -453,12 +453,12 @@ GetBestMatchAssetFrom(game_assets* Assets, asset_type_id TypeID, asset_vector* M
 	asset_type* Type = Assets->AssetTypes + (u32)TypeID;
 	for (u32 AssetIndex = Type->FirstAssetIndex; AssetIndex < Type->OnePastLastAssetIndex; ++AssetIndex)
 	{
-		asset* Asset = Assets->Assets + AssetIndex;
+		p5a_asset* Asset = Assets->Assets + AssetIndex;
 
 		f32 TotalWeightedDiff = 0.0f;
 		for (u32 TagIndex = Asset->FirstTagIndex; TagIndex < Asset->OnePastLastTagIndex; ++TagIndex)
 		{
-			asset_tag* Tag = Assets->Tags + TagIndex;
+			p5a_tag* Tag = Assets->Tags + TagIndex;
 			
 			f32 A = MatchVector->E[(u32)Tag->ID];
 			f32 B = Tag->Value;
@@ -644,45 +644,119 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	}
 	Assets->TagRange[(u32)asset_tag_id::FacingDirection] = Tau32;
 
+	Assets->TagCount = 0;
+	Assets->AssetCount = 0;
+
+#if 0
+	{
+		platform_file_group FileGroup = PlatformGetAllFilesOfTypeBegin("p5a");
+		Assets->FileCount = FileGroup.FileCount;
+		Assets->Files = PushArray(Arena, Assets->FileCount, asset_file);
+		for (u32 FileIndex = 0; FileIndex < FileGroup.FileCount; ++FileIndex)
+		{
+			asset_file* File = Assets->Files + FileIndex;
+
+			u32 AssetTypeArraySize = File->Header.AssetTypeCount * sizeof(p5a_asset_type);
+
+			ZeroStruct(File->Header);
+			File->Handle = PlatformOpenFile(FileGroup, FileIndex);
+			PlatformReadDataFromFile(File->Handle, 0, sizeof(File->Header), &File->Header);
+			File->AssetTypeArray = (p5a_asset_type*)PushSize(Arena, AssetTypeArraySize);
+			PlatformReadDataFromFile(File->Handle, File->Header.AssetTypes, AssetTypeArraySize, File->AssetTypeArray);
+
+			if (File->Header.MagicValue != P5A_MAGIC_VALUE)
+			{
+				PlatformFileError(File->Handle, "P5A file has an invalid magic value.");
+			}
+
+			if (File->Header.Version > P5A_VERSION)
+			{
+				PlatformFileError(File->Handle, "P5A file is of a later version.");
+			}
+
+			if (PlatformNoFileErrors(File->Handle))
+			{
+				Assets->TagCount += File->Header.TagCount;
+				Assets->AssetCount += File->Header.AssetsCount;
+			}
+			else
+			{
+				// TODO: Eventually, have some way of notifying users of bogus files?
+				InvalidCodePath;
+			}
+		}
+		PlatformGetAllFilesOfTypeEnd(FileGroup);
+	}
+
+	Assets->Assets = PushArray(Arena, Assets->AssetCount, p5a_asset);
+	Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
+	Assets->Tags = PushArray(Arena, Assets->TagCount, p5a_tag);
+
+	// TODO: Exersize for the reader - how would you do this in a way thot scaled gracefully
+	// to hundreds of asset pack files? (or more!)
+	u32 AssetCount = 0;
+	u32 TagCount = 0;
+	for (u32 DestTypeID = 0; DestTypeID < (u32)asset_type_id::Count; ++DestTypeID)
+	{
+		asset_type* DestType = Assets->AssetTypes + DestTypeID;
+		DestType->FirstAssetIndex = AssetCount;
+
+		for (u32 FileIndex; FileIndex < Assets->FileCount; ++FileIndex)
+		{
+			asset_file* File = Assets->Files + FileIndex;
+			if (PlatformNoFileErrors(File->Handle))
+			{
+				for (u32 SourceIndex; SourceIndex < File->Header.AssetTypeCount; ++SourceIndex)
+				{
+					p5a_asset_type* SourceType = File->AssetTypeArray + SourceIndex;
+
+					if (SourceType->TypeID == AssetTypeID)
+					{
+						PlatformReadDataFromFile();
+						AssetCount += ;
+					}
+				}
+			}
+		}
+
+		DestType->OnePastLastAssetIndex = AssetCount;
+	}
+
+	Assert(AssetCount == Assets->AssetCount);
+	Assert(TagCount == Assets->TagCount);
+#endif
+
 	debug_read_file_result ReadResult = PlatformReadEntireFile((char*)"../data/assets.p5a");
 	if (ReadResult.ContentsSize != 0)
 	{
 		p5a_header* Header = (p5a_header*)ReadResult.Contents;
 
-		Assert(Header->MagicValue == P5A_MAGIC_VALUE);
-		Assert(Header->Version == P5A_VERSION);
-
 		Assets->AssetCount = Header->AssetCount;
-		Assets->Assets = PushArray(Arena, Assets->AssetCount, asset);
+		Assets->Assets = (p5a_asset*)((u8*)ReadResult.Contents + Header->Assets);
 		Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
 
 		Assets->TagCount = Header->TagCount;
-		Assets->Tags = PushArray(Arena, Assets->TagCount, asset_tag);
+		Assets->Tags = (p5a_tag*)((u8*)ReadResult.Contents + Header->Tags);
 
-		// TODO: Decide what will be flat-loaded and what won't be
+		p5a_asset_type* P5AAssetTypes = (p5a_asset_type*)((u8*)ReadResult.Contents + Header->AssetTypes);
 
-		p5a_tag* P5ATags = (p5a_tag*)(u8*)ReadResult.Contents + Header->Tags;
-
-		for (u32 TagIndex = 0; TagIndex < Assets->TagCount; ++TagIndex)
+		for (u32 AssetTypeIndex = 0; AssetTypeIndex < Header->AssetTypeCount; ++AssetTypeIndex)
 		{
-			p5a_tag* Source = P5ATags + TagIndex;
-			asset_tag* Dest = Assets->Tags + TagIndex;
+			p5a_asset_type* Source = P5AAssetTypes + AssetTypeIndex;
 
-			Dest->ID = Source->ID;
-			Dest->Value = Source->Value;
+			if (Source->TypeID < (u32)asset_type_id::Count)
+			{
+				asset_type* Dest = Assets->AssetTypes + Source->TypeID;
+				// TODO: Support merging
+				Assert(Dest->FirstAssetIndex == 0);
+				Assert(Dest->OnePastLastAssetIndex == 0);
+
+				Dest->FirstAssetIndex = Source->FirstAssetIndex;
+				Dest->OnePastLastAssetIndex = Source->OnePastLastAssetIndex;
+			}
 		}
 
-#if 0
-		for ()
-		{
-
-		}
-
-		for ()
-		{
-
-		}
-#endif
+		Assets->P5AContents = (u8*)ReadResult.Contents;
 	}
 
 #if 0
