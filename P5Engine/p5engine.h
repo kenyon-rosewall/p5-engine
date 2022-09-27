@@ -36,6 +36,7 @@
 	- Thread visualization
 
   - Audio
+	- Fix clicking bug at end of samples
 	- Sound effect triggers
 	- Ambient sounds
 	- Music
@@ -240,6 +241,18 @@ ZeroSize(memory_index Size, void* Ptr)
 	while (Size--)
 	{
 		*Byte++ = 0;
+	}
+}
+
+inline void
+Copy(memory_index Size, void* SourceInit, void* DestInit)
+{
+	u8* Source = (u8*)SourceInit;
+	u8* Dest = (u8*)DestInit;
+
+	while (Size--)
+	{
+		*Dest++ = *Source++;
 	}
 }
 

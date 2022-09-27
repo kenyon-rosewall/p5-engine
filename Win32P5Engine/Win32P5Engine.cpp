@@ -1039,9 +1039,18 @@ Win32MakeQueue(platform_work_queue* Queue, u32 ThreadCount)
 	}
 }
 
+struct win32_platform_file_handle
+{
+	platform_file_handle H;
+	HANDLE Win32Handle;
+};
+
 internal PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(Win32GetAllFilesOfTypeBegin)
 {
 	platform_file_group Result = {};
+
+	// TODO: Actually implement this
+	Result.FileCount = 1;
 
 	return(Result);
 }
@@ -1053,18 +1062,69 @@ internal PLATFORM_GET_ALL_FILES_OF_TYPE_END(Win32GetAllFilesOfTypeEnd)
 
 internal PLATFORM_OPEN_FILE(Win32OpenFile)
 {
-	return(0);
-}
+	// TODO: Actually implement this
+	char* Filename = (char*)"../data/assets.p5a";
 
-internal PLATFORM_READ_DATA_FROM_FILE(Win32ReadDataFromFile)
-{
+	// TODO: If we want, someday, make an actual arena used by Win32
+	win32_platform_file_handle* Result = (win32_platform_file_handle*)VirtualAlloc(
+		0,
+		sizeof(win32_platform_file_handle),
+		MEM_RESERVE|MEM_COMMIT,
+		PAGE_READWRITE
+	);
 
+	if (Result)
+	{
+		Result->Win32Handle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+		Result->H.NoErrors = (Result->Win32Handle != INVALID_HANDLE_VALUE);
+	}
+
+	return((platform_file_handle*)Result);
 }
 
 internal PLATFORM_FILE_ERROR(Win32FileError)
 {
+#if P5ENGINE_INTERNAL
+	OutputDebugStringA("WIN32 FILE ERROR: ");
+	OutputDebugStringA(Message);
+	OutputDebugStringA("\n");
+#endif
 
+	Handle->NoErrors = false;
 }
+
+internal PLATFORM_READ_DATA_FROM_FILE(Win32ReadDataFromFile)
+{
+	if (PlatformNoFileErrors(Source))
+	{
+		win32_platform_file_handle* Handle = (win32_platform_file_handle*)Source;
+
+		OVERLAPPED Overlapped = {};
+		Overlapped.Offset = (u32)((Offset >> 0) & 0xFFFFFFFFF);
+		Overlapped.OffsetHigh = (u32)((Offset >> 32) & 0xFFFFFFFF);
+
+		u32 FileSize32 = SafeTruncateUInt64(Size);
+
+		DWORD BytesRead;
+		if (ReadFile(Handle->Win32Handle, Dest, FileSize32, &BytesRead, &Overlapped) && (Size == BytesRead))
+		{
+			// NOTE: File read succeeded
+		}
+		else
+		{
+			Win32FileError(&Handle->H, (char*)"Read file failed.");
+		}
+	}
+}
+
+/*
+
+internal PLATFORM_CLOSE_FILE(Win32CloseFile)
+{
+	CloseHandle(FileHandle);
+}
+
+*/
 
 int CALLBACK
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode)

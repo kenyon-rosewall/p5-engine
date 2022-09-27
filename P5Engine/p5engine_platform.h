@@ -199,7 +199,7 @@ typedef struct game_input
 
 typedef struct platform_file_handle
 {
-	b32 HasErrors;
+	b32 NoErrors;
 } platform_file_handle;
 typedef struct platform_file_group
 {
@@ -222,7 +222,7 @@ typedef PLATFORM_READ_DATA_FROM_FILE(platform_read_data_from_file);
 #define PLATFORM_FILE_ERROR(name) void name(platform_file_handle* Handle, char* Message)
 typedef PLATFORM_FILE_ERROR(platform_file_error);
 
-#define PlatformNoFileErrors(Handle) (!(Handle)->HasErrors)
+#define PlatformNoFileErrors(Handle) ((Handle)->NoErrors)
 
 struct platform_work_queue;
 #define PLATFORM_WORK_QUEUE_CALLBACK(name) void name(platform_work_queue* Queue, void* Data)

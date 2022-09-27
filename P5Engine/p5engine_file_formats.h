@@ -31,6 +31,20 @@ struct p5a_header
 	u64 Tags; // p5a_tag[TagCount]
 	u64 AssetTypes; // p5a_asset_type[AssetTypeCount]
 	u64 Assets; // p5a_asset[AssetCount]
+
+	// TODO: Primacy numbers for asset files?
+
+	// TODO:
+	//
+	// u32 FileGUID[8];
+	// u32 RemovalCount;
+	// 
+	// struct p5a_asset_removal
+	// {
+	//		u32 FileGUID[8];
+	//		u32 AssetIndex;
+	// };
+	//
 };
 
 struct p5a_tag

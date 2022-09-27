@@ -35,6 +35,12 @@ struct asset_slot
 	};
 };
 
+struct asset
+{
+	p5a_asset P5A;
+	u32 FileIndex;
+};
+
 struct asset_vector
 {
 	f32 E[(u32)asset_tag_id::Count];
@@ -73,12 +79,10 @@ struct game_assets
 	p5a_tag* Tags;
 
 	u32 AssetCount;
-	p5a_asset* Assets;
+	asset* Assets;
 	asset_slot* Slots;
 
 	asset_type AssetTypes[(u32)asset_type_id::Count];
-
-	u8* P5AContents;
 };
 
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
@@ -86,7 +90,12 @@ inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
 	Assert(ID.Value <= Assets->AssetCount);
 
 	asset_slot* Slot = Assets->Slots + ID.Value;
-	loaded_bitmap* Result = (Slot->State >= asset_state::Loaded) ? Slot->Bitmap : 0;
+	loaded_bitmap* Result = 0;
+	if (Slot->State >= asset_state::Loaded)
+	{
+		CompletePreviousReadsBeforeFutureReads;
+		Result = Slot->Bitmap;
+	}
 
 	return(Result);
 }
@@ -96,7 +105,12 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 	Assert(ID.Value <= Assets->AssetCount);
 
 	asset_slot* Slot = Assets->Slots + ID.Value;
-	loaded_sound* Result = (Slot->State >= asset_state::Loaded) ? Slot->Sound : 0;
+	loaded_sound* Result = 0;
+	if (Slot->State >= asset_state::Loaded)
+	{
+		CompletePreviousReadsBeforeFutureReads;
+		Result = Slot->Sound;
+	}
 
 	return(Result);
 }
@@ -105,7 +119,7 @@ inline p5a_sound*
 GetSoundInfo(game_assets* Assets, sound_id ID)
 {
 	Assert(ID.Value <= Assets->AssetCount);
-	p5a_sound* Result = &Assets->Assets[ID.Value].Sound;
+	p5a_sound* Result = &Assets->Assets[ID.Value].P5A.Sound;
 
 	return(Result);
 }
