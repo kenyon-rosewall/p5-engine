@@ -383,14 +383,12 @@ GetLowEntity(game_state* GameState, u32 LowIndex)
 	return(Result);
 }
 
-global_variable platform_add_entry* PlatformAddEntry;
-global_variable platform_complete_all_work* PlatformCompleteAllWork;
-global_variable debug_platform_read_entire_file* PlatformReadEntireFile;
-
 internal void
 AddCollisionRule(game_state* GameState, u32 StorageIndexA, u32 StorageIndexB, b32 ShouldCollide);
 internal void
 ClearCollisionRulesFor(game_state* GameState, u32 StorageIndex);
+
+global_variable platform_api Platform;
 
 internal task_with_memory* BeginTaskWithMemory(transient_state* TransientState);
 internal void EndTaskWithMemory(task_with_memory* Task);

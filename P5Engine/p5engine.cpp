@@ -444,7 +444,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 		{
 			GroundBuffer->Pos = *ChunkPos;
 
-			PlatformAddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
+			Platform.AddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
 		}
 		else
 		{
@@ -634,9 +634,7 @@ game_memory* DebugGlobalMemory;
 
 extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
-	PlatformAddEntry = Memory->PlatformAddEntry;
-	PlatformCompleteAllWork = Memory->PlatformCompleteAllWork;
-	PlatformReadEntireFile = Memory->DEBUGPlatformReadEntireFile;
+	Platform = Memory->PlatformAPI;
 
 #if P5ENGINE_INTERNAL
 	DebugGlobalMemory = Memory;

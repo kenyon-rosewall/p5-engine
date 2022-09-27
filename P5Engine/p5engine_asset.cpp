@@ -314,6 +314,41 @@ DEBUGLoadWAV(char* Filename, u32 SectionFirstSampleIndex, u32 SectionSampleCount
 }
 #endif 
 
+struct load_asset_work
+{
+	task_with_memory* Task;
+	asset_slot* Slot;
+
+	platform_file_handle* Handle;
+	u64 Offset;
+	u64 Size;
+	void* Destination;
+
+	asset_state FinalState;
+};
+
+internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
+{
+	load_asset_work* Work = (load_asset_work*)Data;
+
+#if 0
+	Platform.ReadDataFromFile(Work->Handle, Work->Offset, Work->Size, Work->Destination);
+#endif
+
+	CompletePreviousWritesBeforeFutureWrites;
+
+	// TODO: Should we actually fill in bogus data here and set to final state anyway?
+#if 0
+	if (PlatformNoFileErrors(Work->Handle))
+#endif
+	{
+		Work->Slot->State = Work->FinalState;
+	}
+
+	EndTaskWithMemory(Work->Task);
+}
+
+#if 0
 struct load_bitmap_work
 {
 	game_assets* Assets;
@@ -338,6 +373,8 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadBitmapWork)
 	Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
 	Bitmap->Memory = Work->Assets->P5AContents + P5AAsset->DataOffset;
 
+	Work->Assets->Slots[Work->ID.Value].Bitmap = Work->Bitmap;
+
 	CompletePreviousWritesBeforeFutureWrites;
 
 	Work->Assets->Slots[Work->ID.Value].Bitmap = Work->Bitmap;
@@ -345,6 +382,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadBitmapWork)
 
 	EndTaskWithMemory(Work->Task);
 }
+#endif
 
 internal void
 LoadBitmap(game_assets* Assets, bitmap_id ID)
@@ -354,15 +392,31 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
 		{
-			load_bitmap_work* Work = PushStruct(&Task->Arena, load_bitmap_work);
+			p5a_asset* P5AAsset = Assets->Assets + ID.Value;
+			p5a_bitmap* Info = &P5AAsset->Bitmap;
+			loaded_bitmap* Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
 
-			Work->Assets = Assets;
-			Work->ID = ID;
+			Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
+			Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
+			Bitmap->Width = Info->Dim[0];
+			Bitmap->Height = Info->Dim[1];
+			Bitmap->Pitch = 4 * Info->Dim[0];
+			u32 MemorySize = Bitmap->Pitch * Bitmap->Height;
+			Bitmap->Memory = PushSize(&Assets->Arena, MemorySize);
+
+			load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
 			Work->Task = Task;
-			Work->Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
+			Work->Slot = Assets->Slots + ID.Value;
+			Work->Slot->Bitmap = Bitmap;
+			Work->Handle = 0;
+			Work->Offset = P5AAsset->DataOffset;
+			Work->Size = MemorySize;
+			Work->Destination = Bitmap->Memory;
 			Work->FinalState = asset_state::Loaded;
 
-			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadBitmapWork, Work);
+			Bitmap->Memory = Assets->P5AContents + P5AAsset->DataOffset;
+
+			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 		}
 		else
 		{
@@ -423,7 +477,7 @@ LoadSound(game_assets* Assets, sound_id ID)
 			Work->Sound = PushStruct(&Assets->Arena, loaded_sound);
 			Work->FinalState = asset_state::Loaded;
 
-			PlatformAddEntry(Assets->TransientState->LowPriorityQueue, LoadSoundWork, Work);
+			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadSoundWork, Work);
 		}
 		else
 		{
@@ -644,40 +698,41 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	}
 	Assets->TagRange[(u32)asset_tag_id::FacingDirection] = Tau32;
 
+#if 0
 	Assets->TagCount = 0;
 	Assets->AssetCount = 0;
 
-#if 0
 	{
-		platform_file_group FileGroup = PlatformGetAllFilesOfTypeBegin("p5a");
+		platform_file_group FileGroup = Platform.GetAllFilesOfTypeBegin((char*)"p5a");
 		Assets->FileCount = FileGroup.FileCount;
 		Assets->Files = PushArray(Arena, Assets->FileCount, asset_file);
 		for (u32 FileIndex = 0; FileIndex < FileGroup.FileCount; ++FileIndex)
 		{
 			asset_file* File = Assets->Files + FileIndex;
+			File->TagBase = Assets->TagCount;
 
 			u32 AssetTypeArraySize = File->Header.AssetTypeCount * sizeof(p5a_asset_type);
 
 			ZeroStruct(File->Header);
-			File->Handle = PlatformOpenFile(FileGroup, FileIndex);
-			PlatformReadDataFromFile(File->Handle, 0, sizeof(File->Header), &File->Header);
+			File->Handle = Platform.OpenFile(FileGroup, FileIndex);
+			Platform.ReadDataFromFile(File->Handle, 0, sizeof(File->Header), &File->Header);
 			File->AssetTypeArray = (p5a_asset_type*)PushSize(Arena, AssetTypeArraySize);
-			PlatformReadDataFromFile(File->Handle, File->Header.AssetTypes, AssetTypeArraySize, File->AssetTypeArray);
+			Platform.ReadDataFromFile(File->Handle, File->Header.AssetTypes, AssetTypeArraySize, File->AssetTypeArray);
 
 			if (File->Header.MagicValue != P5A_MAGIC_VALUE)
 			{
-				PlatformFileError(File->Handle, "P5A file has an invalid magic value.");
+				Platform.FileError(File->Handle, (char*)"P5A file has an invalid magic value.");
 			}
 
 			if (File->Header.Version > P5A_VERSION)
 			{
-				PlatformFileError(File->Handle, "P5A file is of a later version.");
+				Platform.FileError(File->Handle, (char*)"P5A file is of a later version.");
 			}
 
 			if (PlatformNoFileErrors(File->Handle))
 			{
 				Assets->TagCount += File->Header.TagCount;
-				Assets->AssetCount += File->Header.AssetsCount;
+				Assets->AssetCount += File->Header.AssetCount;
 			}
 			else
 			{
@@ -685,35 +740,64 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 				InvalidCodePath;
 			}
 		}
-		PlatformGetAllFilesOfTypeEnd(FileGroup);
+
+		Platform.GetAllFilesOfTypeEnd(FileGroup);
 	}
 
+	// NOTE: Allocate all metadata space
 	Assets->Assets = PushArray(Arena, Assets->AssetCount, p5a_asset);
 	Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
 	Assets->Tags = PushArray(Arena, Assets->TagCount, p5a_tag);
 
+	// NOTE: Load tags
+	for (u32 FileIndex = 0; FileIndex < Assets->FileCount; ++FileIndex)
+	{
+		asset_file* File = Assets->Files + FileIndex;
+		if (PlatformNoFileErrors(File->Handle))
+		{
+			u32 TagArraySize = sizeof(p5a_tag) * File->Header.TagCount;
+			Platform.ReadDataFromFile(File->Handle,
+				File->Header.Tags,
+				TagArraySize,
+				Assets->Tags + File->TagBase
+			);
+		}
+	}
+
 	// TODO: Exersize for the reader - how would you do this in a way thot scaled gracefully
 	// to hundreds of asset pack files? (or more!)
 	u32 AssetCount = 0;
-	u32 TagCount = 0;
 	for (u32 DestTypeID = 0; DestTypeID < (u32)asset_type_id::Count; ++DestTypeID)
 	{
 		asset_type* DestType = Assets->AssetTypes + DestTypeID;
 		DestType->FirstAssetIndex = AssetCount;
 
-		for (u32 FileIndex; FileIndex < Assets->FileCount; ++FileIndex)
+		for (u32 FileIndex = 0; FileIndex < Assets->FileCount; ++FileIndex)
 		{
 			asset_file* File = Assets->Files + FileIndex;
 			if (PlatformNoFileErrors(File->Handle))
 			{
-				for (u32 SourceIndex; SourceIndex < File->Header.AssetTypeCount; ++SourceIndex)
+				for (u32 SourceIndex = 0; SourceIndex < File->Header.AssetTypeCount; ++SourceIndex)
 				{
 					p5a_asset_type* SourceType = File->AssetTypeArray + SourceIndex;
 
-					if (SourceType->TypeID == AssetTypeID)
+					if ((u32)SourceType->TypeID == DestTypeID)
 					{
-						PlatformReadDataFromFile();
-						AssetCount += ;
+						u32 AssetCountForType = (SourceType->OnePastLastAssetIndex - SourceType->FirstAssetIndex);
+						Platform.ReadDataFromFile(File->Handle,
+							File->Header.Assets + SourceType->FirstAssetIndex * sizeof(p5a_asset),
+							AssetCountForType * sizeof(p5a_asset),
+							Assets->Assets + AssetCount
+						);
+						for (u32 AssetIndex = AssetCount; AssetIndex < (AssetCount + AssetCountForType); ++AssetIndex)
+						{
+							p5a_asset* Asset = Assets->Assets + AssetIndex;
+							Asset->FirstTagIndex += File->TagBase;
+							Asset->OnePastLastTagIndex += File->TagBase;
+						}
+						AssetCount += AssetCountForType;
+
+						Assert(AssetCount < Assets->AssetCount);
 					}
 				}
 			}
@@ -723,10 +807,10 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	}
 
 	Assert(AssetCount == Assets->AssetCount);
-	Assert(TagCount == Assets->TagCount);
-#endif
+#endif 
 
-	debug_read_file_result ReadResult = PlatformReadEntireFile((char*)"../data/assets.p5a");
+#if 1
+	debug_read_file_result ReadResult = Platform.DEBUGReadEntireFile((char*)"../data/assets.p5a");
 	if (ReadResult.ContentsSize != 0)
 	{
 		p5a_header* Header = (p5a_header*)ReadResult.Contents;
@@ -758,6 +842,7 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 
 		Assets->P5AContents = (u8*)ReadResult.Contents;
 	}
+#endif
 
 #if 0
 	Assets->DEBUGUsedAssetCount = 1;

@@ -925,7 +925,7 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 
 #if 1
 			// Multithread
-			PlatformAddEntry(RenderQueue, DoTiledRenderWork, Work);
+			Platform.AddEntry(RenderQueue, DoTiledRenderWork, Work);
 #else
 			// Single Thread
 			DoTiledRenderWork(RenderQueue, Work);
@@ -933,7 +933,7 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 		}
 	}
 
-	PlatformCompleteAllWork(RenderQueue);
+	Platform.CompleteAllWork(RenderQueue);
 }
 
 internal render_group*
