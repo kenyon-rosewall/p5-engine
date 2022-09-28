@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 #include "p5engine_types.h"
 #include "p5engine_asset_type_id.h"
 #include "p5engine_file_formats.h"

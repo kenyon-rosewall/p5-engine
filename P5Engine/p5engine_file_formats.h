@@ -60,6 +60,13 @@ struct p5a_asset_type
 	u32 OnePastLastAssetIndex;
 };
 
+enum class p5a_sound_chain
+{
+	None,
+	Loop,
+	Advance
+};
+
 struct p5a_bitmap
 {
 	u32 Dim[2];
@@ -70,7 +77,7 @@ struct p5a_sound
 {
 	u32 SampleCount;
 	u32 ChannelCount;
-	sound_id NextIDToPlay;
+	p5a_sound_chain Chain; // NOTE: p5a_sound_chain
 };
 
 struct p5a_asset

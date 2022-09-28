@@ -116,8 +116,8 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 			loaded_sound* LoadedSound = GetSound(Assets, PlayingSound->ID);
 			if (LoadedSound)
 			{
-				p5a_sound* Info = GetSoundInfo(Assets, PlayingSound->ID);
-				PrefetchSound(Assets, Info->NextIDToPlay);
+				sound_id NextSoundInChain = GetNextSoundInChain(Assets, PlayingSound->ID);
+				PrefetchSound(Assets, NextSoundInChain);
 
 				v2 Volume = PlayingSound->CurrentVolume;
 				v2 dVolume = SecondsPerSample * PlayingSound->dCurrentVolume;
@@ -128,18 +128,18 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 				// NOTE: Channel 0
 				__m128 MasterVolume0 = _mm_set1_ps(AudioState->MasterVolume.E[0]);
 				__m128 Volume0 = _mm_setr_ps(Volume.E[0] + 0.0f * dVolume.E[0],
-											 Volume.E[0] + 1.0f * dVolume.E[0], 
-											 Volume.E[0] + 2.0f * dVolume.E[0], 
-											 Volume.E[0] + 3.0f * dVolume.E[0]);
+					Volume.E[0] + 1.0f * dVolume.E[0],
+					Volume.E[0] + 2.0f * dVolume.E[0],
+					Volume.E[0] + 3.0f * dVolume.E[0]);
 				__m128 dVolume0 = _mm_set1_ps(dVolume.E[0]);
 				__m128 dVolumeChunk0 = _mm_set1_ps(dVolumeChunk.E[0]);
 
 				// NOTE: Channel 1
 				__m128 MasterVolume1 = _mm_set1_ps(AudioState->MasterVolume.E[1]);
 				__m128 Volume1 = _mm_setr_ps(Volume.E[1] + 0.0f * dVolume.E[1],
-											 Volume.E[1] + 1.0f * dVolume.E[1],
-											 Volume.E[1] + 2.0f * dVolume.E[1],
-											 Volume.E[1] + 3.0f * dVolume.E[1]);
+					Volume.E[1] + 1.0f * dVolume.E[1],
+					Volume.E[1] + 2.0f * dVolume.E[1],
+					Volume.E[1] + 3.0f * dVolume.E[1]);
 				__m128 dVolume1 = _mm_set1_ps(dVolume.E[1]);
 				__m128 dVolumeChunk1 = _mm_set1_ps(dVolumeChunk.E[1]);
 
@@ -179,35 +179,35 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 					f32 SamplePosition = BeginSamplePosition + LoopIndexC * (f32)LoopIndex;
 #if 1
 					__m128 SamplePos = _mm_setr_ps(SamplePosition + 0.0f * dSample,
-												   SamplePosition + 1.0f * dSample,
-												   SamplePosition + 2.0f * dSample,
-												   SamplePosition + 3.0f * dSample);
+						SamplePosition + 1.0f * dSample,
+						SamplePosition + 2.0f * dSample,
+						SamplePosition + 3.0f * dSample);
 					__m128i SampleIndex = _mm_cvttps_epi32(SamplePos);
 					__m128 Frac = _mm_sub_ps(SamplePos, _mm_cvtepi32_ps(SampleIndex));
 
 					__m128 SampleValueF = _mm_setr_ps(LoadedSound->Samples[0][((i32*)&SampleIndex)[0]],
-													  LoadedSound->Samples[0][((i32*)&SampleIndex)[1]],
-													  LoadedSound->Samples[0][((i32*)&SampleIndex)[2]],
-													  LoadedSound->Samples[0][((i32*)&SampleIndex)[3]]);
+						LoadedSound->Samples[0][((i32*)&SampleIndex)[1]],
+						LoadedSound->Samples[0][((i32*)&SampleIndex)[2]],
+						LoadedSound->Samples[0][((i32*)&SampleIndex)[3]]);
 					__m128 SampleValueC = _mm_setr_ps(LoadedSound->Samples[0][((i32*)&SampleIndex)[0] + 1],
-													  LoadedSound->Samples[0][((i32*)&SampleIndex)[1] + 1],
-													  LoadedSound->Samples[0][((i32*)&SampleIndex)[2] + 1],
-													  LoadedSound->Samples[0][((i32*)&SampleIndex)[3] + 1]);
+						LoadedSound->Samples[0][((i32*)&SampleIndex)[1] + 1],
+						LoadedSound->Samples[0][((i32*)&SampleIndex)[2] + 1],
+						LoadedSound->Samples[0][((i32*)&SampleIndex)[3] + 1]);
 
-					__m128 SampleValue = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(One, Frac), SampleValueF), 
-													_mm_mul_ps(Frac, SampleValueC));
+					__m128 SampleValue = _mm_add_ps(_mm_mul_ps(_mm_sub_ps(One, Frac), SampleValueF),
+						_mm_mul_ps(Frac, SampleValueC));
 #else
 					__m128 SampleValue = _mm_setr_ps(LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 0.0f * dSample)],
-													 LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 1.0f * dSample)], 
-													 LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 2.0f * dSample)], 
-													 LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 3.0f * dSample)]);
+						LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 1.0f * dSample)],
+						LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 2.0f * dSample)],
+						LoadedSound->Samples[0][RoundReal32ToInt32(SamplePosition + 3.0f * dSample)]);
 #endif
 					__m128 D0 = _mm_load_ps((float*)&Dest0[0]);
 					__m128 D1 = _mm_load_ps((float*)&Dest1[0]);
 
 					D0 = _mm_add_ps(D0, _mm_mul_ps(_mm_mul_ps(MasterVolume0, Volume0), SampleValue));
 					D1 = _mm_add_ps(D1, _mm_mul_ps(_mm_mul_ps(MasterVolume1, Volume1), SampleValue));
-					
+
 					_mm_store_ps((float*)&Dest0[0], D0);
 					_mm_store_ps((float*)&Dest1[0], D1);
 
@@ -234,9 +234,9 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 
 				if (ChunksToMix == ChunksRemainingInSound)
 				{
-					if (IsValid(Info->NextIDToPlay))
+					if (IsValid(NextSoundInChain))
 					{
-						PlayingSound->ID = Info->NextIDToPlay;
+						PlayingSound->ID = NextSoundInChain;
 						Assert(PlayingSound->SamplesPlayed >= LoadedSound->SampleCount);
 						PlayingSound->SamplesPlayed -= (f32)LoadedSound->SampleCount;
 						if (PlayingSound->SamplesPlayed < 0)
@@ -255,17 +255,17 @@ OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuff
 				LoadSound(Assets, PlayingSound->ID);
 				break;
 			}
+		}
 
-			if (SoundFinished)
-			{
-				*PlayingSoundPtr = PlayingSound->Next;
-				PlayingSound->Next = AudioState->FirstFreePlayingSound;
-				AudioState->FirstFreePlayingSound = PlayingSound;
-			}
-			else
-			{
-				PlayingSoundPtr = &PlayingSound->Next;
-			}
+		if (SoundFinished)
+		{
+			*PlayingSoundPtr = PlayingSound->Next;
+			PlayingSound->Next = AudioState->FirstFreePlayingSound;
+			AudioState->FirstFreePlayingSound = PlayingSound;
+		}
+		else
+		{
+			PlayingSoundPtr = &PlayingSound->Next;
 		}
 	}
 

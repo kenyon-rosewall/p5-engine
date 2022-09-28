@@ -143,4 +143,33 @@ IsValid(sound_id ID)
 internal void LoadBitmap(game_assets* Assets, bitmap_id ID);
 internal void LoadSound(game_assets* Assets, sound_id ID);
 
+inline sound_id
+GetNextSoundInChain(game_assets* Assets, sound_id ID)
+{
+	sound_id Result = {};
+
+	p5a_sound* Info = GetSoundInfo(Assets, ID);
+	switch (Info->Chain)
+	{
+		case p5a_sound_chain::None:
+		{
+			// NOTE: Nothing to do
+		} break;
+
+		case p5a_sound_chain::Loop:
+		{
+			Result = ID;
+		} break;
+
+		case p5a_sound_chain::Advance:
+		{
+			Result.Value = ID.Value + 1;
+		} break;
+
+		InvalidDefaultCase;
+	}
+
+	return(Result);
+}
+
 #endif // !P5ENGINE_ASSET_H

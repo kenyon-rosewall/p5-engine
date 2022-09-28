@@ -1050,7 +1050,7 @@ internal PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(Win32GetAllFilesOfTypeBegin)
 	platform_file_group Result = {};
 
 	// TODO: Actually implement this
-	Result.FileCount = 1;
+	Result.FileCount = 3;
 
 	return(Result);
 }
@@ -1063,7 +1063,19 @@ internal PLATFORM_GET_ALL_FILES_OF_TYPE_END(Win32GetAllFilesOfTypeEnd)
 internal PLATFORM_OPEN_FILE(Win32OpenFile)
 {
 	// TODO: Actually implement this
-	char* Filename = (char*)"../data/assets.p5a";
+	char* Filename = 0;
+	if (FileIndex == 0)
+	{
+		Filename = (char*)"../data/assets1.p5a";
+	}
+	else if (FileIndex == 1)
+	{
+		Filename = (char*)"../data/assets2.p5a";
+	}
+	else if (FileIndex == 2)
+	{
+		Filename = (char*)"../data/assets3.p5a";
+	}
 
 	// TODO: If we want, someday, make an actual arena used by Win32
 	win32_platform_file_handle* Result = (win32_platform_file_handle*)VirtualAlloc(
