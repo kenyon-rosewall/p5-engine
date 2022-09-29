@@ -15,7 +15,7 @@ struct load_asset_work
 
 internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 {
-	load_asset_work* Work = (load_asset_work*)Data;
+	load_asset_work* Work = (load_asset_work*)FindData;
 
 
 	Platform.ReadDataFromFile(Work->Handle, Work->Offset, Work->Size, Work->Destination);
@@ -267,8 +267,8 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 	Assets->AssetCount = 1;
 
 	{
-		platform_file_group FileGroup = Platform.GetAllFilesOfTypeBegin((char*)"p5a");
-		Assets->FileCount = FileGroup.FileCount;
+		platform_file_group* FileGroup = Platform.GetAllFilesOfTypeBegin((char*)"p5a");
+		Assets->FileCount = FileGroup->FileCount;
 		Assets->Files = PushArray(Arena, Assets->FileCount, asset_file);
 		for (u32 FileIndex = 0; FileIndex < Assets->FileCount; ++FileIndex)
 		{
@@ -276,7 +276,7 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 			File->TagBase = Assets->TagCount;
 
 			ZeroStruct(File->Header);
-			File->Handle = Platform.OpenFile(FileGroup, FileIndex);
+			File->Handle = Platform.OpenNextFile(FileGroup);
 			Platform.ReadDataFromFile(File->Handle, 0, sizeof(File->Header), &File->Header);
 
 			u32 AssetTypeArraySize = File->Header.AssetTypeCount * sizeof(p5a_asset_type);

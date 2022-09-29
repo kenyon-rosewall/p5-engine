@@ -125,18 +125,18 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile)
 {
 	debug_read_file_result Result = {};
 
-	HANDLE FileHandle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-	if (FileHandle != INVALID_HANDLE_VALUE)
+	HANDLE FindHandle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (FindHandle != INVALID_HANDLE_VALUE)
 	{
 		LARGE_INTEGER FileSize;
-		if (GetFileSizeEx(FileHandle, &FileSize))
+		if (GetFileSizeEx(FindHandle, &FileSize))
 		{
 			u32 FileSize32 = SafeTruncateUInt64(FileSize.QuadPart);
 			Result.Contents = VirtualAlloc(0, FileSize.QuadPart, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			if (Result.Contents)
 			{
 				DWORD BytesRead;
-				if (ReadFile(FileHandle, Result.Contents, FileSize32, &BytesRead, 0) && (FileSize32 == BytesRead))
+				if (ReadFile(FindHandle, Result.Contents, FileSize32, &BytesRead, 0) && (FileSize32 == BytesRead))
 				{
 					// NOTE: File read successfully
 					Result.ContentsSize = FileSize32;
@@ -157,7 +157,7 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUGPlatformReadEntireFile)
 			// TODO: Logging
 		}
 
-		CloseHandle(FileHandle);
+		CloseHandle(FindHandle);
 	}
 	else
 	{
@@ -171,11 +171,11 @@ DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUGPlatformWriteEntireFile)
 {
 	b32 Result = false;
 
-	HANDLE FileHandle = CreateFileA(Filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-	if (FileHandle != INVALID_HANDLE_VALUE)
+	HANDLE FindHandle = CreateFileA(Filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+	if (FindHandle != INVALID_HANDLE_VALUE)
 	{
 		DWORD BytesWritten;
-		if (WriteFile(FileHandle, Memory, MemorySize, &BytesWritten, 0))
+		if (WriteFile(FindHandle, Memory, MemorySize, &BytesWritten, 0))
 		{
 			// NOTE: File read successfully
 			Result = (BytesWritten == MemorySize);
@@ -185,7 +185,7 @@ DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUGPlatformWriteEntireFile)
 			// TODO: Logging
 		}
 
-		CloseHandle(FileHandle);
+		CloseHandle(FindHandle);
 	}
 	else
 	{
@@ -200,10 +200,10 @@ Win32GetLastWriteTime(char* Filename)
 {
 	FILETIME LastWriteTime = {};
 
-	WIN32_FILE_ATTRIBUTE_DATA Data = {};
-	if (GetFileAttributesEx(Filename, GetFileExInfoStandard, &Data))
+	WIN32_FILE_ATTRIBUTE_DATA FindData = {};
+	if (GetFileAttributesEx(Filename, GetFileExInfoStandard, &FindData))
 	{
-		LastWriteTime = Data.ftLastWriteTime;
+		LastWriteTime = FindData.ftLastWriteTime;
 	}
 
 	return(LastWriteTime);
@@ -923,7 +923,7 @@ HandleDebugCycleCounters(game_memory* GameMemory)
 struct platform_work_queue_entry
 {
 	platform_work_queue_callback* Callback;
-	void* Data;
+	void* FindData;
 };
 
 struct platform_work_queue
@@ -940,7 +940,7 @@ struct platform_work_queue
 };
 
 void
-Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* Data)
+Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* FindData)
 {
 	u32 NextEntryToWrite = Queue->NextEntryToWrite;
 	u32 NewNextEntryToWrite = (NextEntryToWrite + 1) % ArrayCount(Queue->Entries);
@@ -948,7 +948,7 @@ Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback
 
 	platform_work_queue_entry* Entry = Queue->Entries + NextEntryToWrite;
 	Entry->Callback = Callback;
-	Entry->Data = Data;
+	Entry->FindData = FindData;
 	++Queue->CompletionGoal;
 
 	_WriteBarrier();
@@ -972,7 +972,7 @@ Win32DoNextWorkQueueEntry(platform_work_queue* Queue)
 		if (Index == NextEntryToRead)
 		{
 			platform_work_queue_entry* Entry = Queue->Entries + Index;
-			Entry->Callback(Queue, Entry->Data);
+			Entry->Callback(Queue, Entry->FindData);
 			InterlockedIncrement((LONG volatile*)&Queue->CompletionCount);
 		}
 	}
@@ -1016,7 +1016,7 @@ internal
 PLATFORM_WORK_QUEUE_CALLBACK(DoWorkerWork)
 {
 	char Buffer[256];
-	wsprintf(Buffer, "=== Thread %u: %s ===\n", GetCurrentThreadId(), (char*)Data);
+	wsprintf(Buffer, "=== Thread %u: %s ===\n", GetCurrentThreadId(), (char*)FindData);
 	OutputDebugStringA(Buffer);
 }
 
@@ -1045,50 +1045,107 @@ struct win32_platform_file_handle
 	HANDLE Win32Handle;
 };
 
+struct win32_platform_file_group
+{
+	platform_file_group H;
+	HANDLE FindHandle;
+	WIN32_FIND_DATAA FindData;
+};
+
 internal PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(Win32GetAllFilesOfTypeBegin)
 {
-	platform_file_group Result = {};
+	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)VirtualAlloc(
+		0, 
+		sizeof(win32_platform_file_group), 
+		MEM_RESERVE|MEM_COMMIT, 
+		PAGE_READWRITE
+	);
+	Win32FileGroup->H.FileCount = 0;
 
-	// TODO: Actually implement this
-	Result.FileCount = 3;
+#if 0
+	char* TypeAt = Type;
+	char Wildcard[32] = "../data/*.";
+	for (u32 WildcardIndex = 10; WildcardIndex < sizeof(Wildcard); ++WildcardIndex)
+	{
+		Wildcard[WildcardIndex] = *TypeAt;
+		if (*TypeAt == 0)
+		{
+			break;
+		}
 
-	return(Result);
+		++TypeAt;
+	}
+	Wildcard[sizeof(Wildcard) - 1] = 0;
+#else
+	char Wildcard[32] = "../data/*.";
+	Concat(Wildcard, Type, 32);
+#endif
+
+	WIN32_FIND_DATAA FindData;
+	HANDLE FindHandle = FindFirstFileA(Wildcard, &FindData);
+
+	while (FindHandle != INVALID_HANDLE_VALUE)
+	{
+		++Win32FileGroup->H.FileCount;
+
+		if (!FindNextFileA(FindHandle, &FindData))
+		{
+			break;
+		}
+	}
+
+	if (FindHandle != INVALID_HANDLE_VALUE)
+	{
+		FindClose(FindHandle);
+	}
+
+	Win32FileGroup->FindHandle = FindFirstFileA(Wildcard, &Win32FileGroup->FindData);
+
+	return((platform_file_group*)Win32FileGroup);
 }
 
 internal PLATFORM_GET_ALL_FILES_OF_TYPE_END(Win32GetAllFilesOfTypeEnd)
 {
+	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)FileGroup;
+	if (Win32FileGroup)
+	{
+		if (Win32FileGroup->FindHandle != INVALID_HANDLE_VALUE)
+		{
+			FindClose(Win32FileGroup->FindHandle);
+		}
 
+		VirtualFree(Win32FileGroup, 0, MEM_RELEASE);
+	}
 }
 
-internal PLATFORM_OPEN_FILE(Win32OpenFile)
+internal PLATFORM_OPEN_FILE(Win32OpenNextFile)
 {
-	// TODO: Actually implement this
-	char* Filename = 0;
-	if (FileIndex == 0)
-	{
-		Filename = (char*)"../data/assets1.p5a";
-	}
-	else if (FileIndex == 1)
-	{
-		Filename = (char*)"../data/assets2.p5a";
-	}
-	else if (FileIndex == 2)
-	{
-		Filename = (char*)"../data/assets3.p5a";
-	}
+	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)FileGroup;
+	win32_platform_file_handle* Result = 0;
 
-	// TODO: If we want, someday, make an actual arena used by Win32
-	win32_platform_file_handle* Result = (win32_platform_file_handle*)VirtualAlloc(
-		0,
-		sizeof(win32_platform_file_handle),
-		MEM_RESERVE|MEM_COMMIT,
-		PAGE_READWRITE
-	);
-
-	if (Result)
+	if (Win32FileGroup->FindHandle != INVALID_HANDLE_VALUE)
 	{
-		Result->Win32Handle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-		Result->H.NoErrors = (Result->Win32Handle != INVALID_HANDLE_VALUE);
+		// TODO: If we want, someday, make an actual arena used by Win32
+		Result = (win32_platform_file_handle*)VirtualAlloc(
+			0,
+			sizeof(win32_platform_file_handle),
+			MEM_RESERVE | MEM_COMMIT,
+			PAGE_READWRITE
+		);
+
+		if (Result)
+		{
+			char Filename[50] = "../data/";
+			Concat(Filename, Win32FileGroup->FindData.cFileName, 50);
+			Result->Win32Handle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+			Result->H.NoErrors = (Result->Win32Handle != INVALID_HANDLE_VALUE);
+		}
+
+		if (!FindNextFileA(Win32FileGroup->FindHandle, &Win32FileGroup->FindData))
+		{
+			FindClose(Win32FileGroup->FindHandle);
+			Win32FileGroup->FindHandle = INVALID_HANDLE_VALUE;
+		}
 	}
 
 	return((platform_file_handle*)Result);
@@ -1249,7 +1306,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			
 			GameMemory.PlatformAPI.GetAllFilesOfTypeBegin = Win32GetAllFilesOfTypeBegin;
 			GameMemory.PlatformAPI.GetAllFilesOfTypeEnd = Win32GetAllFilesOfTypeEnd;
-			GameMemory.PlatformAPI.OpenFile = Win32OpenFile;
+			GameMemory.PlatformAPI.OpenNextFile = Win32OpenNextFile;
 			GameMemory.PlatformAPI.ReadDataFromFile = Win32ReadDataFromFile;
 			GameMemory.PlatformAPI.FileError = Win32FileError;
 			
@@ -1279,12 +1336,12 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 				// we can speed up / defer some of that processing.
 
 				Win32GetInputFileLocation(&Win32State, false, ReplayIndex, sizeof(ReplayBuffer->Filename), ReplayBuffer->Filename);
-				ReplayBuffer->FileHandle = CreateFileA(ReplayBuffer->Filename, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+				ReplayBuffer->FindHandle = CreateFileA(ReplayBuffer->Filename, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 				DWORD Error = GetLastError();
 
 				DWORD MaxSizeHigh = (Win32State.TotalSize >> 32);
 				DWORD MaxSizeLow = (Win32State.TotalSize & 0xFFFFFFFF);
-				ReplayBuffer->MemoryMap = CreateFileMapping(ReplayBuffer->FileHandle, 0, PAGE_READWRITE, MaxSizeHigh, MaxSizeLow, 0);
+				ReplayBuffer->MemoryMap = CreateFileMapping(ReplayBuffer->FindHandle, 0, PAGE_READWRITE, MaxSizeHigh, MaxSizeLow, 0);
 				ReplayBuffer->MemoryBlock = MapViewOfFile(ReplayBuffer->MemoryMap, FILE_MAP_ALL_ACCESS, 0, 0, Win32State.TotalSize);
 
 				if (ReplayBuffer->MemoryBlock)

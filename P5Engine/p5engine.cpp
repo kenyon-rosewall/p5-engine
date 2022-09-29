@@ -342,7 +342,7 @@ struct fill_ground_chunk_work
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 {
-	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)Data;
+	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)FindData;
 
 	RenderGroupToOutput(Work->RenderGroup, Work->Buffer);
 	

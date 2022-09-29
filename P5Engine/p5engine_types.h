@@ -58,6 +58,31 @@ typedef double f64;
 #define Terabytes(Value) (Gigabytes(Value) * 1024LL)
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
+inline void
+Concat(char* String1, char* String2, u32 Size)
+{
+	u32 String1Size = 0;
+	for (u32 Index = 0; Index < Size; ++Index)
+	{
+		if (String1[Index] == 0)
+		{
+			break;
+		}
+
+		++String1Size;
+	}
+
+	for (u32 Index = String1Size; Index < Size; ++Index)
+	{
+		String1[Index] = *String2;
+		if (*String2 == 0)
+		{
+			break;
+		}
+
+		++String2;
+	}
+}
 // TODO: swap, min, max ... macros???
 
 #define AlignPow2(Value, Alignment) ((Value + ((Alignment) - 1)) & ~((Alignment) - 1))
