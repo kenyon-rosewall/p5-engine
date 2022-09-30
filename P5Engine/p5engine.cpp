@@ -1304,23 +1304,98 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							GameState->NextParticle = 0;
 						}
 
-						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.25f, 0.25f), 0, 0);
-						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.5f, 0.5f), RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
-						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.5f, 1.0f),
-											 RandomBetween(&GameState->EffectsEntropy, 0.5f, 1.0f),
-											 RandomBetween(&GameState->EffectsEntropy, 0.5f, 1.0f),
+						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f), 0, 0);
+						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.1f, 0.1f), 7 * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
+						Particle->ddPos = V3(0.0f, -9.8f, 0.0f);
+						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
 											 1.0f);
 						Particle->dColor = V4(0, 0, 0, -0.1f);
+					}
+
+					ZeroStruct(GameState->ParticleCels);
+
+					f32 GridScale = 0.5f;
+					f32 InvGridScale = 1.0f / GridScale;
+					v3 GridOrigin = V3(-0.5f * GridScale * PARTICLE_CEL_DIM, 0.0f, 0.0f);
+					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
+					{
+						particle* Particle = GameState->Particles + ParticleIndex;
+
+						v3 Pos = InvGridScale * (Particle->Pos - GridOrigin);
+
+						i32 X = TruncateReal32ToInt32(Pos.x);
+						i32 Y = TruncateReal32ToInt32(Pos.y);
+
+						if (X < 0) { X = 0; }
+						if (X > (PARTICLE_CEL_DIM - 1)) { X = (PARTICLE_CEL_DIM - 1); }
+						if (Y < 0) { Y = 0; }
+						if (Y > (PARTICLE_CEL_DIM - 1)) { Y = (PARTICLE_CEL_DIM - 1); }
+
+						particle_cel* Cel = &GameState->ParticleCels[Y][X];
+						f32 Density = Particle->Color.a;
+						Cel->Density += Density;
+						Cel->VelocityTimesDensity += Density * Particle->dPos;
+					}
+
+					for (u32 Y = 0; Y < PARTICLE_CEL_DIM; ++Y)
+					{
+						for (u32 X = 0; X < PARTICLE_CEL_DIM; ++X)
+						{
+							particle_cel* Cel = &GameState->ParticleCels[Y][X];
+							f32 Alpha = Clamp01(0.1f * Cel->Density);
+							PushRect(
+								RenderGroup, 
+								GridScale * (V3((f32)X, (f32)Y, 0)) + GridOrigin,
+								GridScale * V2(1, 1), 
+								V4(Alpha, Alpha, Alpha, 1.0f)
+							);
+						}
 					}
 
 					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
 					{
 						particle* Particle = GameState->Particles + ParticleIndex;
 
+						v3 Pos = InvGridScale * (Particle->Pos - GridOrigin);
+
+						i32 X = TruncateReal32ToInt32(Pos.x);
+						i32 Y = TruncateReal32ToInt32(Pos.y);
+
+						if (X < 1) { X = 1; }
+						if (X > (PARTICLE_CEL_DIM - 2)) { X = (PARTICLE_CEL_DIM - 2); }
+						if (Y < 1) { Y = 1; }
+						if (Y > (PARTICLE_CEL_DIM - 2)) { Y = (PARTICLE_CEL_DIM - 2); }
+
+						particle_cel* CelCenter = &GameState->ParticleCels[Y][X];
+						particle_cel* CelLeft = &GameState->ParticleCels[Y][X - 1];
+						particle_cel* CelRight = &GameState->ParticleCels[Y][X + 1];
+						particle_cel* CelUp = &GameState->ParticleCels[Y - 1][X];
+						particle_cel* CelDown = &GameState->ParticleCels[Y + 1][X];
+
+						v3 Dispersion = {};
+						f32 Dc = 1.0f;
+						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1, 0, 0);
+						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1, 0, 0);
+						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0, -1, 0);
+						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0, 1, 0);
+
+						v3 ddPos = Particle->ddPos + Dispersion;
+
 						// NOTE: Simulate the particle forward in time
-						Particle->Pos += Input->dtForFrame * Particle->dPos;
+						Particle->Pos += 0.5f * Square(Input->dtForFrame) * Particle->ddPos + Input->dtForFrame * Particle->dPos;
+						Particle->dPos += Input->dtForFrame * Particle->ddPos;
 						Particle->Color += Input->dtForFrame * Particle->dColor;
 
+						if (Particle->Pos.y < 0.0f)
+						{
+							f32 CoefficientOfRestitution = 0.3f;
+							f32 CoefficientOfFriction = 0.1f;
+							Particle->Pos.y = -Particle->Pos.y;
+							Particle->dPos.y = -CoefficientOfRestitution * Particle->dPos.y;
+							Particle->dPos.x = CoefficientOfFriction * Particle->dPos.x;
+						}
 						// TODO: Shouldn't we just clamp colors in the renderer?
 						v4 Color;
 						Color.r = Clamp01(Particle->Color.r);
