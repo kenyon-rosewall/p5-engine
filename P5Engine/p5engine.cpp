@@ -654,7 +654,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		u32 TilesPerWidth = 17;
 		u32 TilesPerHeight = 9;
 
-		GameState->GeneralEntropy = RandomSeed(1238);
+		GameState->EffectsEntropy = RandomSeed(1238);
 		GameState->TypicalFloorHeight = 3.0f;
 
 		// TODO: Remove this!
@@ -866,7 +866,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
 
-		GameState->Music = PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		GameState->Music = 0; // PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -1193,7 +1193,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 									MakeEntitySpatial(Sword, Entity->Pos, 20.0f * ConHero->dSword);
 									AddCollisionRule(GameState, Sword->StorageIndex, Entity->StorageIndex, false);
 
-									PlaySound(&GameState->AudioState, GetRandomSoundFrom(TransientState->Assets, asset_type_id::Bloop, &GameState->GeneralEntropy));
+									PlaySound(&GameState->AudioState, GetRandomSoundFrom(TransientState->Assets, asset_type_id::Bloop, &GameState->EffectsEntropy));
 								}
 							}
 						}
@@ -1294,6 +1294,48 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					PushBitmap(RenderGroup, HeroBitmaps.Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
 
 					DrawHitpoints(Entity, RenderGroup);
+
+					// NOTE: Particle system test
+					for (u32 ParticleSpawnIndex = 0; ParticleSpawnIndex < 1; ++ParticleSpawnIndex)
+					{
+						particle* Particle = GameState->Particles + GameState->NextParticle++;
+						if (GameState->NextParticle >= ArrayCount(GameState->Particles))
+						{
+							GameState->NextParticle = 0;
+						}
+
+						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.25f, 0.25f), 0, 0);
+						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.5f, 0.5f), RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
+						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.5f, 1.0f),
+											 RandomBetween(&GameState->EffectsEntropy, 0.5f, 1.0f),
+											 RandomBetween(&GameState->EffectsEntropy, 0.5f, 1.0f),
+											 1.0f);
+						Particle->dColor = V4(0, 0, 0, -0.1f);
+					}
+
+					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
+					{
+						particle* Particle = GameState->Particles + ParticleIndex;
+
+						// NOTE: Simulate the particle forward in time
+						Particle->Pos += Input->dtForFrame * Particle->dPos;
+						Particle->Color += Input->dtForFrame * Particle->dColor;
+
+						// TODO: Shouldn't we just clamp colors in the renderer?
+						v4 Color;
+						Color.r = Clamp01(Particle->Color.r);
+						Color.g = Clamp01(Particle->Color.g);
+						Color.b = Clamp01(Particle->Color.b);
+						Color.a = Clamp01(Particle->Color.a);
+
+						if (Color.a > 0.9f)
+						{
+							Color.a = 0.9f * Clamp01MapToRange(1.0f, Color.a, 0.9f);
+						}
+						
+						// NOTE: Render the particle
+						PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar), Particle->Pos, 0.5f, Color);
+					}
 				} break;
 
 				case entity_type::Wall:

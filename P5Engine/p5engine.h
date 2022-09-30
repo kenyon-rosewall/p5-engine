@@ -13,18 +13,21 @@
 
   - Flush all thread queues before reloading DLL
 
+  - Audio
+	- Fix clicking bug at end of samples
+
+  - Asset streaming
+	- Memory management
+
+  - Particle systems
+
   - Rendering
 	- Straighten out all coordinate systems!
 	  - Screen
 	  - World
 	  - Texture
-	- Particle systems
     - Lighting
 	- Final Optimization
-
-  - Asset streaming
-	- File format
-	- Memory management
 
   - Debug code
     - Fonts
@@ -34,12 +37,6 @@
 	- Draw tile chunks so we can verify that things are aligned /
 	  in the chunks we want them to be in / 
 	- Thread visualization
-
-  - Audio
-	- Fix clicking bug at end of samples
-	- Sound effect triggers
-	- Ambient sounds
-	- Music
 
   ARCHITECTURE EXPLORATION
   - z
@@ -89,7 +86,6 @@
 
   - Animation, should probably lead into rendering
 	- Skeletal animation
-	- Particle systems
 
 
   PRODUCTION
@@ -307,6 +303,14 @@ struct hero_bitmap_ids
 	bitmap_id Character;
 };
 
+struct particle
+{
+	v3 Pos;
+	v3 dPos;
+	v4 Color;
+	v4 dColor;
+};
+
 struct game_state
 {
 	b32 IsInitialized;
@@ -346,11 +350,14 @@ struct game_state
 	loaded_bitmap TestDiffuse;
 	loaded_bitmap TestNormal;
 
-	random_series GeneralEntropy;
+	random_series EffectsEntropy; // NOTE: This is entropy that doesn't affect the gameplay
 	f32 tSine;
 
 	audio_state AudioState;
 	playing_sound* Music;
+
+	u32 NextParticle;
+	particle Particles[256];
 };
 
 struct task_with_memory
