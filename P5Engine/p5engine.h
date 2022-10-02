@@ -278,7 +278,7 @@ struct controlled_hero
 	f32 SpeedMultiplier;
 
 	// NOTE: These are the controller requests for simulation
-	v3 ddP;
+	v3 ddPos;
 	v3 dSword;
 	f32 dZ;
 };
@@ -308,9 +308,9 @@ struct particle_cel
 	f32 Density;
 	v3 VelocityTimesDensity;
 };
-
 struct particle
 {
+	bitmap_id BitmapID;
 	v3 Pos;
 	v3 dPos;
 	v3 ddPos;
@@ -363,7 +363,7 @@ struct game_state
 	audio_state AudioState;
 	playing_sound* Music;
 
-#define PARTICLE_CEL_DIM 16
+#define PARTICLE_CEL_DIM 32
 	u32 NextParticle;
 	particle Particles[256];
 

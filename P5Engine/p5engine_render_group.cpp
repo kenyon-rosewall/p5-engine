@@ -211,10 +211,10 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	i32 YMin = HeightMax;
 	i32 YMax = 0;
 
-	v2 P[4] = { Origin, Origin + XAxis, Origin + XAxis + YAxis, Origin + YAxis };
-	for (int PointIndex = 0; PointIndex < ArrayCount(P); ++PointIndex)
+	v2 Pos[4] = { Origin, Origin + XAxis, Origin + XAxis + YAxis, Origin + YAxis };
+	for (int PointIndex = 0; PointIndex < ArrayCount(Pos); ++PointIndex)
 	{
-		v2 TestP = P[PointIndex];
+		v2 TestP = Pos[PointIndex];
 		int FloorX = FloorReal32ToInt32(TestP.x);
 		int CeilX = CeilReal32ToInt32(TestP.x);
 		int FloorY = FloorReal32ToInt32(TestP.y);

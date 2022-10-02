@@ -930,33 +930,33 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 		else
 		{
-			ConHero->ddP = {};
+			ConHero->ddPos = {};
 			ConHero->SpeedMultiplier = 1.0f;
 			ConHero->dZ = 0.0f;
 
 			if (Controller->IsAnalogL)
 			{
 				// NOTE: Use analog movement tuning
-				ConHero->ddP = V3(Controller->StickAverageLX, Controller->StickAverageLY, 0);
+				ConHero->ddPos = V3(Controller->StickAverageLX, Controller->StickAverageLY, 0);
 			}
 			else
 			{
 				// NOTE: Use digital movement tuning
 				if (Controller->MoveUp.EndedDown)
 				{
-					ConHero->ddP.y = 1.0f;
+					ConHero->ddPos.y = 1.0f;
 				}
 				if (Controller->MoveDown.EndedDown)
 				{
-					ConHero->ddP.y = -1.0f;
+					ConHero->ddPos.y = -1.0f;
 				}
 				if (Controller->MoveLeft.EndedDown)
 				{
-					ConHero->ddP.x = -1.0f;
+					ConHero->ddPos.x = -1.0f;
 				}
 				if (Controller->MoveRight.EndedDown)
 				{
-					ConHero->ddP.x = 1.0f;
+					ConHero->ddPos.x = 1.0f;
 				}
 			}
 
@@ -1182,7 +1182,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							MoveSpec.Speed = 45.0f;
 							MoveSpec.Drag = 6.0f;
 							MoveSpec.SpeedMult = ConHero->SpeedMultiplier;
-							ddPos = ConHero->ddP;
+							ddPos = ConHero->ddPos;
 
 							if ((ConHero->dSword.x != 0.0f) || (ConHero->dSword.y != 0.0f))
 							{
@@ -1220,12 +1220,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 #if 0
 					// TODO: Make spatial queries easy for things
-					for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
+					for (u32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 					{
 						sim_entity* TestEntity = SimRegion->Entities + EntityIndex;
 						if (TestEntity->Type == entity_type::Hero)
 						{
-							real32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
+							f32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
 
 							if (ClosestHeroDSq > TestDSq)
 							{
@@ -1294,9 +1294,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					PushBitmap(RenderGroup, HeroBitmaps.Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
 
 					DrawHitpoints(Entity, RenderGroup);
-
+#if 1
 					// NOTE: Particle system test
-					for (u32 ParticleSpawnIndex = 0; ParticleSpawnIndex < 1; ++ParticleSpawnIndex)
+					for (u32 ParticleSpawnIndex = 0; ParticleSpawnIndex < 3; ++ParticleSpawnIndex)
 					{
 						particle* Particle = GameState->Particles + GameState->NextParticle++;
 						if (GameState->NextParticle >= ArrayCount(GameState->Particles))
@@ -1304,21 +1304,35 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							GameState->NextParticle = 0;
 						}
 
-						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f), 0, 0);
-						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.1f, 0.1f), 7 * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
-						Particle->ddPos = V3(0.0f, -9.8f, 0.0f);
-						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
-											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
-											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
-											 1.0f);
-						Particle->dColor = V4(0, 0, 0, -0.1f);
+						Particle->Pos = V3(
+							RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f),
+							0,
+							0
+						);
+						Particle->dPos = V3(
+							RandomBetween(&GameState->EffectsEntropy, -0.01f, 0.01f), 
+							7.0f * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 
+							0.0f
+						);
+						Particle->ddPos = V3(
+							0.0f, -9.8f, 0.0f
+						);
+						Particle->Color = V4(
+							RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+							RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+							RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+							1.0f
+						);
+						Particle->dColor = V4(0, 0, 0, -0.25f);
+						Particle->BitmapID = GetRandomBitmapFrom(TransientState->Assets, asset_type_id::Familiar, &GameState->EffectsEntropy);
 					}
 
+					// NOTE: Particle system test
 					ZeroStruct(GameState->ParticleCels);
 
-					f32 GridScale = 0.5f;
+					f32 GridScale = 0.25f;
 					f32 InvGridScale = 1.0f / GridScale;
-					v3 GridOrigin = V3(-0.5f * GridScale * PARTICLE_CEL_DIM, 0.0f, 0.0f);
+					v3 GridOrigin = { -0.5f * GridScale * PARTICLE_CEL_DIM, 0.0f, 0.0f };
 					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
 					{
 						particle* Particle = GameState->Particles + ParticleIndex;
@@ -1339,20 +1353,17 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						Cel->VelocityTimesDensity += Density * Particle->dPos;
 					}
 
+#if 0
 					for (u32 Y = 0; Y < PARTICLE_CEL_DIM; ++Y)
 					{
 						for (u32 X = 0; X < PARTICLE_CEL_DIM; ++X)
 						{
 							particle_cel* Cel = &GameState->ParticleCels[Y][X];
-							f32 Alpha = Clamp01(0.1f * Cel->Density);
-							PushRect(
-								RenderGroup, 
-								GridScale * (V3((f32)X, (f32)Y, 0)) + GridOrigin,
-								GridScale * V2(1, 1), 
-								V4(Alpha, Alpha, Alpha, 1.0f)
-							);
+							real32 Alpha = Clamp01(0.1f * Cel->Density);
+							PushRect(RenderGroup, GridScale * V3((r32)X, (r32)Y, 0) + GridOrigin, GridScale * V2(1.0f, 1.0f), V4(Alpha, Alpha, Alpha, 1.0f));
 						}
 					}
+#endif
 
 					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
 					{
@@ -1371,31 +1382,32 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						particle_cel* CelCenter = &GameState->ParticleCels[Y][X];
 						particle_cel* CelLeft = &GameState->ParticleCels[Y][X - 1];
 						particle_cel* CelRight = &GameState->ParticleCels[Y][X + 1];
-						particle_cel* CelUp = &GameState->ParticleCels[Y - 1][X];
-						particle_cel* CelDown = &GameState->ParticleCels[Y + 1][X];
+						particle_cel* CelDown = &GameState->ParticleCels[Y - 1][X];
+						particle_cel* CelUp = &GameState->ParticleCels[Y + 1][X];
 
 						v3 Dispersion = {};
 						f32 Dc = 1.0f;
-						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1, 0, 0);
-						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1, 0, 0);
-						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0, -1, 0);
-						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0, 1, 0);
+						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1.0f, 0.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1.0f, 0.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0.0f, -1.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0.0f, 1.0f, 0.0f);
 
 						v3 ddPos = Particle->ddPos + Dispersion;
 
 						// NOTE: Simulate the particle forward in time
-						Particle->Pos += 0.5f * Square(Input->dtForFrame) * Particle->ddPos + Input->dtForFrame * Particle->dPos;
-						Particle->dPos += Input->dtForFrame * Particle->ddPos;
+						Particle->Pos += 0.5f * Square(Input->dtForFrame) * ddPos + Input->dtForFrame * Particle->dPos;
+						Particle->dPos += Input->dtForFrame * ddPos;
 						Particle->Color += Input->dtForFrame * Particle->dColor;
 
 						if (Particle->Pos.y < 0.0f)
 						{
 							f32 CoefficientOfRestitution = 0.3f;
-							f32 CoefficientOfFriction = 0.1f;
+							f32 CoefficientOfFriction = 0.7f;
 							Particle->Pos.y = -Particle->Pos.y;
 							Particle->dPos.y = -CoefficientOfRestitution * Particle->dPos.y;
 							Particle->dPos.x = CoefficientOfFriction * Particle->dPos.x;
 						}
+
 						// TODO: Shouldn't we just clamp colors in the renderer?
 						v4 Color;
 						Color.r = Clamp01(Particle->Color.r);
@@ -1407,10 +1419,11 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						{
 							Color.a = 0.9f * Clamp01MapToRange(1.0f, Color.a, 0.9f);
 						}
-						
+
 						// NOTE: Render the particle
-						PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar), Particle->Pos, 0.5f, Color);
+						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.7f, Color);
 					}
+#endif
 				} break;
 
 				case entity_type::Wall:
