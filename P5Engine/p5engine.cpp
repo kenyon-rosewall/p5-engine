@@ -864,9 +864,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			SubArena(&Task->Arena, &TransientState->TransientArena, Megabytes(1));
 		}
 
-		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
+		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(3), TransientState);
 
-		GameState->Music = 0; // PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -1598,6 +1598,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	EndSim(SimRegion, GameState);
 	EndTemporaryMemory(SimMemory);
 	EndTemporaryMemory(RenderMemory);
+
+	EvictAssetsAsNecessary(TransientState->Assets);
 
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);

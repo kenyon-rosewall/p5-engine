@@ -28,13 +28,12 @@
 
 struct loaded_bitmap
 {
+	void* Memory;
 	v2 AlignPercentage;
 	f32 WidthOverHeight;
-
-	i32 Width;
-	i32 Height;
-	i32 Pitch;
-	void* Memory;
+	i16 Width;
+	i16 Height;
+	i16 Pitch;
 };
 
 struct environment_map

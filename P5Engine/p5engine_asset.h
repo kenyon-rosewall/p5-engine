@@ -17,21 +17,26 @@ struct loaded_sound
 	i16* Samples[2];
 };
 
-enum class asset_state
+enum asset_state
 {
-	Unloaded,
-	Queued,
-	Loaded,
-	Locked
+	AssetState_Unloaded,
+	AssetState_Queued,
+	AssetState_Loaded,
+	AssetState_Locked,
+	AssetState_StateMask = 0xFFF,
+
+	AssetState_Sound = 0x1000,
+	AssetState_Bitmap = 0x2000,
+	AssetState_TypeMask = 0xF000,
 };
 
 struct asset_slot
 {
-	asset_state State;
+	u32 State;
 	union
 	{
-		loaded_bitmap* Bitmap;
-		loaded_sound* Sound;
+		loaded_bitmap Bitmap;
+		loaded_sound Sound;
 	};
 };
 
@@ -44,6 +49,14 @@ struct asset
 struct asset_vector
 {
 	f32 E[(u32)asset_tag_id::Count];
+};
+
+struct asset_memory_header
+{
+	asset_memory_header* Next;
+	asset_memory_header* Prev;
+	u32 SlotIndex;
+	u32 Reserved;
 };
 
 struct asset_type
@@ -70,6 +83,10 @@ struct game_assets
 	struct transient_state* TransientState;
 	memory_arena Arena;
 
+	u64 TargetMemoryUsed;
+	u64 TotalMemoryUsed;
+	asset_memory_header LoadedAssetSentinel;
+
 	f32 TagRange[(u32)asset_tag_id::Count];
 
 	u32 FileCount;
@@ -85,16 +102,30 @@ struct game_assets
 	asset_type AssetTypes[(u32)asset_type_id::Count];
 };
 
+inline u32
+GetType(asset_slot* Slot)
+{
+	u32 Result = Slot->State & AssetState_TypeMask;
+	return(Result);
+}
+
+inline u32
+GetState(asset_slot* Slot)
+{
+	u32 Result = Slot->State & AssetState_StateMask;
+	return(Result);
+}
+
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
 {
 	Assert(ID.Value <= Assets->AssetCount);
 
 	asset_slot* Slot = Assets->Slots + ID.Value;
 	loaded_bitmap* Result = 0;
-	if (Slot->State >= asset_state::Loaded)
+	if (GetState(Slot) >= AssetState_Loaded)
 	{
 		CompletePreviousReadsBeforeFutureReads;
-		Result = Slot->Bitmap;
+		Result = &Slot->Bitmap;
 	}
 
 	return(Result);
@@ -106,10 +137,10 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 
 	asset_slot* Slot = Assets->Slots + ID.Value;
 	loaded_sound* Result = 0;
-	if (Slot->State >= asset_state::Loaded)
+	if (GetState(Slot)>= AssetState_Loaded)
 	{
 		CompletePreviousReadsBeforeFutureReads;
-		Result = Slot->Sound;
+		Result = &Slot->Sound;
 	}
 
 	return(Result);
