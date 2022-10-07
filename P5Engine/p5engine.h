@@ -1,10 +1,5 @@
 #pragma once
 
-#ifdef P5ENGINE_WIN32
-#define P5ENGINE_API __declspec(dllexport)
-//#define P5ENGINE_API __declspec(dllimport)
-#endif
-
 #ifndef P5ENGINE_H
 #define P5ENGINE_H
 
@@ -13,21 +8,8 @@
 
   - Flush all thread queues before reloading DLL
 
-  - Audio
-	- Fix clicking bug at end of samples
-
   - Asset streaming
 	- Memory management
-
-  - Particle systems
-
-  - Rendering
-	- Straighten out all coordinate systems!
-	  - Screen
-	  - World
-	  - Texture
-    - Lighting
-	- Final Optimization
 
   - Debug code
     - Fonts
@@ -38,6 +20,18 @@
 	  in the chunks we want them to be in / 
 	- Thread visualization
 
+  - Audio
+	- Fix clicking bug at end of samples
+
+  - Particle systems
+
+  - Rendering
+	- Straighten out all coordinate systems!
+	  - Screen
+	  - World
+	  - Texture
+    - Lighting
+	- Final Optimization
   ARCHITECTURE EXPLORATION
   - z
 	- Need to make a solid concept of ground levels so the camera can

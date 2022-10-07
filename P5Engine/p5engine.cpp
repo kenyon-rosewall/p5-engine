@@ -368,7 +368,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 		// TODO: Decide what our pushbuffer size is!
 		// TODO: Safe cast from memory_uint to uint32?
-		render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &Task->Arena, 0); // (uint32)GetArenaSizeRemaining(&Task->Arena));
+		render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &Task->Arena, 0, true);
 		Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
 		Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
 
@@ -864,7 +864,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			SubArena(&Task->Arena, &TransientState->TransientArena, Megabytes(1));
 		}
 
-		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(3), TransientState);
+		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(4), TransientState);
 
 		PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
@@ -1024,7 +1024,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	
 	// TODO: Decide what our push buffer size is
-	render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &TransientState->TransientArena, Megabytes(4));
+	render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &TransientState->TransientArena, Megabytes(4), false);
 	f32 WidthOfMonitor = 0.635f; // NOTE: Horizontal measurement of monitor in meters (approximate)
 	f32 MetersToPixels = (f32)DrawBuffer->Width * WidthOfMonitor;
 	f32 FocalLength = 0.6f;

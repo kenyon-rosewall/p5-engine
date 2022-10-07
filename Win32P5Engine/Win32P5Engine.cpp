@@ -17,7 +17,7 @@ TODO: THIS IS NOT A FINAL PLATFORM LAYER!!!
 Just a partial list of stuff!!
 */
 
-#include "../P5Engine/p5engine.h"
+#include "../P5Engine/p5engine_platform.h"
 
 #include <Windows.h>
 #include <strsafe.h>
@@ -59,7 +59,6 @@ global_variable x_input_set_state* XInputSetState_ = XInputSetStateStub;
 // NOTE: DirectSoundCreate
 #define DIRECT_SOUND_CREATE(name) HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(direct_sound_create);
-
 
 internal void
 CatStrings(size_t SourceACount, char* SourceA, size_t SourceBCount, char* SourceB, size_t DestCount, char* Dest)
@@ -620,10 +619,10 @@ Win32ProcessXInputStickValue(SHORT Value, SHORT DeadZone)
 }
 
 internal void
-Win32GetInputFileLocation(win32_state* State, b32 InputStream, int SlotIndex, int DestCount, char* Dest)
+Win32GetInputFileLocation(win32_state* State, b32 InputStream, int AssetIndex, int DestCount, char* Dest)
 {
 	char Temp[64];
-	wsprintf(Temp, "p5_input_recording_%d_%s.p5i", SlotIndex, InputStream ? "input" : "state");
+	wsprintf(Temp, "p5_input_recording_%d_%s.p5i", AssetIndex, InputStream ? "input" : "state");
 	Win32BuildEXEPathFileName(State, Temp, DestCount, Dest);
 }
 

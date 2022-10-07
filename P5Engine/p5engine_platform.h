@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef P5ENGINE_WIN32
+#define P5ENGINE_API __declspec(dllexport)
+//#define P5ENGINE_API __declspec(dllimport)
+#endif
+
 #ifndef P5ENGINE_PLATFORM_H
 #define P5ENGINE_PLATFORM_H
 
