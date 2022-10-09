@@ -199,10 +199,10 @@ Win32GetLastWriteTime(char* Filename)
 {
 	FILETIME LastWriteTime = {};
 
-	WIN32_FILE_ATTRIBUTE_DATA FindData = {};
-	if (GetFileAttributesEx(Filename, GetFileExInfoStandard, &FindData))
+	WIN32_FILE_ATTRIBUTE_DATA Data = {};
+	if (GetFileAttributesEx(Filename, GetFileExInfoStandard, &Data))
 	{
-		LastWriteTime = FindData.ftLastWriteTime;
+		LastWriteTime = Data.ftLastWriteTime;
 	}
 
 	return(LastWriteTime);
@@ -922,7 +922,7 @@ HandleDebugCycleCounters(game_memory* GameMemory)
 struct platform_work_queue_entry
 {
 	platform_work_queue_callback* Callback;
-	void* FindData;
+	void* Data;
 };
 
 struct platform_work_queue
@@ -939,15 +939,14 @@ struct platform_work_queue
 };
 
 void
-Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* FindData)
+Win32AddEntry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* Data)
 {
-	u32 NextEntryToWrite = Queue->NextEntryToWrite;
-	u32 NewNextEntryToWrite = (NextEntryToWrite + 1) % ArrayCount(Queue->Entries);
+	u32 NewNextEntryToWrite = (Queue->NextEntryToWrite + 1) % ArrayCount(Queue->Entries);
 	Assert(NewNextEntryToWrite != Queue->NextEntryToRead);
 
-	platform_work_queue_entry* Entry = Queue->Entries + NextEntryToWrite;
+	platform_work_queue_entry* Entry = Queue->Entries + Queue->NextEntryToWrite;
 	Entry->Callback = Callback;
-	Entry->FindData = FindData;
+	Entry->Data = Data;
 	++Queue->CompletionGoal;
 
 	_WriteBarrier();
@@ -962,16 +961,16 @@ Win32DoNextWorkQueueEntry(platform_work_queue* Queue)
 {
 	b32 WeShouldSleep = false;
 
-	u32 NextEntryToRead = Queue->NextEntryToRead;
-	u32 NewNextEntryToRead = (NextEntryToRead + 1) % ArrayCount(Queue->Entries);
-	if (NextEntryToRead != Queue->NextEntryToWrite)
+	u32 OriginalNextEntryToRead = Queue->NextEntryToRead;
+	u32 NewNextEntryToRead = (OriginalNextEntryToRead + 1) % ArrayCount(Queue->Entries);
+	if (OriginalNextEntryToRead != Queue->NextEntryToWrite)
 	{
-		u32 Index = InterlockedCompareExchange((LONG volatile*)&Queue->NextEntryToRead, NewNextEntryToRead, NextEntryToRead);
+		u32 Index = InterlockedCompareExchange((LONG volatile*)&Queue->NextEntryToRead, NewNextEntryToRead, OriginalNextEntryToRead);
 
-		if (Index == NextEntryToRead)
+		if (Index == OriginalNextEntryToRead)
 		{
-			platform_work_queue_entry* Entry = Queue->Entries + Index;
-			Entry->Callback(Queue, Entry->FindData);
+			platform_work_queue_entry Entry = Queue->Entries[Index];
+			Entry.Callback(Queue, Entry.Data);
 			InterlockedIncrement((LONG volatile*)&Queue->CompletionCount);
 		}
 	}
@@ -1015,7 +1014,7 @@ internal
 PLATFORM_WORK_QUEUE_CALLBACK(DoWorkerWork)
 {
 	char Buffer[256];
-	wsprintf(Buffer, "=== Thread %u: %s ===\n", GetCurrentThreadId(), (char*)FindData);
+	wsprintf(Buffer, "=== Thread %u: %s ===\n", GetCurrentThreadId(), (char*)Data);
 	OutputDebugStringA(Buffer);
 }
 
@@ -1030,7 +1029,9 @@ Win32MakeQueue(platform_work_queue* Queue, u32 ThreadCount)
 	u32 InitialCount = 0;
 	Queue->SemaphoreHandle = CreateSemaphoreEx(0, InitialCount, ThreadCount, 0, 0, SEMAPHORE_ALL_ACCESS);
 
-	for (u32 ThreadIndex = 0; ThreadIndex < ThreadCount; ++ThreadIndex)
+	for (u32 ThreadIndex = 0;
+		 ThreadIndex < ThreadCount;
+ ++ThreadIndex)
 	{
 		DWORD ThreadID;
 		HANDLE ThreadHandle = CreateThread(0, 0, ThreadProc, Queue, 0, &ThreadID);
@@ -1040,26 +1041,24 @@ Win32MakeQueue(platform_work_queue* Queue, u32 ThreadCount)
 
 struct win32_platform_file_handle
 {
-	platform_file_handle H;
 	HANDLE Win32Handle;
 };
 
 struct win32_platform_file_group
 {
-	platform_file_group H;
 	HANDLE FindHandle;
-	WIN32_FIND_DATAA FindData;
+	WIN32_FIND_DATAA Data;
 };
 
 internal PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(Win32GetAllFilesOfTypeBegin)
 {
+	platform_file_group Result = {};
+
 	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)VirtualAlloc(
-		0, 
-		sizeof(win32_platform_file_group), 
-		MEM_RESERVE|MEM_COMMIT, 
-		PAGE_READWRITE
+		0, sizeof(win32_platform_file_group), 
+		MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE
 	);
-	Win32FileGroup->H.FileCount = 0;
+	Result.Platform = Win32FileGroup;
 
 #if 0
 	char* TypeAt = Type;
@@ -1080,74 +1079,68 @@ internal PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(Win32GetAllFilesOfTypeBegin)
 	Concat(Wildcard, Type, 32);
 #endif
 
-	WIN32_FIND_DATAA FindData;
-	HANDLE FindHandle = FindFirstFileA(Wildcard, &FindData);
+	Result.FileCount = 0;
+
+	WIN32_FIND_DATAA Data;
+	HANDLE FindHandle = FindFirstFileA(Wildcard, &Data);
 
 	while (FindHandle != INVALID_HANDLE_VALUE)
 	{
-		++Win32FileGroup->H.FileCount;
+		++Result.FileCount;
 
-		if (!FindNextFileA(FindHandle, &FindData))
+		if (!FindNextFileA(FindHandle, &Data))
 		{
 			break;
 		}
 	}
+	FindClose(FindHandle);
 
-	if (FindHandle != INVALID_HANDLE_VALUE)
-	{
-		FindClose(FindHandle);
-	}
+	Win32FileGroup->FindHandle = FindFirstFileA(Wildcard, &Win32FileGroup->Data);
 
-	Win32FileGroup->FindHandle = FindFirstFileA(Wildcard, &Win32FileGroup->FindData);
-
-	return((platform_file_group*)Win32FileGroup);
+	return(Result);
 }
 
 internal PLATFORM_GET_ALL_FILES_OF_TYPE_END(Win32GetAllFilesOfTypeEnd)
 {
-	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)FileGroup;
+	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)FileGroup->Platform;
 	if (Win32FileGroup)
 	{
-		if (Win32FileGroup->FindHandle != INVALID_HANDLE_VALUE)
-		{
-			FindClose(Win32FileGroup->FindHandle);
-		}
-
+		FindClose(Win32FileGroup->FindHandle);
+		
 		VirtualFree(Win32FileGroup, 0, MEM_RELEASE);
 	}
 }
 
 internal PLATFORM_OPEN_FILE(Win32OpenNextFile)
 {
-	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)FileGroup;
-	win32_platform_file_handle* Result = 0;
+	win32_platform_file_group* Win32FileGroup = (win32_platform_file_group*)FileGroup->Platform;
+	platform_file_handle Result = {};
 
 	if (Win32FileGroup->FindHandle != INVALID_HANDLE_VALUE)
 	{
 		// TODO: If we want, someday, make an actual arena used by Win32
-		Result = (win32_platform_file_handle*)VirtualAlloc(
-			0,
-			sizeof(win32_platform_file_handle),
-			MEM_RESERVE | MEM_COMMIT,
-			PAGE_READWRITE
+		win32_platform_file_handle* Win32Handle = (win32_platform_file_handle*)VirtualAlloc(
+			0, sizeof(win32_platform_file_handle),
+			MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE
 		);
+		Result.Platform = Win32Handle;
 
-		if (Result)
+		if (Win32Handle)
 		{
 			char Filename[50] = "../data/";
-			Concat(Filename, Win32FileGroup->FindData.cFileName, 50);
-			Result->Win32Handle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-			Result->H.NoErrors = (Result->Win32Handle != INVALID_HANDLE_VALUE);
+			Concat(Filename, Win32FileGroup->Data.cFileName, 50);
+			Win32Handle->Win32Handle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+			Result.NoErrors = (Win32Handle->Win32Handle != INVALID_HANDLE_VALUE);
 		}
 
-		if (!FindNextFileA(Win32FileGroup->FindHandle, &Win32FileGroup->FindData))
+		if (!FindNextFileA(Win32FileGroup->FindHandle, &Win32FileGroup->Data))
 		{
 			FindClose(Win32FileGroup->FindHandle);
 			Win32FileGroup->FindHandle = INVALID_HANDLE_VALUE;
 		}
 	}
 
-	return((platform_file_handle*)Result);
+	return(Result);
 }
 
 internal PLATFORM_FILE_ERROR(Win32FileError)
@@ -1165,7 +1158,7 @@ internal PLATFORM_READ_DATA_FROM_FILE(Win32ReadDataFromFile)
 {
 	if (PlatformNoFileErrors(Source))
 	{
-		win32_platform_file_handle* Handle = (win32_platform_file_handle*)Source;
+		win32_platform_file_handle* Handle = (win32_platform_file_handle*)Source->Platform;
 
 		OVERLAPPED Overlapped = {};
 		Overlapped.Offset = (u32)((Offset >> 0) & 0xFFFFFFFFF);
@@ -1180,7 +1173,7 @@ internal PLATFORM_READ_DATA_FROM_FILE(Win32ReadDataFromFile)
 		}
 		else
 		{
-			Win32FileError(&Handle->H, (char*)"Read file failed.");
+			Win32FileError(Source, (char*)"Read file failed.");
 		}
 	}
 }

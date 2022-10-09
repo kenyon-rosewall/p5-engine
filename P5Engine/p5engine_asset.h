@@ -12,9 +12,9 @@ struct hero_bitmaps
 
 struct loaded_sound
 {
+	i16* Samples[2];
 	u32 SampleCount; // NOTE: This is the sample count divided by 8
 	u32 ChannelCount;
-	i16* Samples[2];
 };
 
 enum asset_state
@@ -63,7 +63,7 @@ struct asset_type
 
 struct asset_file
 {
-	platform_file_handle* Handle;
+	platform_file_handle Handle;
 
 	// TODO: If we ever do thread stacks, AssetTypeArray doesn't
 	// actually need to be kept here probably.
@@ -73,14 +73,26 @@ struct asset_file
 	u32 TagBase;
 };
 
+enum asset_memory_block_flags
+{
+	AssetMemory_Used = 0x1,
+};
+
+struct asset_memory_block
+{
+	asset_memory_block* Prev;
+	asset_memory_block* Next;
+	u64 Flags;
+	memory_index Size;
+};
+
 struct game_assets
 {
 	// TODO: Not crazy about this back pointer
 	struct transient_state* TransientState;
-	memory_arena Arena;
 
-	u64 TargetMemoryUsed;
-	u64 TotalMemoryUsed;
+	asset_memory_block MemorySentinel;
+	
 	asset_memory_header LoadedAssetSentinel;
 
 	f32 TagRange[(u32)asset_tag_id::Count];

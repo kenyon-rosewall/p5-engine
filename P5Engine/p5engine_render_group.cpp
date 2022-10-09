@@ -735,13 +735,13 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 	{
 		render_group_entry_header* Header = (render_group_entry_header*)(RenderGroup->PushBufferBase + BaseAddress);
 		BaseAddress += sizeof(*Header);
-		void* FindData = (u8*)Header + sizeof(*Header);
+		void* Data = (u8*)Header + sizeof(*Header);
 
 		switch (Header->Type)
 		{
 			case render_group_entry_type::render_entry_clear:
 			{
-				render_entry_clear* Entry = (render_entry_clear*)FindData;
+				render_entry_clear* Entry = (render_entry_clear*)Data;
 
 				DrawRectangle(OutputTarget, V2(0, 0), 
 							  V2i(OutputTarget->Width, OutputTarget->Height), 
@@ -752,7 +752,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 			
 			case render_group_entry_type::render_entry_bitmap:
 			{
-				render_entry_bitmap* Entry = (render_entry_bitmap*)FindData;
+				render_entry_bitmap* Entry = (render_entry_bitmap*)Data;
 				Assert(Entry->Bitmap);
 
 #if 0
@@ -777,7 +777,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 
 			case render_group_entry_type::render_entry_rectangle:
 			{
-				render_entry_rectangle* Entry = (render_entry_rectangle*)FindData;
+				render_entry_rectangle* Entry = (render_entry_rectangle*)Data;
 				DrawRectangle(OutputTarget, Entry->Pos, 
 							  Entry->Pos + Entry->Dim, 
 							  Entry->Color, ClipRect, Even);
@@ -787,7 +787,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 
 			case render_group_entry_type::render_entry_coordinate_system:
 			{
-				render_entry_coordinate_system* Entry = (render_entry_coordinate_system*)FindData;
+				render_entry_coordinate_system* Entry = (render_entry_coordinate_system*)Data;
 #if 0
 				
 				v2 vMax = (Entry->Origin + Entry->XAxis + Entry->YAxis);
@@ -846,7 +846,7 @@ struct tile_render_work
 
 internal PLATFORM_WORK_QUEUE_CALLBACK(DoTiledRenderWork)
 {
-	tile_render_work* Work = (tile_render_work*)FindData;
+	tile_render_work* Work = (tile_render_work*)Data;
 
 	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, true);
 	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, false);

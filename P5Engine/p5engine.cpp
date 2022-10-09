@@ -100,7 +100,9 @@ InitHitPoints(low_entity* EntityLow, u32 HitPointCount)
 	Assert(HitPointCount <= ArrayCount(EntityLow->Sim.HitPoint));
 
 	EntityLow->Sim.HitPointMax = HitPointCount;
-	for (u32 HitPointIndex = 0; HitPointIndex < EntityLow->Sim.HitPointMax; ++HitPointIndex)
+	for (u32 HitPointIndex = 0;
+		 HitPointIndex < EntityLow->Sim.HitPointMax;
+		 ++HitPointIndex)
 	{
 		hit_point* HitPoint = EntityLow->Sim.HitPoint + HitPointIndex;
 		HitPoint->Flags = 0;
@@ -308,21 +310,23 @@ MakeNullCollision(game_state* GameState)
 internal task_with_memory*
 BeginTaskWithMemory(transient_state* TransientState)
 {
-	task_with_memory* Result = 0;
+	task_with_memory* FoundTask = 0;
 
-	for (u32 TaskIndex = 0; TaskIndex < ArrayCount(TransientState->Tasks); ++TaskIndex)
+	for (u32 TaskIndex = 0;
+		 TaskIndex < ArrayCount(TransientState->Tasks);
+		 ++TaskIndex)
 	{
 		task_with_memory* Task = TransientState->Tasks + TaskIndex;
 		if (!Task->BeingUsed)
 		{
-			Result = Task;
+			FoundTask = Task;
 			Task->BeingUsed = true;
 			Task->MemoryFlush = BeginTemporaryMemory(&Task->Arena);
 			break;
 		}
 	}
 
-	return(Result);
+	return(FoundTask);
 }
 
 internal void
@@ -342,7 +346,7 @@ struct fill_ground_chunk_work
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 {
-	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)FindData;
+	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)Data;
 
 	RenderGroupToOutput(Work->RenderGroup, Work->Buffer);
 	
@@ -433,7 +437,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					{
 						v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-						PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
+						// PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
 					}
 				}
 			}
@@ -864,9 +868,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			SubArena(&Task->Arena, &TransientState->TransientArena, Megabytes(1));
 		}
 
-		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(4), TransientState);
+		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(16), TransientState);
 
-		PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		// PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -1453,7 +1457,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				case entity_type::Monstar:
 				{
 					PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Shadow), V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
-					PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Monstar), V3(0, 0, 0), 1.0f);
+ 					PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Monstar), V3(0, 0, 0), 1.0f);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;
@@ -1598,8 +1602,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	EndSim(SimRegion, GameState);
 	EndTemporaryMemory(SimMemory);
 	EndTemporaryMemory(RenderMemory);
-
-	EvictAssetsAsNecessary(TransientState->Assets);
 
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
