@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+
 #include "p5engine_types.h"
-#include "p5engine_asset_type_id.h"
 #include "p5engine_file_formats.h"
 #include "p5engine_intrinsics.h"
 #include "p5engine_math.h"
@@ -16,13 +16,20 @@ enum class asset_type
 {
 	Sound,
 	Bitmap,
+	Font,
 };
 
 struct asset_source
 {
 	asset_type Type;
 	char* Filename;
-	u32 FirstSampleIndex;
+	union
+	{
+		u32 FirstSampleIndex;
+		u32 Codepoint;
+	};
+
+	char* FontName;
 };
 
 #define VERY_LARGE_NUMBER 4096

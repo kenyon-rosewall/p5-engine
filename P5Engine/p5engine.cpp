@@ -472,6 +472,9 @@ MakeEmptyBitmap(memory_arena* Arena, i32 Width, i32 Height, b32 ClearToZero = tr
 {
 	loaded_bitmap Result = {};
 
+	Result.AlignPercentage = V2(0.5f, 0.5f);
+	Result.WidthOverHeight = SafeRatio1((f32)Width, (f32)Height);
+
 	Result.Width = Width;
 	Result.Height = Height;
 	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
