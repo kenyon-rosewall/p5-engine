@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef P5ENGINE_WIN32
+#define P5ENGINE_API __declspec(dllexport)
+//#define P5ENGINE_API __declspec(dllimport)
+#endif
+
 #ifndef P5ENGINE_H
 #define P5ENGINE_H
 
@@ -8,20 +13,11 @@
 
   - Flush all thread queues before reloading DLL
 
-  - Asset streaming
-	- Memory management
-
-  - Debug code
-    - Fonts
-	- Logging
-	- Diagramming
-	- (A LITTLE GUI, but only a little!) Switchs / sliders / etc.
-	- Draw tile chunks so we can verify that things are aligned /
-	  in the chunks we want them to be in / 
-	- Thread visualization
-
   - Audio
 	- Fix clicking bug at end of samples
+
+  - Asset streaming
+	- Memory management
 
   - Particle systems
 
@@ -32,6 +28,16 @@
 	  - Texture
     - Lighting
 	- Final Optimization
+
+  - Debug code
+    - Fonts
+	- Logging
+	- Diagramming
+	- (A LITTLE GUI, but only a little!) Switchs / sliders / etc.
+	- Draw tile chunks so we can verify that things are aligned /
+	  in the chunks we want them to be in / 
+	- Thread visualization
+
   ARCHITECTURE EXPLORATION
   - z
 	- Need to make a solid concept of ground levels so the camera can
@@ -272,7 +278,7 @@ struct controlled_hero
 	f32 SpeedMultiplier;
 
 	// NOTE: These are the controller requests for simulation
-	v3 ddPos;
+	v3 ddP;
 	v3 dSword;
 	f32 dZ;
 };
@@ -302,9 +308,9 @@ struct particle_cel
 	f32 Density;
 	v3 VelocityTimesDensity;
 };
+
 struct particle
 {
-	bitmap_id BitmapID;
 	v3 Pos;
 	v3 dPos;
 	v3 ddPos;
@@ -357,7 +363,7 @@ struct game_state
 	audio_state AudioState;
 	playing_sound* Music;
 
-#define PARTICLE_CEL_DIM 32
+#define PARTICLE_CEL_DIM 16
 	u32 NextParticle;
 	particle Particles[256];
 

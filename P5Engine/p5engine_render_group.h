@@ -28,12 +28,13 @@
 
 struct loaded_bitmap
 {
-	void* Memory;
 	v2 AlignPercentage;
 	f32 WidthOverHeight;
-	i16 Width;
-	i16 Height;
-	i16 Pitch;
+
+	i32 Width;
+	i32 Height;
+	i32 Pitch;
+	void* Memory;
 };
 
 struct environment_map
@@ -131,8 +132,6 @@ struct render_group
 	u8* PushBufferBase;
 
 	u32 MissingResourceCount;
-
-	b32 AssetsShouldBeLocked;
 };
 
 void DrawRectangleQuickly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Color,

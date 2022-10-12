@@ -449,7 +449,7 @@ EntitiesOverlap(sim_entity* Entity, sim_entity* TestEntity, v3 Epsilon = V3(0, 0
 }
 
 internal void
-MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, f32 dt, move_spec* MoveSpec, v3 ddPos)
+MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, f32 dt, move_spec* MoveSpec, v3 ddP)
 {
 	Assert(!HasFlag(Entity, (u32)entity_flag::Nonspatial));
 
@@ -462,26 +462,26 @@ MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, f32
 
 	if (MoveSpec->UnitMaxAccelVector)
 	{
-		f32 ddPLength = LengthSq(ddPos);
+		f32 ddPLength = LengthSq(ddP);
 		if (ddPLength > 1.0f)
 		{
-			ddPos *= (1.0f / SquareRoot(ddPLength));
+			ddP *= (1.0f / SquareRoot(ddPLength));
 		}
 	}
 
-	ddPos *= MoveSpec->Speed * MoveSpec->SpeedMult;
+	ddP *= MoveSpec->Speed * MoveSpec->SpeedMult;
 
 	// TODO: ODE here
 	v3 Drag = -MoveSpec->Drag * Entity->dPos;
 	Drag.z = 0;
-	ddPos += Drag;
+	ddP += Drag;
 	if (!HasFlag(Entity, (u32)entity_flag::ZSupported))
 	{
-		ddPos += V3(0, 0, -9.8f);
+		ddP += V3(0, 0, -9.8f);
 	}
 
-	v3 PlayerDelta = (0.5f * ddPos * Square(dt) + Entity->dPos * dt);
-	Entity->dPos = ddPos * dt + Entity->dPos;
+	v3 PlayerDelta = (0.5f * ddP * Square(dt) + Entity->dPos * dt);
+	Entity->dPos = ddP * dt + Entity->dPos;
 	// TODO: Upgrade physical motion routines to handle capping the
 	// maximum velocity
 	Assert(LengthSq(Entity->dPos) <= Square(SimRegion->MaxEntityVelocity));

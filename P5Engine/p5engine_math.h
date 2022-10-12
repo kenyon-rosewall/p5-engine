@@ -906,12 +906,12 @@ RectanglesIntersect(rectangle2 A, rectangle2 B)
 }
 
 inline v2
-GetBarycentric(rectangle2 A, v2 Pos)
+GetBarycentric(rectangle2 A, v2 P)
 {
 	v2 Result = {};
 
-	Result.x = (Pos.x - A.Min.x) / (A.Max.x - A.Min.x);
-	Result.y = (Pos.y - A.Min.y) / (A.Max.y - A.Min.y);
+	Result.x = (P.x - A.Min.x) / (A.Max.x - A.Min.x);
+	Result.y = (P.y - A.Min.y) / (A.Max.y - A.Min.y);
 
 	return(Result);
 }
@@ -1111,13 +1111,13 @@ RectanglesIntersect(rectangle3 A, rectangle3 B)
 }
 
 inline v3
-GetBarycentric(rectangle3 A, v3 Pos)
+GetBarycentric(rectangle3 A, v3 P)
 {
 	v3 Result = {};
 
-	Result.x = SafeRatio0(Pos.x - A.Min.x, A.Max.x - A.Min.x);
-	Result.y = SafeRatio0(Pos.y - A.Min.y, A.Max.y - A.Min.y);
-	Result.z = SafeRatio0(Pos.z - A.Min.z, A.Max.z - A.Min.z);
+	Result.x = SafeRatio0(P.x - A.Min.x, A.Max.x - A.Min.x);
+	Result.y = SafeRatio0(P.y - A.Min.y, A.Max.y - A.Min.y);
+	Result.z = SafeRatio0(P.z - A.Min.z, A.Max.z - A.Min.z);
 
 	return(Result);
 }

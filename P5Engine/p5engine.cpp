@@ -100,9 +100,7 @@ InitHitPoints(low_entity* EntityLow, u32 HitPointCount)
 	Assert(HitPointCount <= ArrayCount(EntityLow->Sim.HitPoint));
 
 	EntityLow->Sim.HitPointMax = HitPointCount;
-	for (u32 HitPointIndex = 0;
-		 HitPointIndex < EntityLow->Sim.HitPointMax;
-		 ++HitPointIndex)
+	for (u32 HitPointIndex = 0; HitPointIndex < EntityLow->Sim.HitPointMax; ++HitPointIndex)
 	{
 		hit_point* HitPoint = EntityLow->Sim.HitPoint + HitPointIndex;
 		HitPoint->Flags = 0;
@@ -310,23 +308,21 @@ MakeNullCollision(game_state* GameState)
 internal task_with_memory*
 BeginTaskWithMemory(transient_state* TransientState)
 {
-	task_with_memory* FoundTask = 0;
+	task_with_memory* Result = 0;
 
-	for (u32 TaskIndex = 0;
-		 TaskIndex < ArrayCount(TransientState->Tasks);
-		 ++TaskIndex)
+	for (u32 TaskIndex = 0; TaskIndex < ArrayCount(TransientState->Tasks); ++TaskIndex)
 	{
 		task_with_memory* Task = TransientState->Tasks + TaskIndex;
 		if (!Task->BeingUsed)
 		{
-			FoundTask = Task;
+			Result = Task;
 			Task->BeingUsed = true;
 			Task->MemoryFlush = BeginTemporaryMemory(&Task->Arena);
 			break;
 		}
 	}
 
-	return(FoundTask);
+	return(Result);
 }
 
 internal void
@@ -346,7 +342,7 @@ struct fill_ground_chunk_work
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 {
-	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)Data;
+	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)FindData;
 
 	RenderGroupToOutput(Work->RenderGroup, Work->Buffer);
 	
@@ -372,7 +368,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 
 		// TODO: Decide what our pushbuffer size is!
 		// TODO: Safe cast from memory_uint to uint32?
-		render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &Task->Arena, 0, true);
+		render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &Task->Arena, 0); // (uint32)GetArenaSizeRemaining(&Task->Arena));
 		Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
 		Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
 
@@ -437,7 +433,7 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 					{
 						v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
 
-						// PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
+						PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
 					}
 				}
 			}
@@ -471,9 +467,6 @@ internal loaded_bitmap
 MakeEmptyBitmap(memory_arena* Arena, i32 Width, i32 Height, b32 ClearToZero = true)
 {
 	loaded_bitmap Result = {};
-
-	Result.AlignPercentage = V2(0.5f, 0.5f);
-	Result.WidthOverHeight = SafeRatio1((f32)Width, (f32)Height);
 
 	Result.Width = Width;
 	Result.Height = Height;
@@ -871,9 +864,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			SubArena(&Task->Arena, &TransientState->TransientArena, Megabytes(1));
 		}
 
-		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(16), TransientState);
+		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
 
-		// PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		GameState->Music = 0; // PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -937,33 +930,33 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 		else
 		{
-			ConHero->ddPos = {};
+			ConHero->ddP = {};
 			ConHero->SpeedMultiplier = 1.0f;
 			ConHero->dZ = 0.0f;
 
 			if (Controller->IsAnalogL)
 			{
 				// NOTE: Use analog movement tuning
-				ConHero->ddPos = V3(Controller->StickAverageLX, Controller->StickAverageLY, 0);
+				ConHero->ddP = V3(Controller->StickAverageLX, Controller->StickAverageLY, 0);
 			}
 			else
 			{
 				// NOTE: Use digital movement tuning
 				if (Controller->MoveUp.EndedDown)
 				{
-					ConHero->ddPos.y = 1.0f;
+					ConHero->ddP.y = 1.0f;
 				}
 				if (Controller->MoveDown.EndedDown)
 				{
-					ConHero->ddPos.y = -1.0f;
+					ConHero->ddP.y = -1.0f;
 				}
 				if (Controller->MoveLeft.EndedDown)
 				{
-					ConHero->ddPos.x = -1.0f;
+					ConHero->ddP.x = -1.0f;
 				}
 				if (Controller->MoveRight.EndedDown)
 				{
-					ConHero->ddPos.x = 1.0f;
+					ConHero->ddP.x = 1.0f;
 				}
 			}
 
@@ -1031,7 +1024,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	temporary_memory RenderMemory = BeginTemporaryMemory(&TransientState->TransientArena);
 	
 	// TODO: Decide what our push buffer size is
-	render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &TransientState->TransientArena, Megabytes(4), false);
+	render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &TransientState->TransientArena, Megabytes(4));
 	f32 WidthOfMonitor = 0.635f; // NOTE: Horizontal measurement of monitor in meters (approximate)
 	f32 MetersToPixels = (f32)DrawBuffer->Width * WidthOfMonitor;
 	f32 FocalLength = 0.6f;
@@ -1189,7 +1182,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							MoveSpec.Speed = 45.0f;
 							MoveSpec.Drag = 6.0f;
 							MoveSpec.SpeedMult = ConHero->SpeedMultiplier;
-							ddPos = ConHero->ddPos;
+							ddPos = ConHero->ddP;
 
 							if ((ConHero->dSword.x != 0.0f) || (ConHero->dSword.y != 0.0f))
 							{
@@ -1227,12 +1220,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 #if 0
 					// TODO: Make spatial queries easy for things
-					for (u32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
+					for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 					{
 						sim_entity* TestEntity = SimRegion->Entities + EntityIndex;
 						if (TestEntity->Type == entity_type::Hero)
 						{
-							f32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
+							real32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
 
 							if (ClosestHeroDSq > TestDSq)
 							{
@@ -1301,9 +1294,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					PushBitmap(RenderGroup, HeroBitmaps.Character, V3(0, 0, 0), CharacterSizeC * 1.2f);
 
 					DrawHitpoints(Entity, RenderGroup);
-#if 1
+
 					// NOTE: Particle system test
-					for (u32 ParticleSpawnIndex = 0; ParticleSpawnIndex < 3; ++ParticleSpawnIndex)
+					for (u32 ParticleSpawnIndex = 0; ParticleSpawnIndex < 1; ++ParticleSpawnIndex)
 					{
 						particle* Particle = GameState->Particles + GameState->NextParticle++;
 						if (GameState->NextParticle >= ArrayCount(GameState->Particles))
@@ -1311,35 +1304,21 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							GameState->NextParticle = 0;
 						}
 
-						Particle->Pos = V3(
-							RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f),
-							0,
-							0
-						);
-						Particle->dPos = V3(
-							RandomBetween(&GameState->EffectsEntropy, -0.01f, 0.01f), 
-							7.0f * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 
-							0.0f
-						);
-						Particle->ddPos = V3(
-							0.0f, -9.8f, 0.0f
-						);
-						Particle->Color = V4(
-							RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
-							RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
-							RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
-							1.0f
-						);
-						Particle->dColor = V4(0, 0, 0, -0.25f);
-						Particle->BitmapID = GetRandomBitmapFrom(TransientState->Assets, asset_type_id::Familiar, &GameState->EffectsEntropy);
+						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f), 0, 0);
+						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.1f, 0.1f), 7 * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
+						Particle->ddPos = V3(0.0f, -9.8f, 0.0f);
+						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
+											 1.0f);
+						Particle->dColor = V4(0, 0, 0, -0.1f);
 					}
 
-					// NOTE: Particle system test
 					ZeroStruct(GameState->ParticleCels);
 
-					f32 GridScale = 0.25f;
+					f32 GridScale = 0.5f;
 					f32 InvGridScale = 1.0f / GridScale;
-					v3 GridOrigin = { -0.5f * GridScale * PARTICLE_CEL_DIM, 0.0f, 0.0f };
+					v3 GridOrigin = V3(-0.5f * GridScale * PARTICLE_CEL_DIM, 0.0f, 0.0f);
 					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
 					{
 						particle* Particle = GameState->Particles + ParticleIndex;
@@ -1360,17 +1339,20 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						Cel->VelocityTimesDensity += Density * Particle->dPos;
 					}
 
-#if 0
 					for (u32 Y = 0; Y < PARTICLE_CEL_DIM; ++Y)
 					{
 						for (u32 X = 0; X < PARTICLE_CEL_DIM; ++X)
 						{
 							particle_cel* Cel = &GameState->ParticleCels[Y][X];
-							real32 Alpha = Clamp01(0.1f * Cel->Density);
-							PushRect(RenderGroup, GridScale * V3((r32)X, (r32)Y, 0) + GridOrigin, GridScale * V2(1.0f, 1.0f), V4(Alpha, Alpha, Alpha, 1.0f));
+							f32 Alpha = Clamp01(0.1f * Cel->Density);
+							PushRect(
+								RenderGroup, 
+								GridScale * (V3((f32)X, (f32)Y, 0)) + GridOrigin,
+								GridScale * V2(1, 1), 
+								V4(Alpha, Alpha, Alpha, 1.0f)
+							);
 						}
 					}
-#endif
 
 					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
 					{
@@ -1389,32 +1371,31 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						particle_cel* CelCenter = &GameState->ParticleCels[Y][X];
 						particle_cel* CelLeft = &GameState->ParticleCels[Y][X - 1];
 						particle_cel* CelRight = &GameState->ParticleCels[Y][X + 1];
-						particle_cel* CelDown = &GameState->ParticleCels[Y - 1][X];
-						particle_cel* CelUp = &GameState->ParticleCels[Y + 1][X];
+						particle_cel* CelUp = &GameState->ParticleCels[Y - 1][X];
+						particle_cel* CelDown = &GameState->ParticleCels[Y + 1][X];
 
 						v3 Dispersion = {};
 						f32 Dc = 1.0f;
-						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1.0f, 0.0f, 0.0f);
-						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1.0f, 0.0f, 0.0f);
-						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0.0f, -1.0f, 0.0f);
-						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0.0f, 1.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1, 0, 0);
+						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1, 0, 0);
+						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0, -1, 0);
+						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0, 1, 0);
 
 						v3 ddPos = Particle->ddPos + Dispersion;
 
 						// NOTE: Simulate the particle forward in time
-						Particle->Pos += 0.5f * Square(Input->dtForFrame) * ddPos + Input->dtForFrame * Particle->dPos;
-						Particle->dPos += Input->dtForFrame * ddPos;
+						Particle->Pos += 0.5f * Square(Input->dtForFrame) * Particle->ddPos + Input->dtForFrame * Particle->dPos;
+						Particle->dPos += Input->dtForFrame * Particle->ddPos;
 						Particle->Color += Input->dtForFrame * Particle->dColor;
 
 						if (Particle->Pos.y < 0.0f)
 						{
 							f32 CoefficientOfRestitution = 0.3f;
-							f32 CoefficientOfFriction = 0.7f;
+							f32 CoefficientOfFriction = 0.1f;
 							Particle->Pos.y = -Particle->Pos.y;
 							Particle->dPos.y = -CoefficientOfRestitution * Particle->dPos.y;
 							Particle->dPos.x = CoefficientOfFriction * Particle->dPos.x;
 						}
-
 						// TODO: Shouldn't we just clamp colors in the renderer?
 						v4 Color;
 						Color.r = Clamp01(Particle->Color.r);
@@ -1426,11 +1407,10 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						{
 							Color.a = 0.9f * Clamp01MapToRange(1.0f, Color.a, 0.9f);
 						}
-
+						
 						// NOTE: Render the particle
-						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.7f, Color);
+						PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar), Particle->Pos, 0.5f, Color);
 					}
-#endif
 				} break;
 
 				case entity_type::Wall:
@@ -1460,7 +1440,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 				case entity_type::Monstar:
 				{
 					PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Shadow), V3(0, 0, 0), 0.25f, V4(1, 1, 1, ShadowAlpha));
- 					PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Monstar), V3(0, 0, 0), 1.0f);
+					PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Monstar), V3(0, 0, 0), 1.0f);
 
 					DrawHitpoints(Entity, RenderGroup);
 				} break;

@@ -1,10 +1,5 @@
 #pragma once
 
-#ifdef P5ENGINE_WIN32
-#define P5ENGINE_API __declspec(dllexport)
-//#define P5ENGINE_API __declspec(dllimport)
-#endif
-
 #ifndef P5ENGINE_PLATFORM_H
 #define P5ENGINE_PLATFORM_H
 
@@ -205,21 +200,19 @@ typedef struct game_input
 typedef struct platform_file_handle
 {
 	b32 NoErrors;
-	void* Platform;
 } platform_file_handle;
 typedef struct platform_file_group
 {
 	u32 FileCount;
-	void* Platform;
 } platform_file_group;
 
-#define PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(name) platform_file_group name(char* Type)
+#define PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(name) platform_file_group* name(char* Type)
 typedef PLATFORM_GET_ALL_FILES_OF_TYPE_BEGIN(platform_get_all_files_of_type_begin);
 
 #define PLATFORM_GET_ALL_FILES_OF_TYPE_END(name) void name(platform_file_group* FileGroup)
 typedef PLATFORM_GET_ALL_FILES_OF_TYPE_END(platform_get_all_files_of_type_end);
 
-#define PLATFORM_OPEN_FILE(name) platform_file_handle name(platform_file_group* FileGroup)
+#define PLATFORM_OPEN_FILE(name) platform_file_handle* name(platform_file_group* FileGroup)
 typedef PLATFORM_OPEN_FILE(platform_open_next_file);
 
 #define PLATFORM_READ_DATA_FROM_FILE(name) void name(platform_file_handle* Source, u64 Offset, u64 Size, void* Dest)
@@ -231,16 +224,10 @@ typedef PLATFORM_FILE_ERROR(platform_file_error);
 #define PlatformNoFileErrors(Handle) ((Handle)->NoErrors)
 
 struct platform_work_queue;
-#define PLATFORM_WORK_QUEUE_CALLBACK(name) void name(platform_work_queue* Queue, void* Data)
+#define PLATFORM_WORK_QUEUE_CALLBACK(name) void name(platform_work_queue* Queue, void* FindData)
 typedef PLATFORM_WORK_QUEUE_CALLBACK(platform_work_queue_callback);
 
-#define PLATFORM_ALLOCATE_MEMORY(name) void* name(memory_index Size)
-typedef PLATFORM_ALLOCATE_MEMORY(platform_allocate_memory);
-
-#define PLATFORM_DEALLOCATE_MEMORY(name) void name(void* Memory)
-typedef PLATFORM_DEALLOCATE_MEMORY(platform_deallocate_memory);
-
-typedef void platform_add_entry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* Data);
+typedef void platform_add_entry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* FindData);
 typedef void platform_complete_all_work(platform_work_queue* Queue);
 
 typedef struct platform_api
@@ -253,9 +240,6 @@ typedef struct platform_api
 	platform_open_next_file* OpenNextFile;
 	platform_read_data_from_file* ReadDataFromFile;
 	platform_file_error* FileError;
-
-	platform_allocate_memory* AllocateMemory;
-	platform_deallocate_memory* DeallocateMemory;
 
 	debug_platform_free_file_memory* DEBUGFreeFileMemory;
 	debug_platform_read_entire_file* DEBUGReadEntireFile;

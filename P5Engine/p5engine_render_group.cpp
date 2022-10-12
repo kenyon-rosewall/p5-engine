@@ -211,10 +211,10 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	i32 YMin = HeightMax;
 	i32 YMax = 0;
 
-	v2 Pos[4] = { Origin, Origin + XAxis, Origin + XAxis + YAxis, Origin + YAxis };
-	for (int PointIndex = 0; PointIndex < ArrayCount(Pos); ++PointIndex)
+	v2 P[4] = { Origin, Origin + XAxis, Origin + XAxis + YAxis, Origin + YAxis };
+	for (int PointIndex = 0; PointIndex < ArrayCount(P); ++PointIndex)
 	{
-		v2 TestP = Pos[PointIndex];
+		v2 TestP = P[PointIndex];
 		int FloorX = FloorReal32ToInt32(TestP.x);
 		int CeilX = CeilReal32ToInt32(TestP.x);
 		int FloorY = FloorReal32ToInt32(TestP.y);
@@ -644,14 +644,14 @@ PushBitmap(render_group* Group, loaded_bitmap* Bitmap, v3 Offset, f32 Height, v4
 inline void
 PushBitmap(render_group* Group, bitmap_id ID, v3 Offset, f32 Height, v4 Color = V4(1, 1, 1, 1))
 {
-	loaded_bitmap* Bitmap = GetBitmap(Group->Assets, ID, Group->AssetsShouldBeLocked);
+	loaded_bitmap* Bitmap = GetBitmap(Group->Assets, ID);
 	if (Bitmap)
 	{
 		PushBitmap(Group, Bitmap, Offset, Height, Color);
 	}
 	else
 	{
-		LoadBitmap(Group->Assets, ID, Group->AssetsShouldBeLocked);
+		LoadBitmap(Group->Assets, ID);
 		++Group->MissingResourceCount;
 	}
 }
@@ -735,13 +735,13 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 	{
 		render_group_entry_header* Header = (render_group_entry_header*)(RenderGroup->PushBufferBase + BaseAddress);
 		BaseAddress += sizeof(*Header);
-		void* Data = (u8*)Header + sizeof(*Header);
+		void* FindData = (u8*)Header + sizeof(*Header);
 
 		switch (Header->Type)
 		{
 			case render_group_entry_type::render_entry_clear:
 			{
-				render_entry_clear* Entry = (render_entry_clear*)Data;
+				render_entry_clear* Entry = (render_entry_clear*)FindData;
 
 				DrawRectangle(OutputTarget, V2(0, 0), 
 							  V2i(OutputTarget->Width, OutputTarget->Height), 
@@ -752,7 +752,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 			
 			case render_group_entry_type::render_entry_bitmap:
 			{
-				render_entry_bitmap* Entry = (render_entry_bitmap*)Data;
+				render_entry_bitmap* Entry = (render_entry_bitmap*)FindData;
 				Assert(Entry->Bitmap);
 
 #if 0
@@ -777,7 +777,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 
 			case render_group_entry_type::render_entry_rectangle:
 			{
-				render_entry_rectangle* Entry = (render_entry_rectangle*)Data;
+				render_entry_rectangle* Entry = (render_entry_rectangle*)FindData;
 				DrawRectangle(OutputTarget, Entry->Pos, 
 							  Entry->Pos + Entry->Dim, 
 							  Entry->Color, ClipRect, Even);
@@ -787,7 +787,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 
 			case render_group_entry_type::render_entry_coordinate_system:
 			{
-				render_entry_coordinate_system* Entry = (render_entry_coordinate_system*)Data;
+				render_entry_coordinate_system* Entry = (render_entry_coordinate_system*)FindData;
 #if 0
 				
 				v2 vMax = (Entry->Origin + Entry->XAxis + Entry->YAxis);
@@ -846,7 +846,7 @@ struct tile_render_work
 
 internal PLATFORM_WORK_QUEUE_CALLBACK(DoTiledRenderWork)
 {
-	tile_render_work* Work = (tile_render_work*)Data;
+	tile_render_work* Work = (tile_render_work*)FindData;
 
 	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, true);
 	RenderGroupToOutput(Work->RenderGroup, Work->OutputTarget, Work->ClipRect, false);
@@ -937,7 +937,7 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 }
 
 internal render_group*
-AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferSize, b32 AssetsShouldBeLocked)
+AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferSize)
 {
 	render_group* Result = PushStruct(Arena, render_group);
 	
@@ -958,7 +958,6 @@ AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferS
 	Result->Transform.Scale = 1.0f;
 
 	Result->MissingResourceCount = 0;
-	Result->AssetsShouldBeLocked = AssetsShouldBeLocked;
 
 	return(Result);
 }
