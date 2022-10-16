@@ -3,6 +3,11 @@
 #ifndef P5ENGINE_PLATFORM_H
 #define P5ENGINE_PLATFORM_H
 
+#ifdef P5ENGINE_WIN32
+#define P5ENGINE_API __declspec(dllexport)
+//#define P5ENGINE_API __declspec(dllimport)
+#endif
+
 /*
   NOTE:
 
@@ -51,6 +56,32 @@ extern "C" {
 #endif
 
 #include "p5engine_types.h"
+
+inline i32
+	TruncateReal32ToInt32(f32 Real32)
+{
+	i32 Result = (i32)Real32;
+	return(Result);
+}
+
+inline u32
+	SafeTruncateUInt64(u64 Value)
+{
+	// TODO: Defines for maximum values
+	Assert(Value <= 0xFFFFFFFF);
+	u32 Result = (u32)Value;
+	return(Result);
+}
+
+inline i16
+	SafeTruncateToUInt16(i32 Value)
+{
+	Assert(Value <= 65535);
+	Assert(Value >= 0);
+
+	i16 Result = (i16)Value;
+	return(Result);
+}
 
 typedef struct thread_context
 {

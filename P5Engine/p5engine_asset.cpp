@@ -10,7 +10,7 @@ struct load_asset_work
 	u64 Size;
 	void* Destination;
 
-	asset_state FinalState;
+	u32 FinalState;
 };
 
 internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
@@ -44,20 +44,21 @@ GetFileHandleFor(game_assets* Assets, u32 FileIndex)
 internal void
 LoadBitmap(game_assets* Assets, bitmap_id ID)
 {
-	if (ID.Value && (AtomicCompareExchangeUInt32((u32*)&Assets->Slots[ID.Value].State, (u32)asset_state::Queued, (u32)asset_state::Unloaded) == (u32)asset_state::Unloaded))
+	asset_slot* Slot = Assets->Slots + ID.Value;
+	if (ID.Value && (AtomicCompareExchangeUInt32((u32*)&Slot->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
 	{
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
 		{
 			asset* Asset = Assets->Assets + ID.Value;
 			p5a_bitmap* Info = &Asset->P5A.Bitmap;
-			loaded_bitmap* Bitmap = PushStruct(&Assets->Arena, loaded_bitmap);
+			loaded_bitmap* Bitmap = &Slot->Bitmap; // PushStruct(&Assets->Arena, loaded_bitmap);
 
 			Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
 			Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
-			Bitmap->Width = Info->Dim[0];
-			Bitmap->Height = Info->Dim[1];
-			Bitmap->Pitch = 4 * Info->Dim[0];
+			Bitmap->Width = SafeTruncateToUInt16(Info->Dim[0]);
+			Bitmap->Height = SafeTruncateToUInt16(Info->Dim[1]);
+			Bitmap->Pitch = 4 * SafeTruncateToUInt16(Info->Dim[0]);
 			u32 MemorySize = Bitmap->Pitch * Bitmap->Height;
 			Bitmap->Memory = PushSize(&Assets->Arena, MemorySize);
 
@@ -68,14 +69,13 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = MemorySize;
 			Work->Destination = Bitmap->Memory;
-			Work->FinalState = asset_state::Loaded;
-			Work->Slot->Bitmap = Bitmap;
+			Work->FinalState = AssetState_Loaded;
 
 			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 		}
 		else
 		{
-			Assets->Slots[ID.Value].State = asset_state::Unloaded;
+			Slot->State = AssetState_Unloaded;
 		}
 	}
 }
@@ -83,14 +83,15 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 internal void
 LoadSound(game_assets* Assets, sound_id ID)
 {
-	if (ID.Value && (AtomicCompareExchangeUInt32((u32*)&Assets->Slots[ID.Value].State, (u32)asset_state::Queued, (u32)asset_state::Unloaded) == (u32)asset_state::Unloaded))
+	asset_slot* Slot = Assets->Slots + ID.Value;
+	if (ID.Value && (AtomicCompareExchangeUInt32((u32*)&Slot->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
 	{
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
 		{
 			asset* Asset = Assets->Assets + ID.Value;
 			p5a_sound* Info = &Asset->P5A.Sound;
-			loaded_sound* Sound = PushStruct(&Assets->Arena, loaded_sound);
+			loaded_sound* Sound = &Slot->Sound; // PushStruct(&Assets->Arena, loaded_sound);
 
 			Sound->ChannelCount = Info->ChannelCount;
 			Sound->SampleCount = Info->SampleCount;
@@ -112,14 +113,13 @@ LoadSound(game_assets* Assets, sound_id ID)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = MemorySize;
 			Work->Destination = Memory;
-			Work->FinalState = asset_state::Loaded;
-			Work->Slot->Sound = Sound;
+			Work->FinalState = AssetState_Loaded;
 
 			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 		}
 		else
 		{
-			Assets->Slots[ID.Value].State = asset_state::Unloaded;
+			Slot->State = AssetState_Unloaded;
 		}
 	}
 }

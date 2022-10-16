@@ -90,13 +90,4 @@ Concat(char* String1, char* String2, u32 Size)
 #define Align8(Value) ((Value + 7) & ~7)
 #define Align16(Value) ((Value + 15) & ~15)
 
-inline u32
-SafeTruncateUInt64(u64 Value)
-{
-	// TODO: Defines for maximum values
-	Assert(Value <= 0xFFFFFFFF);
-	u32 Result = (u32)Value;
-	return(Result);
-}
-
 #endif // !P5ENGINE_TYPES_H

@@ -468,8 +468,8 @@ MakeEmptyBitmap(memory_arena* Arena, i32 Width, i32 Height, b32 ClearToZero = tr
 {
 	loaded_bitmap Result = {};
 
-	Result.Width = Width;
-	Result.Height = Height;
+	Result.Width = SafeTruncateToUInt16(Width);
+	Result.Height = SafeTruncateToUInt16(Height);
 	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
 	i32 TotalBitmapSize = Width * Height * BITMAP_BYTES_PER_PIXEL;
 	Result.Memory = (u32*)PushSize(Arena, TotalBitmapSize, 16);
@@ -864,9 +864,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 			SubArena(&Task->Arena, &TransientState->TransientArena, Megabytes(1));
 		}
 
-		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
+		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(27.1f), TransientState);
 
-		GameState->Music = 0; // PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		GameState->Music = PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -1007,9 +1007,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	loaded_bitmap DrawBuffer_ = {};
 	loaded_bitmap* DrawBuffer = &DrawBuffer_;
-	DrawBuffer->Width = Buffer->Width;
-	DrawBuffer->Height = Buffer->Height;
-	DrawBuffer->Pitch = Buffer->Pitch;
+	DrawBuffer->Width = SafeTruncateToUInt16(Buffer->Width);
+	DrawBuffer->Height = SafeTruncateToUInt16(Buffer->Height);
+	DrawBuffer->Pitch = SafeTruncateToUInt16(Buffer->Pitch);
 	DrawBuffer->Memory = Buffer->Memory;
 
 #if 0
@@ -1296,7 +1296,9 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 					DrawHitpoints(Entity, RenderGroup);
 
 					// NOTE: Particle system test
-					for (u32 ParticleSpawnIndex = 0; ParticleSpawnIndex < 1; ++ParticleSpawnIndex)
+					for (u32 ParticleSpawnIndex = 0;
+						 ParticleSpawnIndex < 3;
+						 ++ParticleSpawnIndex)
 					{
 						particle* Particle = GameState->Particles + GameState->NextParticle++;
 						if (GameState->NextParticle >= ArrayCount(GameState->Particles))
@@ -1305,21 +1307,24 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						}
 
 						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f), 0, 0);
-						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.1f, 0.1f), 7 * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
+						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.01f, 0.01f), 7.0f * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
 						Particle->ddPos = V3(0.0f, -9.8f, 0.0f);
 						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
 											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
 											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
 											 1.0f);
-						Particle->dColor = V4(0, 0, 0, -0.1f);
+						Particle->dColor = V4(0, 0, 0, -0.25f);
+						Particle->BitmapID = GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar);
 					}
 
 					ZeroStruct(GameState->ParticleCels);
 
-					f32 GridScale = 0.5f;
+					f32 GridScale = 0.25f;
 					f32 InvGridScale = 1.0f / GridScale;
 					v3 GridOrigin = V3(-0.5f * GridScale * PARTICLE_CEL_DIM, 0.0f, 0.0f);
-					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
+					for (u32 ParticleIndex = 0;
+						 ParticleIndex < ArrayCount(GameState->Particles);
+						 ++ParticleIndex)
 					{
 						particle* Particle = GameState->Particles + ParticleIndex;
 
@@ -1339,22 +1344,30 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						Cel->VelocityTimesDensity += Density * Particle->dPos;
 					}
 
-					for (u32 Y = 0; Y < PARTICLE_CEL_DIM; ++Y)
+#if 0
+					for (u32 Y = 0;
+						 Y < PARTICLE_CEL_DIM;
+						 ++Y)
 					{
-						for (u32 X = 0; X < PARTICLE_CEL_DIM; ++X)
+						for (u32 X = 0;
+							 X < PARTICLE_CEL_DIM;
+							 ++X)
 						{
 							particle_cel* Cel = &GameState->ParticleCels[Y][X];
 							f32 Alpha = Clamp01(0.1f * Cel->Density);
 							PushRect(
 								RenderGroup, 
-								GridScale * (V3((f32)X, (f32)Y, 0)) + GridOrigin,
+								GridScale * V3((f32)X, (f32)Y, 0) + GridOrigin,
 								GridScale * V2(1, 1), 
 								V4(Alpha, Alpha, Alpha, 1.0f)
 							);
 						}
 					}
+#endif
 
-					for (u32 ParticleIndex = 0; ParticleIndex < ArrayCount(GameState->Particles); ++ParticleIndex)
+					for (u32 ParticleIndex = 0;
+						 ParticleIndex < ArrayCount(GameState->Particles);
+						 ++ParticleIndex)
 					{
 						particle* Particle = GameState->Particles + ParticleIndex;
 
@@ -1371,27 +1384,27 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						particle_cel* CelCenter = &GameState->ParticleCels[Y][X];
 						particle_cel* CelLeft = &GameState->ParticleCels[Y][X - 1];
 						particle_cel* CelRight = &GameState->ParticleCels[Y][X + 1];
-						particle_cel* CelUp = &GameState->ParticleCels[Y - 1][X];
-						particle_cel* CelDown = &GameState->ParticleCels[Y + 1][X];
+						particle_cel* CelDown = &GameState->ParticleCels[Y - 1][X];
+						particle_cel* CelUp = &GameState->ParticleCels[Y + 1][X];
 
 						v3 Dispersion = {};
 						f32 Dc = 1.0f;
-						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1, 0, 0);
-						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1, 0, 0);
-						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0, -1, 0);
-						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0, 1, 0);
+						Dispersion += Dc * (CelCenter->Density - CelLeft->Density) * V3(-1.0f, 0.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelRight->Density) * V3(1.0f, 0.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelDown->Density) * V3(0.0f, -1.0f, 0.0f);
+						Dispersion += Dc * (CelCenter->Density - CelUp->Density) * V3(0.0f, 1.0f, 0.0f);
 
 						v3 ddPos = Particle->ddPos + Dispersion;
 
 						// NOTE: Simulate the particle forward in time
-						Particle->Pos += 0.5f * Square(Input->dtForFrame) * Particle->ddPos + Input->dtForFrame * Particle->dPos;
-						Particle->dPos += Input->dtForFrame * Particle->ddPos;
+						Particle->Pos += 0.5f * Square(Input->dtForFrame) * ddPos + Input->dtForFrame * Particle->dPos;
+						Particle->dPos += Input->dtForFrame * ddPos;
 						Particle->Color += Input->dtForFrame * Particle->dColor;
 
 						if (Particle->Pos.y < 0.0f)
 						{
 							f32 CoefficientOfRestitution = 0.3f;
-							f32 CoefficientOfFriction = 0.1f;
+							f32 CoefficientOfFriction = 0.7f;
 							Particle->Pos.y = -Particle->Pos.y;
 							Particle->dPos.y = -CoefficientOfRestitution * Particle->dPos.y;
 							Particle->dPos.x = CoefficientOfFriction * Particle->dPos.x;
@@ -1409,7 +1422,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						}
 						
 						// NOTE: Render the particle
-						PushBitmap(RenderGroup, GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar), Particle->Pos, 0.5f, Color);
+						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.5f, Color);
 					}
 				} break;
 

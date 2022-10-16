@@ -122,13 +122,6 @@ CeilReal32ToInt32(f32 Real32)
 	return(Result);
 }
 
-inline i32
-TruncateReal32ToInt32(f32 Real32)
-{
-	i32 Result = (i32)Real32;
-	return(Result);
-}
-
 inline f32
 Sin(f32 Angle)
 {

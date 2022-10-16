@@ -12,26 +12,28 @@ struct hero_bitmaps
 
 struct loaded_sound
 {
+	// TODO: This could be shrunk to 12 bytes if the loaded_bitmap
+	// ever got down that small
+	i16* Samples[2];
 	u32 SampleCount; // NOTE: This is the sample count divided by 8
 	u32 ChannelCount;
-	i16* Samples[2];
 };
 
-enum class asset_state
+enum asset_state
 {
-	Unloaded,
-	Queued,
-	Loaded,
-	Locked
+	AssetState_Unloaded,
+	AssetState_Queued,
+	AssetState_Loaded,
+	AssetState_Locked
 };
 
 struct asset_slot
 {
-	asset_state State;
+	u32 State;
 	union
 	{
-		loaded_bitmap* Bitmap;
-		loaded_sound* Sound;
+		loaded_bitmap Bitmap;
+		loaded_sound Sound;
 	};
 };
 
@@ -91,10 +93,10 @@ inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
 
 	asset_slot* Slot = Assets->Slots + ID.Value;
 	loaded_bitmap* Result = 0;
-	if (Slot->State >= asset_state::Loaded)
+	if (Slot->State >= AssetState_Loaded)
 	{
 		CompletePreviousReadsBeforeFutureReads;
-		Result = Slot->Bitmap;
+		Result = &Slot->Bitmap;
 	}
 
 	return(Result);
@@ -106,10 +108,10 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 
 	asset_slot* Slot = Assets->Slots + ID.Value;
 	loaded_sound* Result = 0;
-	if (Slot->State >= asset_state::Loaded)
+	if (Slot->State >= AssetState_Loaded)
 	{
 		CompletePreviousReadsBeforeFutureReads;
-		Result = Slot->Sound;
+		Result = &Slot->Sound;
 	}
 
 	return(Result);
