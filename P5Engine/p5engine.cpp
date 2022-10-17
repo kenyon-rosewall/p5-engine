@@ -1599,6 +1599,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	EndTemporaryMemory(SimMemory);
 	EndTemporaryMemory(RenderMemory);
 
+	EvictAssetsAsNecessary(TransientState->Assets);
+
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
 

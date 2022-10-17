@@ -647,7 +647,7 @@ Win32BeginRecordingInput(win32_state* State, int InputRecordingIndex)
 		Win32GetInputFileLocation(State, true, InputRecordingIndex, sizeof(Filename), Filename);
 		State->RecordingHandle = CreateFileA(Filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 
-		CopyMemory(ReplayBuffer->MemoryBlock, State->GameMemoryBlock, State->TotalSize);
+		CopyMemory(ReplayBuffer->MemoryBlock, State->GameMemoryBlock, State->Total);
 	}
 }
 
@@ -670,7 +670,7 @@ Win32BeginInputPlayback(win32_state* State, int InputPlayingIndex)
 		Win32GetInputFileLocation(State, true, InputPlayingIndex, sizeof(Filename), Filename);
 		State->PlaybackHandle = CreateFileA(Filename, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 
-		CopyMemory(State->GameMemoryBlock, ReplayBuffer->MemoryBlock, State->TotalSize);
+		CopyMemory(State->GameMemoryBlock, ReplayBuffer->MemoryBlock, State->Total);
 	}
 }
 
@@ -1195,6 +1195,21 @@ internal PLATFORM_CLOSE_FILE(Win32CloseFile)
 
 */
 
+PLATFORM_ALLOCATE_MEMORY(Win32AllocateMemory)
+{
+	void* Result = VirtualAlloc(0, Size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+	return(Result);
+}
+
+PLATFORM_DEALLOCATE_MEMORY(Win32DeallocateMemory)
+{
+	if (Memory)
+	{
+		VirtualFree(Memory, 0, MEM_RELEASE);
+	}
+}
+
 int CALLBACK
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode)
 {
@@ -1309,6 +1324,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			GameMemory.PlatformAPI.OpenNextFile = Win32OpenNextFile;
 			GameMemory.PlatformAPI.ReadDataFromFile = Win32ReadDataFromFile;
 			GameMemory.PlatformAPI.FileError = Win32FileError;
+
+			GameMemory.PlatformAPI.AllocateMemory = Win32AllocateMemory;
+			GameMemory.PlatformAPI.DeallocateMemory = Win32DeallocateMemory;
 			
 			GameMemory.PlatformAPI.DEBUGFreeFileMemory = DEBUGPlatformFreeFileMemory;
 			GameMemory.PlatformAPI.DEBUGReadEntireFile = DEBUGPlatformReadEntireFile;
@@ -1322,8 +1340,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 			// TODO: TransientStorage needs to be broken up into 
 			// game transient and cache transient, and only the 
 			// former need be saved for state playback.
-			Win32State.TotalSize = GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
-			Win32State.GameMemoryBlock = VirtualAlloc(BaseAddress, (size_t)Win32State.TotalSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			Win32State.Total = GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
+			Win32State.GameMemoryBlock = VirtualAlloc(BaseAddress, (size_t)Win32State.Total, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			GameMemory.PermanentStorage = Win32State.GameMemoryBlock;
 			GameMemory.TransientStorage = ((u8*)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
 
@@ -1339,10 +1357,10 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 				ReplayBuffer->FindHandle = CreateFileA(ReplayBuffer->Filename, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 				DWORD Error = GetLastError();
 
-				DWORD MaxSizeHigh = (Win32State.TotalSize >> 32);
-				DWORD MaxSizeLow = (Win32State.TotalSize & 0xFFFFFFFF);
+				DWORD MaxSizeHigh = (Win32State.Total >> 32);
+				DWORD MaxSizeLow = (Win32State.Total & 0xFFFFFFFF);
 				ReplayBuffer->MemoryMap = CreateFileMapping(ReplayBuffer->FindHandle, 0, PAGE_READWRITE, MaxSizeHigh, MaxSizeLow, 0);
-				ReplayBuffer->MemoryBlock = MapViewOfFile(ReplayBuffer->MemoryMap, FILE_MAP_ALL_ACCESS, 0, 0, Win32State.TotalSize);
+				ReplayBuffer->MemoryBlock = MapViewOfFile(ReplayBuffer->MemoryMap, FILE_MAP_ALL_ACCESS, 0, 0, Win32State.Total);
 
 				if (ReplayBuffer->MemoryBlock)
 				{

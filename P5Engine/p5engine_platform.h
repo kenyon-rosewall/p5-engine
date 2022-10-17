@@ -58,14 +58,14 @@ extern "C" {
 #include "p5engine_types.h"
 
 inline i32
-	TruncateReal32ToInt32(f32 Real32)
+TruncateReal32ToInt32(f32 Real32)
 {
 	i32 Result = (i32)Real32;
 	return(Result);
 }
 
 inline u32
-	SafeTruncateUInt64(u64 Value)
+SafeTruncateUInt64(u64 Value)
 {
 	// TODO: Defines for maximum values
 	Assert(Value <= 0xFFFFFFFF);
@@ -74,10 +74,20 @@ inline u32
 }
 
 inline i16
-	SafeTruncateToUInt16(i32 Value)
+SafeTruncateToUInt16(i32 Value)
 {
 	Assert(Value <= 65535);
 	Assert(Value >= 0);
+
+	i16 Result = (i16)Value;
+	return(Result);
+}
+
+inline i16
+SafeTruncateToInt16(i32 Value)
+{
+	Assert(Value <= 32767);
+	Assert(Value >= -32768);
 
 	i16 Result = (i16)Value;
 	return(Result);
@@ -258,6 +268,12 @@ struct platform_work_queue;
 #define PLATFORM_WORK_QUEUE_CALLBACK(name) void name(platform_work_queue* Queue, void* FindData)
 typedef PLATFORM_WORK_QUEUE_CALLBACK(platform_work_queue_callback);
 
+#define PLATFORM_ALLOCATE_MEMORY(name) void* name(memory_index Size)
+typedef PLATFORM_ALLOCATE_MEMORY(platform_allocate_memory);
+
+#define PLATFORM_DEALLOCATE_MEMORY(name) void name(void* Memory)
+typedef PLATFORM_DEALLOCATE_MEMORY(platform_deallocate_memory);
+
 typedef void platform_add_entry(platform_work_queue* Queue, platform_work_queue_callback* Callback, void* FindData);
 typedef void platform_complete_all_work(platform_work_queue* Queue);
 
@@ -271,6 +287,9 @@ typedef struct platform_api
 	platform_open_next_file* OpenNextFile;
 	platform_read_data_from_file* ReadDataFromFile;
 	platform_file_error* FileError;
+
+	platform_allocate_memory* AllocateMemory;
+	platform_deallocate_memory* DeallocateMemory;
 
 	debug_platform_free_file_memory* DEBUGFreeFileMemory;
 	debug_platform_read_entire_file* DEBUGReadEntireFile;

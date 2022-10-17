@@ -1,13 +1,13 @@
  P5Engine
 
- Timestamp is 634b88d2 (Sat Oct 15 23:30:10 2022)
+ Timestamp is 634cd2ef (Sun Oct 16 22:58:39 2022)
 
  Preferred load address is 0000000180000000
 
  Start         Length     Name                   Class
- 0001:00000000 000148a0H .text$mn                CODE
- 0001:000148a0 00000040H .text$mn$00             CODE
- 0001:000148e0 000000ddH .text$x                 CODE
+ 0001:00000000 00014f90H .text$mn                CODE
+ 0001:00014f90 00000040H .text$mn$00             CODE
+ 0001:00014fd0 000000ddH .text$x                 CODE
  0002:00000000 00000100H .idata$5                DATA
  0002:00000100 00000028H .00cfg                  DATA
  0002:00000128 00000008H .CRT$XCA                DATA
@@ -23,802 +23,823 @@
  0002:00000170 00000410H .rdata                  DATA
  0002:00000580 00000000H .rdata$CastGuardVftablesA DATA
  0002:00000580 00000000H .rdata$CastGuardVftablesC DATA
- 0002:00000580 0000015cH .rdata$voltmd           DATA
- 0002:000006dc 000002dcH .rdata$zzzdbg           DATA
- 0002:000009b8 00000008H .rtc$IAA                DATA
- 0002:000009c0 00000008H .rtc$IZZ                DATA
- 0002:000009c8 00000008H .rtc$TAA                DATA
- 0002:000009d0 00000008H .rtc$TZZ                DATA
- 0002:000009d8 000007a8H .xdata                  DATA
- 0002:00001180 00000074H .edata                  DATA
- 0002:000011f4 0000003cH .idata$2                DATA
- 0002:00001230 00000018H .idata$3                DATA
- 0002:00001248 00000100H .idata$4                DATA
- 0002:00001348 00000294H .idata$6                DATA
+ 0002:00000580 00000164H .rdata$voltmd           DATA
+ 0002:000006e4 000002dcH .rdata$zzzdbg           DATA
+ 0002:000009c0 00000008H .rtc$IAA                DATA
+ 0002:000009c8 00000008H .rtc$IZZ                DATA
+ 0002:000009d0 00000008H .rtc$TAA                DATA
+ 0002:000009d8 00000008H .rtc$TZZ                DATA
+ 0002:000009e0 000007f0H .xdata                  DATA
+ 0002:000011d0 00000074H .edata                  DATA
+ 0002:00001244 0000003cH .idata$2                DATA
+ 0002:00001280 00000018H .idata$3                DATA
+ 0002:00001298 00000100H .idata$4                DATA
+ 0002:00001398 00000294H .idata$6                DATA
  0003:00000000 00004040H .data                   DATA
- 0003:00004040 0000066cH .bss                    DATA
- 0004:00000000 00000ae0H .pdata                  DATA
+ 0003:00004040 0000067cH .bss                    DATA
+ 0004:00000000 00000b58H .pdata                  DATA
  0005:00000000 0000001cH .msvcjmc                DATA
  0006:00000000 00000060H .rsrc$01                DATA
  0006:00000060 00000098H .rsrc$02                DATA
 
   Address         Publics by Value              Rva+Base               Lib:Object
 
- 0000:00000000       __guard_longjmp_table      0000000000000000     <absolute>
- 0000:00000000       __hybrid_auxiliary_iat_copy 0000000000000000     <absolute>
  0000:00000000       __hybrid_auxiliary_iat     0000000000000000     <absolute>
- 0000:00000000       __AbsoluteZero             0000000000000000     <absolute>
- 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
- 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
- 0000:00000000       __guard_longjmp_count      0000000000000000     <absolute>
- 0000:00000000       __guard_iat_count          0000000000000000     <absolute>
- 0000:00000000       ___safe_se_handler_count   0000000000000000     <absolute>
- 0000:00000000       __guard_check_icall_a64n_fptr 0000000000000000     <absolute>
- 0000:00000000       __hybrid_code_map_count    0000000000000000     <absolute>
- 0000:00000000       __arm64x_extra_rfe_table_size 0000000000000000     <absolute>
- 0000:00000000       __guard_fids_table         0000000000000000     <absolute>
- 0000:00000000       __guard_iat_table          0000000000000000     <absolute>
- 0000:00000000       __hybrid_code_map          0000000000000000     <absolute>
  0000:00000000       __arm64x_redirection_metadata 0000000000000000     <absolute>
- 0000:00000000       __guard_eh_cont_count      0000000000000000     <absolute>
- 0000:00000000       __arm64x_extra_rfe_table   0000000000000000     <absolute>
+ 0000:00000000       __guard_iat_count          0000000000000000     <absolute>
+ 0000:00000000       __AbsoluteZero             0000000000000000     <absolute>
+ 0000:00000000       __guard_longjmp_count      0000000000000000     <absolute>
  0000:00000000       __x64_code_ranges_to_entry_points_count 0000000000000000     <absolute>
+ 0000:00000000       __guard_check_icall_a64n_fptr 0000000000000000     <absolute>
+ 0000:00000000       ___safe_se_handler_table   0000000000000000     <absolute>
+ 0000:00000000       __guard_fids_table         0000000000000000     <absolute>
+ 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
+ 0000:00000000       __hybrid_code_map_count    0000000000000000     <absolute>
+ 0000:00000000       __guard_longjmp_table      0000000000000000     <absolute>
+ 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
+ 0000:00000000       __hybrid_auxiliary_iat_copy 0000000000000000     <absolute>
+ 0000:00000000       __guard_eh_cont_count      0000000000000000     <absolute>
+ 0000:00000000       __guard_fids_count         0000000000000000     <absolute>
+ 0000:00000000       __arm64x_extra_rfe_table   0000000000000000     <absolute>
  0000:00000000       __arm64x_redirection_metadata_count 0000000000000000     <absolute>
  0000:00000000       __enclave_config           0000000000000000     <absolute>
- 0000:00000000       __arm64x_native_entrypoint 0000000000000000     <absolute>
- 0000:00000000       ___safe_se_handler_table   0000000000000000     <absolute>
- 0000:00000000       __guard_fids_count         0000000000000000     <absolute>
+ 0000:00000000       __hybrid_code_map          0000000000000000     <absolute>
  0000:00000000       __guard_eh_cont_table      0000000000000000     <absolute>
+ 0000:00000000       __arm64x_native_entrypoint 0000000000000000     <absolute>
+ 0000:00000000       ___safe_se_handler_count   0000000000000000     <absolute>
+ 0000:00000000       __arm64x_extra_rfe_table_size 0000000000000000     <absolute>
+ 0000:00000000       __guard_iat_table          0000000000000000     <absolute>
  0000:00000100       __guard_flags              0000000000000100     <absolute>
  0000:00000000       __ImageBase                0000000180000000     <linker-defined>
- 0001:00008a10       GameUpdateAndRender        0000000180009a10 f   p5engine.obj
- 0001:0000d5c0       GameGetSoundSamples        000000018000e5c0 f   p5engine.obj
- 0001:0000d630       ??D@YA?ATv2@@MT0@@Z        000000018000e630 f i p5engine.obj
- 0001:0000d6b0       ??D@YA?ATv3@@MT0@@Z        000000018000e6b0 f i p5engine.obj
- 0001:0000d760       ??D@YA?ATv3@@T0@M@Z        000000018000e760 f i p5engine.obj
- 0001:0000d7e0       ??D@YA?ATv4@@MT0@@Z        000000018000e7e0 f i p5engine.obj
- 0001:0000d8b0       ??G@YA?ATv2@@T0@0@Z        000000018000e8b0 f i p5engine.obj
- 0001:0000d930       ??G@YA?ATv3@@T0@0@Z        000000018000e930 f i p5engine.obj
- 0001:0000d9f0       ??H@YA?ATv2@@T0@0@Z        000000018000e9f0 f i p5engine.obj
- 0001:0000da70       ??H@YA?ATv3@@T0@0@Z        000000018000ea70 f i p5engine.obj
- 0001:0000db30       ??H@YA?ATv4@@T0@0@Z        000000018000eb30 f i p5engine.obj
- 0001:0000dc10       ??X@YAAEATv3@@AEAT0@M@Z    000000018000ec10 f i p5engine.obj
- 0001:0000dc90       ??Y@YAAEATv2@@AEAT0@T0@@Z  000000018000ec90 f i p5engine.obj
- 0001:0000dce0       ??Y@YAAEATv3@@AEAT0@T0@@Z  000000018000ece0 f i p5engine.obj
- 0001:0000dd80       ??Y@YAAEATv4@@AEAT0@T0@@Z  000000018000ed80 f i p5engine.obj
- 0001:0000de20       ??Z@YAAEATv3@@AEAT0@T0@@Z  000000018000ee20 f i p5engine.obj
- 0001:0000dec0       ?ATan2@@YAMMM@Z            000000018000eec0 f i p5engine.obj
- 0001:0000df10       ?AbsoluteValue@@YAMM@Z     000000018000ef10 f i p5engine.obj
- 0001:0000df50       ?AddFlags@@YAXPEAUsim_entity@@I@Z 000000018000ef50 f i p5engine.obj
- 0001:0000df90       ?AddRadiusTo@@YA?AUrectangle3@@U1@Tv3@@@Z 000000018000ef90 f i p5engine.obj
- 0001:0000e100       ?AllResourcesPresent@@YAHPEAUrender_group@@@Z 000000018000f100 f i p5engine.obj
- 0001:0000e150       ?AreInSameChunk@@YAHPEAUworld@@PEAUworld_position@@1@Z 000000018000f150 f i p5engine.obj
- 0001:0000e250       ?AtomicCompareExchangeUInt32@@YAIPECIII@Z 000000018000f250 f i p5engine.obj
- 0001:0000e2a0       ?BeginTemporaryMemory@@YA?AUtemporary_memory@@PEAUmemory_arena@@@Z 000000018000f2a0 f i p5engine.obj
- 0001:0000e340       ?CenteredChunkPoint@@YA?AUworld_position@@III@Z 000000018000f340 f i p5engine.obj
- 0001:0000e3d0       ?ChangeEntityLocationRaw@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUworld_position@@2@Z 000000018000f3d0 f i p5engine.obj
- 0001:0000e7c0       ?CheckArena@@YAXPEAUmemory_arena@@@Z 000000018000f7c0 f i p5engine.obj
- 0001:0000e7f0       ?ChunkPositionFromTilePosition@@YA?AUworld_position@@PEAUworld@@HHHTv3@@@Z 000000018000f7f0 f i p5engine.obj
- 0001:0000ea90       ?Clamp01@@YA?ATv2@@T1@@Z   000000018000fa90 f i p5engine.obj
- 0001:0000eb00       ?Clamp01@@YAMM@Z           000000018000fb00 f i p5engine.obj
- 0001:0000eb40       ?Clamp01MapToRange@@YAMMMM@Z 000000018000fb40 f i p5engine.obj
- 0001:0000ebc0       ?Clamp@@YAMMMM@Z           000000018000fbc0 f i p5engine.obj
- 0001:0000ec30       ?Clear@@YAXPEAUrender_group@@Tv4@@@Z 000000018000fc30 f i p5engine.obj
- 0001:0000ec90       ?ClearFlags@@YAXPEAUsim_entity@@I@Z 000000018000fc90 f i p5engine.obj
- 0001:0000ecd0       ?DefaultMoveSpec@@YA?AUmove_spec@@XZ 000000018000fcd0 f i p5engine.obj
- 0001:0000ed70       ?EndTemporaryMemory@@YAXUtemporary_memory@@@Z 000000018000fd70 f i p5engine.obj
- 0001:0000edf0       ?EntityOverlapsRectangle@@YAHTv3@@Usim_entity_collision_volume@@Urectangle3@@@Z 000000018000fdf0 f i p5engine.obj
- 0001:0000ef80       ?GetAlignmentOffset@@YA_KPEAUmemory_arena@@_K@Z 000000018000ff80 f i p5engine.obj
- 0001:0000f010       ?GetArenaSizeRemaining@@YA_KPEAUmemory_arena@@_K@Z 0000000180010010 f i p5engine.obj
- 0001:0000f070       ?GetBarycentric@@YA?ATv2@@Urectangle2@@T1@@Z 0000000180010070 f i p5engine.obj
- 0001:0000f120       ?GetSound@@YAPEAUloaded_sound@@PEAUgame_assets@@Usound_id@@@Z 0000000180010120 f i p5engine.obj
- 0001:0000f120       ?GetBitmap@@YAPEAUloaded_bitmap@@PEAUgame_assets@@Ubitmap_id@@@Z 0000000180010120 f i p5engine.obj
- 0001:0000f1a0       ?GetCameraRectangleAtDistance@@YA?AUrectangle2@@PEAUrender_group@@M@Z 00000001800101a0 f i p5engine.obj
- 0001:0000f240       ?GetCameraRectangleAtTarget@@YA?AUrectangle2@@PEAUrender_group@@@Z 0000000180010240 f i p5engine.obj
- 0001:0000f2b0       ?GetDim@@YA?ATv2@@Urectangle2@@@Z 00000001800102b0 f i p5engine.obj
- 0001:0000f2f0       ?GetDim@@YA?ATv3@@Urectangle3@@@Z 00000001800102f0 f i p5engine.obj
- 0001:0000f390       ?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@@Z 0000000180010390 f i p5engine.obj
- 0001:0000f410       ?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@T1@@Z 0000000180010410 f i p5engine.obj
- 0001:0000f470       ?GetFileHandleFor@@YAPEAUplatform_file_handle@@PEAUgame_assets@@I@Z 0000000180010470 f i p5engine.obj
- 0001:0000f4d0       ?GetLowEntity@@YAPEAUlow_entity@@PEAUgame_state@@I@Z 00000001800104d0 f i p5engine.obj
- 0001:0000f540       ?GetMaxCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180010540 f i p5engine.obj
- 0001:0000f5a0       ?GetMinCorner@@YA?ATv3@@Urectangle3@@@Z 00000001800105a0 f i p5engine.obj
- 0001:0000f5f0       ?GetNextSoundInChain@@YA?AUsound_id@@PEAUgame_assets@@U1@@Z 00000001800105f0 f i p5engine.obj
- 0001:0000f6b0       ?GetRenderEntityBasisPos@@YA?AUentity_basis_p_result@@PEAUrender_transform@@Tv3@@@Z 00000001800106b0 f i p5engine.obj
- 0001:0000f950       ?GetSimSpacePos@@YA?ATv3@@PEAUsim_region@@PEAUlow_entity@@@Z 0000000180010950 f i p5engine.obj
- 0001:0000fa40       ?GetSoundInfo@@YAPEAUp5a_sound@@PEAUgame_assets@@Usound_id@@@Z 0000000180010a40 f i p5engine.obj
- 0001:0000faa0       ?GetStairGround@@YAMPEAUsim_entity@@Tv3@@@Z 0000000180010aa0 f i p5engine.obj
- 0001:0000fb90       ?GetWorldChunk@@YAPEAUworld_chunk@@PEAUworld@@HHHPEAUmemory_arena@@@Z 0000000180010b90 f i p5engine.obj
- 0001:0000fd80       ?Hadamard@@YA?ATv2@@T1@0@Z 0000000180010d80 f i p5engine.obj
- 0001:0000fde0       ?Hadamard@@YA?ATv3@@T1@0@Z 0000000180010de0 f i p5engine.obj
- 0001:0000fea0       ?HasFlag@@YAHPEAUsim_entity@@I@Z 0000000180010ea0 f i p5engine.obj
- 0001:0000fee0       ?InitializeArena@@YAXPEAUmemory_arena@@_KPEAX@Z 0000000180010ee0 f i p5engine.obj
- 0001:0000ff40       ?Inner@@YAMTv2@@0@Z        0000000180010f40 f i p5engine.obj
- 0001:0000ff90       ?Inner@@YAMTv3@@0@Z        0000000180010f90 f i p5engine.obj
- 0001:00010000       ?Intersect@@YA?AUrectangle2i@@U1@0@Z 0000000180011000 f i p5engine.obj
- 0001:00010110       ?IsCanonical@@YAHMM@Z      0000000180011110 f i p5engine.obj
- 0001:000101b0       ?IsCanonical@@YAHPEAUworld@@Tv3@@@Z 00000001800111b0 f i p5engine.obj
- 0001:00010250       ?IsInRectangle@@YAHUrectangle3@@Tv3@@@Z 0000000180011250 f i p5engine.obj
- 0001:00010310       ?IsValid@@YAHUsound_id@@@Z 0000000180011310 f i p5engine.obj
- 0001:00010350       ?IsValid@@YAHUworld_position@@@Z 0000000180011350 f i p5engine.obj
- 0001:000103a0       ?Length@@YAMTv3@@@Z        00000001800113a0 f i p5engine.obj
- 0001:000103f0       ?LengthSq@@YAMTv2@@@Z      00000001800113f0 f i p5engine.obj
- 0001:00010430       ?LengthSq@@YAMTv3@@@Z      0000000180011430 f i p5engine.obj
- 0001:000104a0       ?Lerp@@YAMMMM@Z            00000001800114a0 f i p5engine.obj
- 0001:00010500       ?LoadEntityReference@@YAXPEAUgame_state@@PEAUsim_region@@PEATentity_reference@@@Z 0000000180011500 f i p5engine.obj
- 0001:00010630       ?MakeEntityNonSpatial@@YAXPEAUsim_entity@@@Z 0000000180011630 f i p5engine.obj
- 0001:000106b0       ?MakeEntitySpatial@@YAXPEAUsim_entity@@Tv3@@1@Z 00000001800116b0 f i p5engine.obj
- 0001:00010720       ?MapIntoChunkSpace@@YA?AUworld_position@@PEAUworld@@U1@Tv3@@@Z 0000000180011720 f i p5engine.obj
- 0001:00010810       ?NullPosition@@YA?AUworld_position@@XZ 0000000180011810 f i p5engine.obj
- 0001:00010880       ?Orthographic@@YAXPEAUrender_group@@HHM@Z 0000000180011880 f i p5engine.obj
- 0001:00010980       ?Perspective@@YAXPEAUrender_group@@HHMMM@Z 0000000180011980 f i p5engine.obj
- 0001:00010a70       ?PrefetchSound@@YAXPEAUgame_assets@@Usound_id@@@Z 0000000180011a70 f i p5engine.obj
- 0001:00010aa0       ?PushBitmap@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Tv3@@MTv4@@@Z 0000000180011aa0 f i p5engine.obj
- 0001:00010cd0       ?PushBitmap@@YAXPEAUrender_group@@Ubitmap_id@@Tv3@@MTv4@@@Z 0000000180011cd0 f i p5engine.obj
- 0001:00010db0       ?PushRect@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180011db0 f i p5engine.obj
- 0001:00010f50       ?PushRectOutline@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180011f50 f i p5engine.obj
- 0001:000113e0       ?PushRenderElement_@@YAPEAXPEAUrender_group@@IW4render_group_entry_type@@@Z 00000001800123e0 f i p5engine.obj
- 0001:00011490       ?PushSize_@@YAPEAXPEAUmemory_arena@@_K1@Z 0000000180012490 f i p5engine.obj
- 0001:00011560       ?RandomBetween@@YAMPEAUrandom_series@@MM@Z 0000000180012560 f i p5engine.obj
- 0001:000115b0       ?RandomBilateral@@YAMPEAUrandom_series@@@Z 00000001800125b0 f i p5engine.obj
- 0001:00011600       ?RandomChoice@@YAIPEAUrandom_series@@I@Z 0000000180012600 f i p5engine.obj
- 0001:00011640       ?RandomNextUInt32@@YAIPEAUrandom_series@@@Z 0000000180012640 f i p5engine.obj
- 0001:000116b0       ?RandomSeed@@YA?AUrandom_series@@I@Z 00000001800126b0 f i p5engine.obj
- 0001:00011720       ?RandomUnilateral@@YAMPEAUrandom_series@@@Z 0000000180012720 f i p5engine.obj
- 0001:00011780       ?RecanonicalizeCoord@@YAXMPEAHPEAM@Z 0000000180012780 f i p5engine.obj
- 0001:00011820       ?RectCenterDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180012820 f i p5engine.obj
- 0001:000118b0       ?RectCenterDim@@YA?AUrectangle3@@Tv3@@0@Z 00000001800128b0 f i p5engine.obj
- 0001:000119a0       ?RectCenterHalfDim@@YA?AUrectangle2@@Tv2@@0@Z 00000001800129a0 f i p5engine.obj
- 0001:00011a50       ?RectCenterHalfDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180012a50 f i p5engine.obj
- 0001:00011bc0       ?RectMinMax@@YA?AUrectangle3@@Tv3@@0@Z 0000000180012bc0 f i p5engine.obj
- 0001:00011c60       ?RectanglesIntersect@@YAHUrectangle3@@0@Z 0000000180012c60 f i p5engine.obj
- 0001:00011d20       ?RoundReal32ToInt32@@YAHM@Z 0000000180012d20 f i p5engine.obj
- 0001:00011d60       ?RoundReal32ToUInt32@@YAIM@Z 0000000180012d60 f i p5engine.obj
- 0001:00011da0       ?SafeRatio1@@YAMMM@Z       0000000180012da0 f i p5engine.obj
- 0001:00011df0       ?SafeRatioN@@YAMMMM@Z      0000000180012df0 f i p5engine.obj
- 0001:00011e50       ?SignOf@@YAMM@Z            0000000180012e50 f i p5engine.obj
- 0001:00011eb0       ?Sin@@YAMM@Z               0000000180012eb0 f i p5engine.obj
- 0001:00011ef0       ?Square@@YAMM@Z            0000000180012ef0 f i p5engine.obj
- 0001:00011f30       ?SquareRoot@@YAMM@Z        0000000180012f30 f i p5engine.obj
- 0001:00011f70       ?StoreEntityReference@@YAXPEATentity_reference@@@Z 0000000180012f70 f i p5engine.obj
- 0001:00011fb0       ?SubArena@@YAXPEAUmemory_arena@@0_K1@Z 0000000180012fb0 f i p5engine.obj
- 0001:00012020       ?ToV3@@YA?ATv3@@Tv2@@M@Z   0000000180013020 f i p5engine.obj
- 0001:000120b0       ?Unproject@@YA?ATv2@@PEAUrender_group@@T1@M@Z 00000001800130b0 f i p5engine.obj
- 0001:00012100       ?V2@@YA?ATv2@@MM@Z         0000000180013100 f i p5engine.obj
- 0001:00012170       ?V2i@@YA?ATv2@@HH@Z        0000000180013170 f i p5engine.obj
- 0001:000121c0       ?V3@@YA?ATv3@@MMM@Z        00000001800131c0 f i p5engine.obj
- 0001:00012260       ?V4@@YA?ATv4@@MMMM@Z       0000000180013260 f i p5engine.obj
- 0001:00012310       ?ZeroSize@@YAX_KPEAX@Z     0000000180013310 f i p5engine.obj
- 0001:00012370       GetController              0000000180013370 f i p5engine.obj
- 0001:000123d0       SafeTruncateToUInt16       00000001800133d0 f i p5engine.obj
- 0001:00012420       TruncateReal32ToInt32      0000000180013420 f i p5engine.obj
- 0001:00012450       ?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180013450 f   p5engine_optimized.obj
- 0001:00013190       __CheckForDebuggerJustMyCode 0000000180014190 f   MSVCRTD:debugger_jmc.obj
- 0001:000131d0       __GSHandlerCheck           00000001800141d0 f   MSVCRTD:gshandler.obj
- 0001:00013210       __GSHandlerCheckCommon     0000000180014210 f   MSVCRTD:gshandler.obj
- 0001:00013320       __chkstk                   0000000180014320 f   MSVCRTD:chkstk.obj
- 0001:00013320       _alloca_probe              0000000180014320 f   MSVCRTD:chkstk.obj
- 0001:00013380       __security_check_cookie    0000000180014380 f   MSVCRTD:amdsecgs.obj
- 0001:000137b0       _DllMainCRTStartup         00000001800147b0 f   MSVCRTD:dll_dllmain.obj
- 0001:000137f0       __raise_securityfailure    00000001800147f0 f   MSVCRTD:gs_report.obj
- 0001:00013830       __report_gsfailure         0000000180014830 f   MSVCRTD:gs_report.obj
- 0001:00013a90       __security_init_cookie     0000000180014a90 f   MSVCRTD:gs_support.obj
- 0001:00013b10       DllMain                    0000000180014b10 f   MSVCRTD:dll_dllmain_stub.obj
- 0001:00013b50       ?__scrt_initialize_type_info@@YAXXZ 0000000180014b50 f   MSVCRTD:tncleanup.obj
- 0001:00013b70       ?__scrt_uninitialize_type_info@@YAXXZ 0000000180014b70 f   MSVCRTD:tncleanup.obj
- 0001:00013b90       __local_stdio_printf_options 0000000180014b90 f i MSVCRTD:default_local_stdio_options.obj
- 0001:00013ba0       __local_stdio_scanf_options 0000000180014ba0 f i MSVCRTD:default_local_stdio_options.obj
- 0001:00013bb0       __scrt_initialize_default_local_stdio_options 0000000180014bb0 f   MSVCRTD:default_local_stdio_options.obj
- 0001:00013c00       ?configure_argv@__scrt_narrow_argv_policy@@SAHXZ 0000000180014c00 f i MSVCRTD:utility.obj
- 0001:00013cf0       ?initialize_environment@__scrt_narrow_environment_policy@@SAHXZ 0000000180014cf0 f i MSVCRTD:utility.obj
- 0001:00013d90       NtCurrentTeb               0000000180014d90 f i MSVCRTD:utility.obj
- 0001:00013da0       __scrt_acquire_startup_lock 0000000180014da0 f   MSVCRTD:utility.obj
- 0001:00013e10       __scrt_dllmain_after_initialize_c 0000000180014e10 f   MSVCRTD:utility.obj
- 0001:00013e40       __scrt_dllmain_before_initialize_c 0000000180014e40 f   MSVCRTD:utility.obj
- 0001:00013e60       __scrt_dllmain_crt_thread_attach 0000000180014e60 f   MSVCRTD:utility.obj
- 0001:00013e90       __scrt_dllmain_crt_thread_detach 0000000180014e90 f   MSVCRTD:utility.obj
- 0001:00013eb0       __scrt_dllmain_exception_filter 0000000180014eb0 f   MSVCRTD:utility.obj
- 0001:00013f20       __scrt_dllmain_uninitialize_c 0000000180014f20 f   MSVCRTD:utility.obj
- 0001:00013f50       __scrt_dllmain_uninitialize_critical 0000000180014f50 f   MSVCRTD:utility.obj
- 0001:00013f70       __scrt_initialize_crt      0000000180014f70 f   MSVCRTD:utility.obj
- 0001:00013fc0       __scrt_initialize_onexit_tables 0000000180014fc0 f   MSVCRTD:utility.obj
- 0001:000140d0       __scrt_is_nonwritable_in_current_image 00000001800150d0 f   MSVCRTD:utility.obj
- 0001:00014160       __scrt_release_startup_lock 0000000180015160 f   MSVCRTD:utility.obj
- 0001:00014190       __scrt_uninitialize_crt    0000000180015190 f   MSVCRTD:utility.obj
- 0001:000141d0       __scrt_get_dyn_tls_init_callback 00000001800151d0 f   MSVCRTD:dyn_tls_init.obj
- 0001:000141e0       __crt_debugger_hook        00000001800151e0 f   MSVCRTD:utility_desktop.obj
- 0001:000141f0       __scrt_fastfail            00000001800151f0 f   MSVCRTD:utility_desktop.obj
- 0001:00014390       _RTC_Initialize            0000000180015390 f   MSVCRTD:initsect.obj
- 0001:000143e0       _RTC_Terminate             00000001800153e0 f   MSVCRTD:initsect.obj
- 0001:00014430       _guard_check_icall_nop     0000000180015430 f i MSVCRTD:guard_support.obj
- 0001:00014440       __isa_available_init       0000000180015440 f   MSVCRTD:cpu_disp.obj
- 0001:000147e0       _get_startup_argv_mode     00000001800157e0 f   MSVCRTD:argv_mode.obj
- 0001:000147f0       __scrt_is_ucrt_dll_in_use  00000001800157f0 f   MSVCRTD:ucrt_detection.obj
- 0001:00014820       __C_specific_handler       0000000180015820 f   vcruntimed:VCRUNTIME140D.dll
- 0001:00014826       __std_type_info_destroy_list 0000000180015826 f   vcruntimed:VCRUNTIME140D.dll
- 0001:0001482c       atan2                      000000018001582c f   ucrtd:ucrtbased.dll
- 0001:00014832       sinf                       0000000180015832 f   ucrtd:ucrtbased.dll
- 0001:00014838       sqrtf                      0000000180015838 f   ucrtd:ucrtbased.dll
- 0001:0001483e       _initterm                  000000018001583e f   ucrtd:ucrtbased.dll
- 0001:00014844       _initterm_e                0000000180015844 f   ucrtd:ucrtbased.dll
- 0001:0001484a       _seh_filter_dll            000000018001584a f   ucrtd:ucrtbased.dll
- 0001:00014850       _configure_narrow_argv     0000000180015850 f   ucrtd:ucrtbased.dll
- 0001:00014856       _initialize_narrow_environment 0000000180015856 f   ucrtd:ucrtbased.dll
- 0001:0001485c       _initialize_onexit_table   000000018001585c f   ucrtd:ucrtbased.dll
- 0001:00014862       _execute_onexit_table      0000000180015862 f   ucrtd:ucrtbased.dll
- 0001:00014868       _cexit                     0000000180015868 f   ucrtd:ucrtbased.dll
- 0001:00014870       __acrt_thread_detach       0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __acrt_thread_attach       0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __acrt_initialize          0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __scrt_stub_for_acrt_thread_attach 0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __vcrt_thread_attach       0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __scrt_stub_for_acrt_thread_detach 0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __vcrt_thread_detach       0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __scrt_stub_for_acrt_initialize 0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014870       __vcrt_initialize          0000000180015870 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014880       __acrt_uninitialize        0000000180015880 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014880       __scrt_stub_for_acrt_uninitialize 0000000180015880 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014880       __acrt_uninitialize_critical 0000000180015880 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014880       __scrt_stub_for_acrt_uninitialize_critical 0000000180015880 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014880       __vcrt_uninitialize        0000000180015880 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014880       __vcrt_uninitialize_critical 0000000180015880 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014890       __scrt_stub_for_is_c_termination_complete 0000000180015890 f   MSVCRTD:ucrt_stubs.obj
- 0001:00014890       _is_c_termination_complete 0000000180015890 f   MSVCRTD:ucrt_stubs.obj
- 0001:000148b0       _guard_dispatch_icall_nop  00000001800158b0 f   MSVCRTD:guard_dispatch.obj
- 0001:000148d0       _guard_xfg_dispatch_icall_nop 00000001800158d0 f   MSVCRTD:guard_xfg_dispatch.obj
- 0002:00000000       __imp_QueryPerformanceCounter 0000000180016000     kernel32:KERNEL32.dll
- 0002:00000008       __imp_RtlCaptureContext    0000000180016008     kernel32:KERNEL32.dll
- 0002:00000010       __imp_RtlLookupFunctionEntry 0000000180016010     kernel32:KERNEL32.dll
- 0002:00000018       __imp_RtlVirtualUnwind     0000000180016018     kernel32:KERNEL32.dll
- 0002:00000020       __imp_IsDebuggerPresent    0000000180016020     kernel32:KERNEL32.dll
- 0002:00000028       __imp_InitializeSListHead  0000000180016028     kernel32:KERNEL32.dll
- 0002:00000030       __imp_DisableThreadLibraryCalls 0000000180016030     kernel32:KERNEL32.dll
- 0002:00000038       __imp_GetSystemTimeAsFileTime 0000000180016038     kernel32:KERNEL32.dll
- 0002:00000040       __imp_GetCurrentProcessId  0000000180016040     kernel32:KERNEL32.dll
- 0002:00000048       __imp_GetCurrentThreadId   0000000180016048     kernel32:KERNEL32.dll
- 0002:00000050       __imp_IsProcessorFeaturePresent 0000000180016050     kernel32:KERNEL32.dll
- 0002:00000058       __imp_TerminateProcess     0000000180016058     kernel32:KERNEL32.dll
- 0002:00000060       __imp_GetCurrentProcess    0000000180016060     kernel32:KERNEL32.dll
- 0002:00000068       __imp_SetUnhandledExceptionFilter 0000000180016068     kernel32:KERNEL32.dll
- 0002:00000070       __imp_UnhandledExceptionFilter 0000000180016070     kernel32:KERNEL32.dll
- 0002:00000078       \177KERNEL32_NULL_THUNK_DATA 0000000180016078     kernel32:KERNEL32.dll
- 0002:00000080       __imp___std_type_info_destroy_list 0000000180016080     vcruntimed:VCRUNTIME140D.dll
- 0002:00000088       __imp___C_specific_handler 0000000180016088     vcruntimed:VCRUNTIME140D.dll
- 0002:00000090       \177VCRUNTIME140D_NULL_THUNK_DATA 0000000180016090     vcruntimed:VCRUNTIME140D.dll
- 0002:00000098       __imp__cexit               0000000180016098     ucrtd:ucrtbased.dll
- 0002:000000a0       __imp__execute_onexit_table 00000001800160a0     ucrtd:ucrtbased.dll
- 0002:000000a8       __imp__initialize_onexit_table 00000001800160a8     ucrtd:ucrtbased.dll
- 0002:000000b0       __imp__initialize_narrow_environment 00000001800160b0     ucrtd:ucrtbased.dll
- 0002:000000b8       __imp__configure_narrow_argv 00000001800160b8     ucrtd:ucrtbased.dll
- 0002:000000c0       __imp__initterm_e          00000001800160c0     ucrtd:ucrtbased.dll
- 0002:000000c8       __imp__initterm            00000001800160c8     ucrtd:ucrtbased.dll
- 0002:000000d0       __imp_sqrtf                00000001800160d0     ucrtd:ucrtbased.dll
- 0002:000000d8       __imp_sinf                 00000001800160d8     ucrtd:ucrtbased.dll
- 0002:000000e0       __imp_atan2                00000001800160e0     ucrtd:ucrtbased.dll
- 0002:000000e8       __imp_roundf               00000001800160e8     ucrtd:ucrtbased.dll
- 0002:000000f0       __imp__seh_filter_dll      00000001800160f0     ucrtd:ucrtbased.dll
- 0002:000000f8       \177ucrtbased_NULL_THUNK_DATA 00000001800160f8     ucrtd:ucrtbased.dll
- 0002:00000100       __guard_check_icall_fptr   0000000180016100     MSVCRTD:guard_support.obj
- 0002:00000108       __guard_xfg_check_icall_fptr 0000000180016108     MSVCRTD:guard_support.obj
- 0002:00000110       __guard_dispatch_icall_fptr 0000000180016110     MSVCRTD:guard_support.obj
- 0002:00000118       __guard_xfg_dispatch_icall_fptr 0000000180016118     MSVCRTD:guard_support.obj
- 0002:00000120       __guard_xfg_table_dispatch_icall_fptr 0000000180016120     MSVCRTD:guard_support.obj
- 0002:00000128       __xc_a                     0000000180016128     MSVCRTD:initializers.obj
- 0002:00000130       __xc_z                     0000000180016130     MSVCRTD:initializers.obj
- 0002:00000138       __xi_a                     0000000180016138     MSVCRTD:initializers.obj
- 0002:00000140       __xi_z                     0000000180016140     MSVCRTD:initializers.obj
- 0002:00000148       __xp_a                     0000000180016148     MSVCRTD:initializers.obj
- 0002:00000150       __xp_z                     0000000180016150     MSVCRTD:initializers.obj
- 0002:00000158       __xt_a                     0000000180016158     MSVCRTD:initializers.obj
- 0002:00000160       __xt_z                     0000000180016160     MSVCRTD:initializers.obj
- 0002:00000200       ??_C@_0BA@NMEIMCEK@InvalidCodePath@ 0000000180016200     p5engine.obj
- 0002:00000210       __real@00000000            0000000180016210     p5engine.obj
- 0002:00000214       __real@308992b1            0000000180016214     p5engine.obj
- 0002:00000218       __real@3a83126f            0000000180016218     p5engine.obj
- 0002:0000021c       __real@3c23d70a            000000018001621c     p5engine.obj
- 0002:00000220       __real@3cc30c31            0000000180016220     p5engine.obj
- 0002:00000224       __real@3d4ccccd            0000000180016224     p5engine.obj
- 0002:00000228       __real@3dcccccd            0000000180016228     p5engine.obj
- 0002:0000022c       __real@3e4ccccd            000000018001622c     p5engine.obj
- 0002:00000230       __real@3e800000            0000000180016230     p5engine.obj
- 0002:00000234       __real@3e99999a            0000000180016234     p5engine.obj
- 0002:00000238       __real@3ecccccd            0000000180016238     p5engine.obj
- 0002:0000023c       __real@3ee147ae            000000018001623c     p5engine.obj
- 0002:00000240       __real@3f000000            0000000180016240     p5engine.obj
- 0002:00000244       __real@3f19999a            0000000180016244     p5engine.obj
- 0002:00000248       __real@3f228f5c            0000000180016248     p5engine.obj
- 0002:0000024c       __real@3f333333            000000018001624c     p5engine.obj
- 0002:00000250       __real@3f3504f3            0000000180016250     p5engine.obj
- 0002:00000254       __real@3f400000            0000000180016254     p5engine.obj
- 0002:00000258       __real@3f666666            0000000180016258     p5engine.obj
- 0002:0000025c       __real@3f800000            000000018001625c     p5engine.obj
- 0002:00000260       __real@3f8ccccd            0000000180016260     p5engine.obj
- 0002:00000264       __real@3f99999a            0000000180016264     p5engine.obj
- 0002:00000268       __real@3fa66666            0000000180016268     p5engine.obj
- 0002:0000026c       __real@3fb33333            000000018001626c     p5engine.obj
- 0002:00000270       __real@3fc00000            0000000180016270     p5engine.obj
- 0002:00000274       __real@40000000            0000000180016274     p5engine.obj
- 0002:00000278       __real@400ccccd            0000000180016278     p5engine.obj
- 0002:0000027c       __real@40400000            000000018001627c     p5engine.obj
- 0002:00000280       __real@40800000            0000000180016280     p5engine.obj
- 0002:00000284       __real@40a00000            0000000180016284     p5engine.obj
- 0002:00000288       __real@40c00000            0000000180016288     p5engine.obj
- 0002:0000028c       __real@40c90fdb            000000018001628c     p5engine.obj
- 0002:00000290       __real@40e00000            0000000180016290     p5engine.obj
- 0002:00000294       __real@41100000            0000000180016294     p5engine.obj
- 0002:00000298       __real@41700000            0000000180016298     p5engine.obj
- 0002:0000029c       __real@41800000            000000018001629c     p5engine.obj
- 0002:000002a0       __real@41880000            00000001800162a0     p5engine.obj
- 0002:000002a4       __real@41a00000            00000001800162a4     p5engine.obj
- 0002:000002a8       __real@41f00000            00000001800162a8     p5engine.obj
- 0002:000002ac       __real@42340000            00000001800162ac     p5engine.obj
- 0002:000002b0       __real@437f0000            00000001800162b0     p5engine.obj
- 0002:000002b4       __real@461c4000            00000001800162b4     p5engine.obj
- 0002:000002b8       __real@47c35000            00000001800162b8     p5engine.obj
- 0002:000002bc       __real@49742400            00000001800162bc     p5engine.obj
- 0002:000002c0       __real@7f7fffff            00000001800162c0     p5engine.obj
- 0002:000002c4       __real@bc23d70a            00000001800162c4     p5engine.obj
- 0002:000002c8       __real@bd4ccccd            00000001800162c8     p5engine.obj
- 0002:000002cc       __real@be800000            00000001800162cc     p5engine.obj
- 0002:000002d0       __real@becccccd            00000001800162d0     p5engine.obj
- 0002:000002d4       __real@bf000000            00000001800162d4     p5engine.obj
- 0002:000002d8       __real@bf800000            00000001800162d8     p5engine.obj
- 0002:000002dc       __real@c0000000            00000001800162dc     p5engine.obj
- 0002:000002e0       __real@c0100000            00000001800162e0     p5engine.obj
- 0002:000002e4       __real@c0400000            00000001800162e4     p5engine.obj
- 0002:000002e8       __real@c11ccccd            00000001800162e8     p5engine.obj
- 0002:000002f0       __xmm@00000000000000000000000000000000 00000001800162f0     p5engine.obj
- 0002:00000300       __xmm@3f8000003f8000003f8000003f800000 0000000180016300     p5engine.obj
- 0002:00000310       __xmm@7fffffffffffffff7fffffffffffffff 0000000180016310     p5engine.obj
- 0002:00000320       __xmm@80000000800000008000000080000000 0000000180016320     p5engine.obj
- 0002:00000330       __xmm@000000ff000000ff000000ff000000ff 0000000180016330     p5engine_optimized.obj
- 0002:00000340       __xmm@0000ffff0000ffff0000ffff0000ffff 0000000180016340     p5engine_optimized.obj
- 0002:00000350       __xmm@00ff00ff00ff00ff00ff00ff00ff00ff 0000000180016350     p5engine_optimized.obj
- 0002:00000360       __xmm@3b8080813b8080813b8080813b808081 0000000180016360     p5engine_optimized.obj
- 0002:00000370       __xmm@3f0000003f0000003f0000003f000000 0000000180016370     p5engine_optimized.obj
- 0002:00000380       __xmm@40800000408000004080000040800000 0000000180016380     p5engine_optimized.obj
- 0002:00000390       __xmm@477e0100477e0100477e0100477e0100 0000000180016390     p5engine_optimized.obj
- 0002:000003a0       __xmm@ffffffffffffffffffffffffffffffff 00000001800163a0     p5engine_optimized.obj
- 0002:000003b0       _pRawDllMain               00000001800163b0     MSVCRTD:dll_dllmain.obj
- 0002:000003b0       _pDefaultRawDllMain        00000001800163b0     MSVCRTD:dll_dllmain.obj
- 0002:00000420       _load_config_used          0000000180016420     MSVCRTD:loadcfg.obj
- 0002:00000580       __volatile_metadata        0000000180016580     <linker-defined>
- 0002:000009b8       __rtc_iaa                  00000001800169b8     MSVCRTD:initsect.obj
- 0002:000009c0       __rtc_izz                  00000001800169c0     MSVCRTD:initsect.obj
- 0002:000009c8       __rtc_taa                  00000001800169c8     MSVCRTD:initsect.obj
- 0002:000009d0       __rtc_tzz                  00000001800169d0     MSVCRTD:initsect.obj
- 0002:000011f4       __IMPORT_DESCRIPTOR_VCRUNTIME140D 00000001800171f4     vcruntimed:VCRUNTIME140D.dll
- 0002:00001208       __IMPORT_DESCRIPTOR_ucrtbased 0000000180017208     ucrtd:ucrtbased.dll
- 0002:0000121c       __IMPORT_DESCRIPTOR_KERNEL32 000000018001721c     kernel32:KERNEL32.dll
- 0002:00001230       __NULL_IMPORT_DESCRIPTOR   0000000180017230     vcruntimed:VCRUNTIME140D.dll
- 0003:00004000       __security_cookie_complement 000000018001c000     MSVCRTD:gs_cookie.obj
- 0003:00004008       __security_cookie          000000018001c008     MSVCRTD:gs_cookie.obj
- 0003:00004010       _fltused                   000000018001c010     MSVCRTD:fltused.obj
- 0003:00004014       __scrt_native_dllmain_reason 000000018001c014     MSVCRTD:utility.obj
- 0003:00004018       __isa_available            000000018001c018     MSVCRTD:cpu_disp.obj
- 0003:0000401c       __isa_enabled              000000018001c01c     MSVCRTD:cpu_disp.obj
- 0003:00004020       __memcpy_nt_iters          000000018001c020     MSVCRTD:cpu_disp.obj
- 0003:00004028       __memset_nt_iters          000000018001c028     MSVCRTD:cpu_disp.obj
- 0003:00004030       __scrt_ucrt_dll_is_in_use  000000018001c030     MSVCRTD:ucrt_stubs.obj
- 0003:00004040       DebugGlobalMemory          000000018001c040     p5engine.obj
- 0003:00004620       ?__type_info_root_node@@3U__type_info_node@@A 000000018001c620     MSVCRTD:tncleanup.obj
- 0003:00004630       ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA 000000018001c630     MSVCRTD:default_local_stdio_options.obj
- 0003:00004638       ?_OptionsStorage@?1??__local_stdio_scanf_options@@9@4_KA 000000018001c638     MSVCRTD:default_local_stdio_options.obj
- 0003:00004640       __scrt_current_native_startup_state 000000018001c640     MSVCRTD:utility.obj
- 0003:00004648       __scrt_native_startup_lock 000000018001c648     MSVCRTD:utility.obj
- 0003:00004688       __scrt_debugger_hook_flag  000000018001c688     MSVCRTD:utility_desktop.obj
- 0003:00004690       __castguard_check_failure_os_handled_fptr 000000018001c690     MSVCRTD:guard_support.obj
- 0003:00004698       __favor                    000000018001c698     MSVCRTD:cpu_disp.obj
- 0003:000046a0       __dyn_tls_init_callback    000000018001c6a0     <common>
- 0003:000046a8       __DebuggerCurrentSteppingThreadId 000000018001c6a8     <common>
+ 0001:00004860       ?GetSizeOfAsset@@YA?AUasset_memory_size@@PEAUgame_assets@@II@Z 0000000180005860 f   p5engine.obj
+ 0001:00008f70       GameUpdateAndRender        0000000180009f70 f   p5engine.obj
+ 0001:0000db30       GameGetSoundSamples        000000018000eb30 f   p5engine.obj
+ 0001:0000dba0       ??D@YA?ATv2@@MT0@@Z        000000018000eba0 f i p5engine.obj
+ 0001:0000dc20       ??D@YA?ATv3@@MT0@@Z        000000018000ec20 f i p5engine.obj
+ 0001:0000dcd0       ??D@YA?ATv3@@T0@M@Z        000000018000ecd0 f i p5engine.obj
+ 0001:0000dd50       ??D@YA?ATv4@@MT0@@Z        000000018000ed50 f i p5engine.obj
+ 0001:0000de20       ??G@YA?ATv2@@T0@0@Z        000000018000ee20 f i p5engine.obj
+ 0001:0000dea0       ??G@YA?ATv3@@T0@0@Z        000000018000eea0 f i p5engine.obj
+ 0001:0000df60       ??H@YA?ATv2@@T0@0@Z        000000018000ef60 f i p5engine.obj
+ 0001:0000dfe0       ??H@YA?ATv3@@T0@0@Z        000000018000efe0 f i p5engine.obj
+ 0001:0000e0a0       ??H@YA?ATv4@@T0@0@Z        000000018000f0a0 f i p5engine.obj
+ 0001:0000e180       ??X@YAAEATv3@@AEAT0@M@Z    000000018000f180 f i p5engine.obj
+ 0001:0000e200       ??Y@YAAEATv2@@AEAT0@T0@@Z  000000018000f200 f i p5engine.obj
+ 0001:0000e250       ??Y@YAAEATv3@@AEAT0@T0@@Z  000000018000f250 f i p5engine.obj
+ 0001:0000e2f0       ??Y@YAAEATv4@@AEAT0@T0@@Z  000000018000f2f0 f i p5engine.obj
+ 0001:0000e390       ??Z@YAAEATv3@@AEAT0@T0@@Z  000000018000f390 f i p5engine.obj
+ 0001:0000e430       ?ATan2@@YAMMM@Z            000000018000f430 f i p5engine.obj
+ 0001:0000e480       ?AbsoluteValue@@YAMM@Z     000000018000f480 f i p5engine.obj
+ 0001:0000e4c0       ?AcquireAssetMemory@@YAPEAXPEAUgame_assets@@_K@Z 000000018000f4c0 f i p5engine.obj
+ 0001:0000e520       ?AddFlags@@YAXPEAUsim_entity@@I@Z 000000018000f520 f i p5engine.obj
+ 0001:0000e560       ?AddRadiusTo@@YA?AUrectangle3@@U1@Tv3@@@Z 000000018000f560 f i p5engine.obj
+ 0001:0000e6d0       ?AllResourcesPresent@@YAHPEAUrender_group@@@Z 000000018000f6d0 f i p5engine.obj
+ 0001:0000e720       ?AreInSameChunk@@YAHPEAUworld@@PEAUworld_position@@1@Z 000000018000f720 f i p5engine.obj
+ 0001:0000e820       ?AtomicCompareExchangeUInt32@@YAIPECIII@Z 000000018000f820 f i p5engine.obj
+ 0001:0000e870       ?BeginTemporaryMemory@@YA?AUtemporary_memory@@PEAUmemory_arena@@@Z 000000018000f870 f i p5engine.obj
+ 0001:0000e910       ?CenteredChunkPoint@@YA?AUworld_position@@III@Z 000000018000f910 f i p5engine.obj
+ 0001:0000e9a0       ?ChangeEntityLocationRaw@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUworld_position@@2@Z 000000018000f9a0 f i p5engine.obj
+ 0001:0000ed90       ?CheckArena@@YAXPEAUmemory_arena@@@Z 000000018000fd90 f i p5engine.obj
+ 0001:0000edc0       ?ChunkPositionFromTilePosition@@YA?AUworld_position@@PEAUworld@@HHHTv3@@@Z 000000018000fdc0 f i p5engine.obj
+ 0001:0000f060       ?Clamp01@@YA?ATv2@@T1@@Z   0000000180010060 f i p5engine.obj
+ 0001:0000f0d0       ?Clamp01@@YAMM@Z           00000001800100d0 f i p5engine.obj
+ 0001:0000f110       ?Clamp01MapToRange@@YAMMMM@Z 0000000180010110 f i p5engine.obj
+ 0001:0000f190       ?Clamp@@YAMMMM@Z           0000000180010190 f i p5engine.obj
+ 0001:0000f200       ?Clear@@YAXPEAUrender_group@@Tv4@@@Z 0000000180010200 f i p5engine.obj
+ 0001:0000f260       ?ClearFlags@@YAXPEAUsim_entity@@I@Z 0000000180010260 f i p5engine.obj
+ 0001:0000f2a0       ?DefaultMoveSpec@@YA?AUmove_spec@@XZ 00000001800102a0 f i p5engine.obj
+ 0001:0000f340       ?EndTemporaryMemory@@YAXUtemporary_memory@@@Z 0000000180010340 f i p5engine.obj
+ 0001:0000f3c0       ?EntityOverlapsRectangle@@YAHTv3@@Usim_entity_collision_volume@@Urectangle3@@@Z 00000001800103c0 f i p5engine.obj
+ 0001:0000f550       ?GetAlignmentOffset@@YA_KPEAUmemory_arena@@_K@Z 0000000180010550 f i p5engine.obj
+ 0001:0000f5e0       ?GetArenaSizeRemaining@@YA_KPEAUmemory_arena@@_K@Z 00000001800105e0 f i p5engine.obj
+ 0001:0000f640       ?GetBarycentric@@YA?ATv2@@Urectangle2@@T1@@Z 0000000180010640 f i p5engine.obj
+ 0001:0000f6f0       ?GetSound@@YAPEAUloaded_sound@@PEAUgame_assets@@Usound_id@@@Z 00000001800106f0 f i p5engine.obj
+ 0001:0000f6f0       ?GetBitmap@@YAPEAUloaded_bitmap@@PEAUgame_assets@@Ubitmap_id@@@Z 00000001800106f0 f i p5engine.obj
+ 0001:0000f770       ?GetCameraRectangleAtDistance@@YA?AUrectangle2@@PEAUrender_group@@M@Z 0000000180010770 f i p5engine.obj
+ 0001:0000f810       ?GetCameraRectangleAtTarget@@YA?AUrectangle2@@PEAUrender_group@@@Z 0000000180010810 f i p5engine.obj
+ 0001:0000f880       ?GetDim@@YA?ATv2@@Urectangle2@@@Z 0000000180010880 f i p5engine.obj
+ 0001:0000f8c0       ?GetDim@@YA?ATv3@@Urectangle3@@@Z 00000001800108c0 f i p5engine.obj
+ 0001:0000f960       ?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@@Z 0000000180010960 f i p5engine.obj
+ 0001:0000f9e0       ?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@T1@@Z 00000001800109e0 f i p5engine.obj
+ 0001:0000fa40       ?GetFileHandleFor@@YAPEAUplatform_file_handle@@PEAUgame_assets@@I@Z 0000000180010a40 f i p5engine.obj
+ 0001:0000faa0       ?GetLowEntity@@YAPEAUlow_entity@@PEAUgame_state@@I@Z 0000000180010aa0 f i p5engine.obj
+ 0001:0000fb10       ?GetMaxCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180010b10 f i p5engine.obj
+ 0001:0000fb70       ?GetMinCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180010b70 f i p5engine.obj
+ 0001:0000fbc0       ?GetNextSoundInChain@@YA?AUsound_id@@PEAUgame_assets@@U1@@Z 0000000180010bc0 f i p5engine.obj
+ 0001:0000fc80       ?GetRenderEntityBasisPos@@YA?AUentity_basis_p_result@@PEAUrender_transform@@Tv3@@@Z 0000000180010c80 f i p5engine.obj
+ 0001:0000ff20       ?GetSimSpacePos@@YA?ATv3@@PEAUsim_region@@PEAUlow_entity@@@Z 0000000180010f20 f i p5engine.obj
+ 0001:00010010       ?GetSoundInfo@@YAPEAUp5a_sound@@PEAUgame_assets@@Usound_id@@@Z 0000000180011010 f i p5engine.obj
+ 0001:00010070       ?GetStairGround@@YAMPEAUsim_entity@@Tv3@@@Z 0000000180011070 f i p5engine.obj
+ 0001:00010160       ?GetState@@YAIPEAUasset_slot@@@Z 0000000180011160 f i p5engine.obj
+ 0001:00010190       ?GetType@@YAIPEAUasset_slot@@@Z 0000000180011190 f i p5engine.obj
+ 0001:000101c0       ?GetWorldChunk@@YAPEAUworld_chunk@@PEAUworld@@HHHPEAUmemory_arena@@@Z 00000001800111c0 f i p5engine.obj
+ 0001:000103b0       ?Hadamard@@YA?ATv2@@T1@0@Z 00000001800113b0 f i p5engine.obj
+ 0001:00010410       ?Hadamard@@YA?ATv3@@T1@0@Z 0000000180011410 f i p5engine.obj
+ 0001:000104d0       ?HasFlag@@YAHPEAUsim_entity@@I@Z 00000001800114d0 f i p5engine.obj
+ 0001:00010510       ?InitializeArena@@YAXPEAUmemory_arena@@_KPEAX@Z 0000000180011510 f i p5engine.obj
+ 0001:00010570       ?Inner@@YAMTv2@@0@Z        0000000180011570 f i p5engine.obj
+ 0001:000105c0       ?Inner@@YAMTv3@@0@Z        00000001800115c0 f i p5engine.obj
+ 0001:00010630       ?Intersect@@YA?AUrectangle2i@@U1@0@Z 0000000180011630 f i p5engine.obj
+ 0001:00010740       ?IsCanonical@@YAHMM@Z      0000000180011740 f i p5engine.obj
+ 0001:000107e0       ?IsCanonical@@YAHPEAUworld@@Tv3@@@Z 00000001800117e0 f i p5engine.obj
+ 0001:00010880       ?IsInRectangle@@YAHUrectangle3@@Tv3@@@Z 0000000180011880 f i p5engine.obj
+ 0001:00010940       ?IsValid@@YAHUsound_id@@@Z 0000000180011940 f i p5engine.obj
+ 0001:00010980       ?IsValid@@YAHUworld_position@@@Z 0000000180011980 f i p5engine.obj
+ 0001:000109d0       ?Length@@YAMTv3@@@Z        00000001800119d0 f i p5engine.obj
+ 0001:00010a20       ?LengthSq@@YAMTv2@@@Z      0000000180011a20 f i p5engine.obj
+ 0001:00010a60       ?LengthSq@@YAMTv3@@@Z      0000000180011a60 f i p5engine.obj
+ 0001:00010ad0       ?Lerp@@YAMMMM@Z            0000000180011ad0 f i p5engine.obj
+ 0001:00010b30       ?LoadEntityReference@@YAXPEAUgame_state@@PEAUsim_region@@PEATentity_reference@@@Z 0000000180011b30 f i p5engine.obj
+ 0001:00010c60       ?MakeEntityNonSpatial@@YAXPEAUsim_entity@@@Z 0000000180011c60 f i p5engine.obj
+ 0001:00010ce0       ?MakeEntitySpatial@@YAXPEAUsim_entity@@Tv3@@1@Z 0000000180011ce0 f i p5engine.obj
+ 0001:00010d50       ?MapIntoChunkSpace@@YA?AUworld_position@@PEAUworld@@U1@Tv3@@@Z 0000000180011d50 f i p5engine.obj
+ 0001:00010e40       ?NullPosition@@YA?AUworld_position@@XZ 0000000180011e40 f i p5engine.obj
+ 0001:00010eb0       ?Orthographic@@YAXPEAUrender_group@@HHM@Z 0000000180011eb0 f i p5engine.obj
+ 0001:00010fb0       ?Perspective@@YAXPEAUrender_group@@HHMMM@Z 0000000180011fb0 f i p5engine.obj
+ 0001:000110a0       ?PrefetchSound@@YAXPEAUgame_assets@@Usound_id@@@Z 00000001800120a0 f i p5engine.obj
+ 0001:000110d0       ?PushBitmap@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Tv3@@MTv4@@@Z 00000001800120d0 f i p5engine.obj
+ 0001:00011300       ?PushBitmap@@YAXPEAUrender_group@@Ubitmap_id@@Tv3@@MTv4@@@Z 0000000180012300 f i p5engine.obj
+ 0001:000113e0       ?PushRect@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 00000001800123e0 f i p5engine.obj
+ 0001:00011580       ?PushRectOutline@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180012580 f i p5engine.obj
+ 0001:00011a10       ?PushRenderElement_@@YAPEAXPEAUrender_group@@IW4render_group_entry_type@@@Z 0000000180012a10 f i p5engine.obj
+ 0001:00011ac0       ?PushSize_@@YAPEAXPEAUmemory_arena@@_K1@Z 0000000180012ac0 f i p5engine.obj
+ 0001:00011b90       ?RandomBetween@@YAMPEAUrandom_series@@MM@Z 0000000180012b90 f i p5engine.obj
+ 0001:00011be0       ?RandomBilateral@@YAMPEAUrandom_series@@@Z 0000000180012be0 f i p5engine.obj
+ 0001:00011c30       ?RandomChoice@@YAIPEAUrandom_series@@I@Z 0000000180012c30 f i p5engine.obj
+ 0001:00011c70       ?RandomNextUInt32@@YAIPEAUrandom_series@@@Z 0000000180012c70 f i p5engine.obj
+ 0001:00011ce0       ?RandomSeed@@YA?AUrandom_series@@I@Z 0000000180012ce0 f i p5engine.obj
+ 0001:00011d50       ?RandomUnilateral@@YAMPEAUrandom_series@@@Z 0000000180012d50 f i p5engine.obj
+ 0001:00011db0       ?RecanonicalizeCoord@@YAXMPEAHPEAM@Z 0000000180012db0 f i p5engine.obj
+ 0001:00011e50       ?RectCenterDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180012e50 f i p5engine.obj
+ 0001:00011ee0       ?RectCenterDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180012ee0 f i p5engine.obj
+ 0001:00011fd0       ?RectCenterHalfDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180012fd0 f i p5engine.obj
+ 0001:00012080       ?RectCenterHalfDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180013080 f i p5engine.obj
+ 0001:000121f0       ?RectMinMax@@YA?AUrectangle3@@Tv3@@0@Z 00000001800131f0 f i p5engine.obj
+ 0001:00012290       ?RectanglesIntersect@@YAHUrectangle3@@0@Z 0000000180013290 f i p5engine.obj
+ 0001:00012350       ?ReleaseAssetMemory@@YAXPEAUgame_assets@@_KPEAX@Z 0000000180013350 f i p5engine.obj
+ 0001:000123b0       ?RoundReal32ToInt32@@YAHM@Z 00000001800133b0 f i p5engine.obj
+ 0001:000123f0       ?RoundReal32ToUInt32@@YAIM@Z 00000001800133f0 f i p5engine.obj
+ 0001:00012430       ?SafeRatio1@@YAMMM@Z       0000000180013430 f i p5engine.obj
+ 0001:00012480       ?SafeRatioN@@YAMMMM@Z      0000000180013480 f i p5engine.obj
+ 0001:000124e0       ?SignOf@@YAMM@Z            00000001800134e0 f i p5engine.obj
+ 0001:00012540       ?Sin@@YAMM@Z               0000000180013540 f i p5engine.obj
+ 0001:00012580       ?Square@@YAMM@Z            0000000180013580 f i p5engine.obj
+ 0001:000125c0       ?SquareRoot@@YAMM@Z        00000001800135c0 f i p5engine.obj
+ 0001:00012600       ?StoreEntityReference@@YAXPEATentity_reference@@@Z 0000000180013600 f i p5engine.obj
+ 0001:00012640       ?SubArena@@YAXPEAUmemory_arena@@0_K1@Z 0000000180013640 f i p5engine.obj
+ 0001:000126b0       ?ToV3@@YA?ATv3@@Tv2@@M@Z   00000001800136b0 f i p5engine.obj
+ 0001:00012740       ?Unproject@@YA?ATv2@@PEAUrender_group@@T1@M@Z 0000000180013740 f i p5engine.obj
+ 0001:00012790       ?V2@@YA?ATv2@@MM@Z         0000000180013790 f i p5engine.obj
+ 0001:00012800       ?V2i@@YA?ATv2@@HH@Z        0000000180013800 f i p5engine.obj
+ 0001:00012850       ?V3@@YA?ATv3@@MMM@Z        0000000180013850 f i p5engine.obj
+ 0001:000128f0       ?V4@@YA?ATv4@@MMMM@Z       00000001800138f0 f i p5engine.obj
+ 0001:000129a0       ?ZeroSize@@YAX_KPEAX@Z     00000001800139a0 f i p5engine.obj
+ 0001:00012a00       GetController              0000000180013a00 f i p5engine.obj
+ 0001:00012a60       SafeTruncateToInt16        0000000180013a60 f i p5engine.obj
+ 0001:00012ac0       SafeTruncateToUInt16       0000000180013ac0 f i p5engine.obj
+ 0001:00012b10       TruncateReal32ToInt32      0000000180013b10 f i p5engine.obj
+ 0001:00012b40       ?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180013b40 f   p5engine_optimized.obj
+ 0001:00013880       __CheckForDebuggerJustMyCode 0000000180014880 f   MSVCRTD:debugger_jmc.obj
+ 0001:000138c0       __GSHandlerCheck           00000001800148c0 f   MSVCRTD:gshandler.obj
+ 0001:00013900       __GSHandlerCheckCommon     0000000180014900 f   MSVCRTD:gshandler.obj
+ 0001:00013a10       __chkstk                   0000000180014a10 f   MSVCRTD:chkstk.obj
+ 0001:00013a10       _alloca_probe              0000000180014a10 f   MSVCRTD:chkstk.obj
+ 0001:00013a70       __security_check_cookie    0000000180014a70 f   MSVCRTD:amdsecgs.obj
+ 0001:00013ea0       _DllMainCRTStartup         0000000180014ea0 f   MSVCRTD:dll_dllmain.obj
+ 0001:00013ee0       __raise_securityfailure    0000000180014ee0 f   MSVCRTD:gs_report.obj
+ 0001:00013f20       __report_gsfailure         0000000180014f20 f   MSVCRTD:gs_report.obj
+ 0001:00014180       __security_init_cookie     0000000180015180 f   MSVCRTD:gs_support.obj
+ 0001:00014200       DllMain                    0000000180015200 f   MSVCRTD:dll_dllmain_stub.obj
+ 0001:00014240       ?__scrt_initialize_type_info@@YAXXZ 0000000180015240 f   MSVCRTD:tncleanup.obj
+ 0001:00014260       ?__scrt_uninitialize_type_info@@YAXXZ 0000000180015260 f   MSVCRTD:tncleanup.obj
+ 0001:00014280       __local_stdio_printf_options 0000000180015280 f i MSVCRTD:default_local_stdio_options.obj
+ 0001:00014290       __local_stdio_scanf_options 0000000180015290 f i MSVCRTD:default_local_stdio_options.obj
+ 0001:000142a0       __scrt_initialize_default_local_stdio_options 00000001800152a0 f   MSVCRTD:default_local_stdio_options.obj
+ 0001:000142f0       ?configure_argv@__scrt_narrow_argv_policy@@SAHXZ 00000001800152f0 f i MSVCRTD:utility.obj
+ 0001:000143e0       ?initialize_environment@__scrt_narrow_environment_policy@@SAHXZ 00000001800153e0 f i MSVCRTD:utility.obj
+ 0001:00014480       NtCurrentTeb               0000000180015480 f i MSVCRTD:utility.obj
+ 0001:00014490       __scrt_acquire_startup_lock 0000000180015490 f   MSVCRTD:utility.obj
+ 0001:00014500       __scrt_dllmain_after_initialize_c 0000000180015500 f   MSVCRTD:utility.obj
+ 0001:00014530       __scrt_dllmain_before_initialize_c 0000000180015530 f   MSVCRTD:utility.obj
+ 0001:00014550       __scrt_dllmain_crt_thread_attach 0000000180015550 f   MSVCRTD:utility.obj
+ 0001:00014580       __scrt_dllmain_crt_thread_detach 0000000180015580 f   MSVCRTD:utility.obj
+ 0001:000145a0       __scrt_dllmain_exception_filter 00000001800155a0 f   MSVCRTD:utility.obj
+ 0001:00014610       __scrt_dllmain_uninitialize_c 0000000180015610 f   MSVCRTD:utility.obj
+ 0001:00014640       __scrt_dllmain_uninitialize_critical 0000000180015640 f   MSVCRTD:utility.obj
+ 0001:00014660       __scrt_initialize_crt      0000000180015660 f   MSVCRTD:utility.obj
+ 0001:000146b0       __scrt_initialize_onexit_tables 00000001800156b0 f   MSVCRTD:utility.obj
+ 0001:000147c0       __scrt_is_nonwritable_in_current_image 00000001800157c0 f   MSVCRTD:utility.obj
+ 0001:00014850       __scrt_release_startup_lock 0000000180015850 f   MSVCRTD:utility.obj
+ 0001:00014880       __scrt_uninitialize_crt    0000000180015880 f   MSVCRTD:utility.obj
+ 0001:000148c0       __scrt_get_dyn_tls_init_callback 00000001800158c0 f   MSVCRTD:dyn_tls_init.obj
+ 0001:000148d0       __crt_debugger_hook        00000001800158d0 f   MSVCRTD:utility_desktop.obj
+ 0001:000148e0       __scrt_fastfail            00000001800158e0 f   MSVCRTD:utility_desktop.obj
+ 0001:00014a80       _RTC_Initialize            0000000180015a80 f   MSVCRTD:initsect.obj
+ 0001:00014ad0       _RTC_Terminate             0000000180015ad0 f   MSVCRTD:initsect.obj
+ 0001:00014b20       _guard_check_icall_nop     0000000180015b20 f i MSVCRTD:guard_support.obj
+ 0001:00014b30       __isa_available_init       0000000180015b30 f   MSVCRTD:cpu_disp.obj
+ 0001:00014ed0       _get_startup_argv_mode     0000000180015ed0 f   MSVCRTD:argv_mode.obj
+ 0001:00014ee0       __scrt_is_ucrt_dll_in_use  0000000180015ee0 f   MSVCRTD:ucrt_detection.obj
+ 0001:00014f10       __C_specific_handler       0000000180015f10 f   vcruntimed:VCRUNTIME140D.dll
+ 0001:00014f16       __std_type_info_destroy_list 0000000180015f16 f   vcruntimed:VCRUNTIME140D.dll
+ 0001:00014f1c       atan2                      0000000180015f1c f   ucrtd:ucrtbased.dll
+ 0001:00014f22       sinf                       0000000180015f22 f   ucrtd:ucrtbased.dll
+ 0001:00014f28       sqrtf                      0000000180015f28 f   ucrtd:ucrtbased.dll
+ 0001:00014f2e       _initterm                  0000000180015f2e f   ucrtd:ucrtbased.dll
+ 0001:00014f34       _initterm_e                0000000180015f34 f   ucrtd:ucrtbased.dll
+ 0001:00014f3a       _seh_filter_dll            0000000180015f3a f   ucrtd:ucrtbased.dll
+ 0001:00014f40       _configure_narrow_argv     0000000180015f40 f   ucrtd:ucrtbased.dll
+ 0001:00014f46       _initialize_narrow_environment 0000000180015f46 f   ucrtd:ucrtbased.dll
+ 0001:00014f4c       _initialize_onexit_table   0000000180015f4c f   ucrtd:ucrtbased.dll
+ 0001:00014f52       _execute_onexit_table      0000000180015f52 f   ucrtd:ucrtbased.dll
+ 0001:00014f58       _cexit                     0000000180015f58 f   ucrtd:ucrtbased.dll
+ 0001:00014f60       __acrt_thread_attach       0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __scrt_stub_for_acrt_thread_detach 0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __acrt_thread_detach       0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __vcrt_thread_detach       0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __scrt_stub_for_acrt_initialize 0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __scrt_stub_for_acrt_thread_attach 0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __acrt_initialize          0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __vcrt_initialize          0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f60       __vcrt_thread_attach       0000000180015f60 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f70       __vcrt_uninitialize        0000000180015f70 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f70       __acrt_uninitialize        0000000180015f70 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f70       __scrt_stub_for_acrt_uninitialize 0000000180015f70 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f70       __acrt_uninitialize_critical 0000000180015f70 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f70       __vcrt_uninitialize_critical 0000000180015f70 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f70       __scrt_stub_for_acrt_uninitialize_critical 0000000180015f70 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f80       __scrt_stub_for_is_c_termination_complete 0000000180015f80 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014f80       _is_c_termination_complete 0000000180015f80 f   MSVCRTD:ucrt_stubs.obj
+ 0001:00014fa0       _guard_dispatch_icall_nop  0000000180015fa0 f   MSVCRTD:guard_dispatch.obj
+ 0001:00014fc0       _guard_xfg_dispatch_icall_nop 0000000180015fc0 f   MSVCRTD:guard_xfg_dispatch.obj
+ 0002:00000000       __imp_QueryPerformanceCounter 0000000180017000     kernel32:KERNEL32.dll
+ 0002:00000008       __imp_RtlCaptureContext    0000000180017008     kernel32:KERNEL32.dll
+ 0002:00000010       __imp_RtlLookupFunctionEntry 0000000180017010     kernel32:KERNEL32.dll
+ 0002:00000018       __imp_RtlVirtualUnwind     0000000180017018     kernel32:KERNEL32.dll
+ 0002:00000020       __imp_IsDebuggerPresent    0000000180017020     kernel32:KERNEL32.dll
+ 0002:00000028       __imp_InitializeSListHead  0000000180017028     kernel32:KERNEL32.dll
+ 0002:00000030       __imp_DisableThreadLibraryCalls 0000000180017030     kernel32:KERNEL32.dll
+ 0002:00000038       __imp_GetSystemTimeAsFileTime 0000000180017038     kernel32:KERNEL32.dll
+ 0002:00000040       __imp_GetCurrentProcessId  0000000180017040     kernel32:KERNEL32.dll
+ 0002:00000048       __imp_GetCurrentThreadId   0000000180017048     kernel32:KERNEL32.dll
+ 0002:00000050       __imp_IsProcessorFeaturePresent 0000000180017050     kernel32:KERNEL32.dll
+ 0002:00000058       __imp_TerminateProcess     0000000180017058     kernel32:KERNEL32.dll
+ 0002:00000060       __imp_GetCurrentProcess    0000000180017060     kernel32:KERNEL32.dll
+ 0002:00000068       __imp_SetUnhandledExceptionFilter 0000000180017068     kernel32:KERNEL32.dll
+ 0002:00000070       __imp_UnhandledExceptionFilter 0000000180017070     kernel32:KERNEL32.dll
+ 0002:00000078       \177KERNEL32_NULL_THUNK_DATA 0000000180017078     kernel32:KERNEL32.dll
+ 0002:00000080       __imp___std_type_info_destroy_list 0000000180017080     vcruntimed:VCRUNTIME140D.dll
+ 0002:00000088       __imp___C_specific_handler 0000000180017088     vcruntimed:VCRUNTIME140D.dll
+ 0002:00000090       \177VCRUNTIME140D_NULL_THUNK_DATA 0000000180017090     vcruntimed:VCRUNTIME140D.dll
+ 0002:00000098       __imp__cexit               0000000180017098     ucrtd:ucrtbased.dll
+ 0002:000000a0       __imp__execute_onexit_table 00000001800170a0     ucrtd:ucrtbased.dll
+ 0002:000000a8       __imp__initialize_onexit_table 00000001800170a8     ucrtd:ucrtbased.dll
+ 0002:000000b0       __imp__initialize_narrow_environment 00000001800170b0     ucrtd:ucrtbased.dll
+ 0002:000000b8       __imp__configure_narrow_argv 00000001800170b8     ucrtd:ucrtbased.dll
+ 0002:000000c0       __imp__initterm_e          00000001800170c0     ucrtd:ucrtbased.dll
+ 0002:000000c8       __imp__initterm            00000001800170c8     ucrtd:ucrtbased.dll
+ 0002:000000d0       __imp_sqrtf                00000001800170d0     ucrtd:ucrtbased.dll
+ 0002:000000d8       __imp_sinf                 00000001800170d8     ucrtd:ucrtbased.dll
+ 0002:000000e0       __imp_atan2                00000001800170e0     ucrtd:ucrtbased.dll
+ 0002:000000e8       __imp_roundf               00000001800170e8     ucrtd:ucrtbased.dll
+ 0002:000000f0       __imp__seh_filter_dll      00000001800170f0     ucrtd:ucrtbased.dll
+ 0002:000000f8       \177ucrtbased_NULL_THUNK_DATA 00000001800170f8     ucrtd:ucrtbased.dll
+ 0002:00000100       __guard_check_icall_fptr   0000000180017100     MSVCRTD:guard_support.obj
+ 0002:00000108       __guard_xfg_check_icall_fptr 0000000180017108     MSVCRTD:guard_support.obj
+ 0002:00000110       __guard_dispatch_icall_fptr 0000000180017110     MSVCRTD:guard_support.obj
+ 0002:00000118       __guard_xfg_dispatch_icall_fptr 0000000180017118     MSVCRTD:guard_support.obj
+ 0002:00000120       __guard_xfg_table_dispatch_icall_fptr 0000000180017120     MSVCRTD:guard_support.obj
+ 0002:00000128       __xc_a                     0000000180017128     MSVCRTD:initializers.obj
+ 0002:00000130       __xc_z                     0000000180017130     MSVCRTD:initializers.obj
+ 0002:00000138       __xi_a                     0000000180017138     MSVCRTD:initializers.obj
+ 0002:00000140       __xi_z                     0000000180017140     MSVCRTD:initializers.obj
+ 0002:00000148       __xp_a                     0000000180017148     MSVCRTD:initializers.obj
+ 0002:00000150       __xp_z                     0000000180017150     MSVCRTD:initializers.obj
+ 0002:00000158       __xt_a                     0000000180017158     MSVCRTD:initializers.obj
+ 0002:00000160       __xt_z                     0000000180017160     MSVCRTD:initializers.obj
+ 0002:00000210       ??_C@_0BA@NMEIMCEK@InvalidCodePath@ 0000000180017210     p5engine.obj
+ 0002:00000220       __real@00000000            0000000180017220     p5engine.obj
+ 0002:00000224       __real@308992b1            0000000180017224     p5engine.obj
+ 0002:00000228       __real@3a83126f            0000000180017228     p5engine.obj
+ 0002:0000022c       __real@3c23d70a            000000018001722c     p5engine.obj
+ 0002:00000230       __real@3cc30c31            0000000180017230     p5engine.obj
+ 0002:00000234       __real@3d4ccccd            0000000180017234     p5engine.obj
+ 0002:00000238       __real@3dcccccd            0000000180017238     p5engine.obj
+ 0002:0000023c       __real@3e4ccccd            000000018001723c     p5engine.obj
+ 0002:00000240       __real@3e800000            0000000180017240     p5engine.obj
+ 0002:00000244       __real@3e99999a            0000000180017244     p5engine.obj
+ 0002:00000248       __real@3ecccccd            0000000180017248     p5engine.obj
+ 0002:0000024c       __real@3ee147ae            000000018001724c     p5engine.obj
+ 0002:00000250       __real@3f000000            0000000180017250     p5engine.obj
+ 0002:00000254       __real@3f19999a            0000000180017254     p5engine.obj
+ 0002:00000258       __real@3f228f5c            0000000180017258     p5engine.obj
+ 0002:0000025c       __real@3f333333            000000018001725c     p5engine.obj
+ 0002:00000260       __real@3f3504f3            0000000180017260     p5engine.obj
+ 0002:00000264       __real@3f400000            0000000180017264     p5engine.obj
+ 0002:00000268       __real@3f666666            0000000180017268     p5engine.obj
+ 0002:0000026c       __real@3f800000            000000018001726c     p5engine.obj
+ 0002:00000270       __real@3f8ccccd            0000000180017270     p5engine.obj
+ 0002:00000274       __real@3f99999a            0000000180017274     p5engine.obj
+ 0002:00000278       __real@3fa66666            0000000180017278     p5engine.obj
+ 0002:0000027c       __real@3fb33333            000000018001727c     p5engine.obj
+ 0002:00000280       __real@3fc00000            0000000180017280     p5engine.obj
+ 0002:00000284       __real@40000000            0000000180017284     p5engine.obj
+ 0002:00000288       __real@400ccccd            0000000180017288     p5engine.obj
+ 0002:0000028c       __real@40400000            000000018001728c     p5engine.obj
+ 0002:00000290       __real@40800000            0000000180017290     p5engine.obj
+ 0002:00000294       __real@40a00000            0000000180017294     p5engine.obj
+ 0002:00000298       __real@40c00000            0000000180017298     p5engine.obj
+ 0002:0000029c       __real@40c90fdb            000000018001729c     p5engine.obj
+ 0002:000002a0       __real@40e00000            00000001800172a0     p5engine.obj
+ 0002:000002a4       __real@41100000            00000001800172a4     p5engine.obj
+ 0002:000002a8       __real@41700000            00000001800172a8     p5engine.obj
+ 0002:000002ac       __real@41800000            00000001800172ac     p5engine.obj
+ 0002:000002b0       __real@41880000            00000001800172b0     p5engine.obj
+ 0002:000002b4       __real@41a00000            00000001800172b4     p5engine.obj
+ 0002:000002b8       __real@41f00000            00000001800172b8     p5engine.obj
+ 0002:000002bc       __real@42340000            00000001800172bc     p5engine.obj
+ 0002:000002c0       __real@437f0000            00000001800172c0     p5engine.obj
+ 0002:000002c4       __real@461c4000            00000001800172c4     p5engine.obj
+ 0002:000002c8       __real@47c35000            00000001800172c8     p5engine.obj
+ 0002:000002cc       __real@49742400            00000001800172cc     p5engine.obj
+ 0002:000002d0       __real@7f7fffff            00000001800172d0     p5engine.obj
+ 0002:000002d4       __real@bc23d70a            00000001800172d4     p5engine.obj
+ 0002:000002d8       __real@bd4ccccd            00000001800172d8     p5engine.obj
+ 0002:000002dc       __real@be800000            00000001800172dc     p5engine.obj
+ 0002:000002e0       __real@becccccd            00000001800172e0     p5engine.obj
+ 0002:000002e4       __real@bf000000            00000001800172e4     p5engine.obj
+ 0002:000002e8       __real@bf800000            00000001800172e8     p5engine.obj
+ 0002:000002ec       __real@c0000000            00000001800172ec     p5engine.obj
+ 0002:000002f0       __real@c0100000            00000001800172f0     p5engine.obj
+ 0002:000002f4       __real@c0400000            00000001800172f4     p5engine.obj
+ 0002:000002f8       __real@c11ccccd            00000001800172f8     p5engine.obj
+ 0002:00000300       __xmm@00000000000000000000000000000000 0000000180017300     p5engine.obj
+ 0002:00000310       __xmm@3f8000003f8000003f8000003f800000 0000000180017310     p5engine.obj
+ 0002:00000320       __xmm@7fffffffffffffff7fffffffffffffff 0000000180017320     p5engine.obj
+ 0002:00000330       __xmm@80000000800000008000000080000000 0000000180017330     p5engine.obj
+ 0002:00000340       __xmm@000000ff000000ff000000ff000000ff 0000000180017340     p5engine_optimized.obj
+ 0002:00000350       __xmm@0000ffff0000ffff0000ffff0000ffff 0000000180017350     p5engine_optimized.obj
+ 0002:00000360       __xmm@00ff00ff00ff00ff00ff00ff00ff00ff 0000000180017360     p5engine_optimized.obj
+ 0002:00000370       __xmm@3b8080813b8080813b8080813b808081 0000000180017370     p5engine_optimized.obj
+ 0002:00000380       __xmm@3f0000003f0000003f0000003f000000 0000000180017380     p5engine_optimized.obj
+ 0002:00000390       __xmm@40800000408000004080000040800000 0000000180017390     p5engine_optimized.obj
+ 0002:000003a0       __xmm@477e0100477e0100477e0100477e0100 00000001800173a0     p5engine_optimized.obj
+ 0002:000003b0       __xmm@ffffffffffffffffffffffffffffffff 00000001800173b0     p5engine_optimized.obj
+ 0002:000003c0       _pRawDllMain               00000001800173c0     MSVCRTD:dll_dllmain.obj
+ 0002:000003c0       _pDefaultRawDllMain        00000001800173c0     MSVCRTD:dll_dllmain.obj
+ 0002:00000430       _load_config_used          0000000180017430     MSVCRTD:loadcfg.obj
+ 0002:00000580       __volatile_metadata        0000000180017580     <linker-defined>
+ 0002:000009c0       __rtc_iaa                  00000001800179c0     MSVCRTD:initsect.obj
+ 0002:000009c8       __rtc_izz                  00000001800179c8     MSVCRTD:initsect.obj
+ 0002:000009d0       __rtc_taa                  00000001800179d0     MSVCRTD:initsect.obj
+ 0002:000009d8       __rtc_tzz                  00000001800179d8     MSVCRTD:initsect.obj
+ 0002:00001244       __IMPORT_DESCRIPTOR_VCRUNTIME140D 0000000180018244     vcruntimed:VCRUNTIME140D.dll
+ 0002:00001258       __IMPORT_DESCRIPTOR_ucrtbased 0000000180018258     ucrtd:ucrtbased.dll
+ 0002:0000126c       __IMPORT_DESCRIPTOR_KERNEL32 000000018001826c     kernel32:KERNEL32.dll
+ 0002:00001280       __NULL_IMPORT_DESCRIPTOR   0000000180018280     vcruntimed:VCRUNTIME140D.dll
+ 0003:00004000       __security_cookie_complement 000000018001d000     MSVCRTD:gs_cookie.obj
+ 0003:00004008       __security_cookie          000000018001d008     MSVCRTD:gs_cookie.obj
+ 0003:00004010       _fltused                   000000018001d010     MSVCRTD:fltused.obj
+ 0003:00004014       __scrt_native_dllmain_reason 000000018001d014     MSVCRTD:utility.obj
+ 0003:00004018       __isa_available            000000018001d018     MSVCRTD:cpu_disp.obj
+ 0003:0000401c       __isa_enabled              000000018001d01c     MSVCRTD:cpu_disp.obj
+ 0003:00004020       __memcpy_nt_iters          000000018001d020     MSVCRTD:cpu_disp.obj
+ 0003:00004028       __memset_nt_iters          000000018001d028     MSVCRTD:cpu_disp.obj
+ 0003:00004030       __scrt_ucrt_dll_is_in_use  000000018001d030     MSVCRTD:ucrt_stubs.obj
+ 0003:00004040       DebugGlobalMemory          000000018001d040     p5engine.obj
+ 0003:00004630       ?__type_info_root_node@@3U__type_info_node@@A 000000018001d630     MSVCRTD:tncleanup.obj
+ 0003:00004640       ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA 000000018001d640     MSVCRTD:default_local_stdio_options.obj
+ 0003:00004648       ?_OptionsStorage@?1??__local_stdio_scanf_options@@9@4_KA 000000018001d648     MSVCRTD:default_local_stdio_options.obj
+ 0003:00004650       __scrt_current_native_startup_state 000000018001d650     MSVCRTD:utility.obj
+ 0003:00004658       __scrt_native_startup_lock 000000018001d658     MSVCRTD:utility.obj
+ 0003:00004698       __scrt_debugger_hook_flag  000000018001d698     MSVCRTD:utility_desktop.obj
+ 0003:000046a0       __castguard_check_failure_os_handled_fptr 000000018001d6a0     MSVCRTD:guard_support.obj
+ 0003:000046a8       __favor                    000000018001d6a8     MSVCRTD:cpu_disp.obj
+ 0003:000046b0       __dyn_tls_init_callback    000000018001d6b0     <common>
+ 0003:000046b8       __DebuggerCurrentSteppingThreadId 000000018001d6b8     <common>
 
- entry point at        0001:000137b0
+ entry point at        0001:00013ea0
 
  Static symbols
 
- 0000:fffdf000       .debug$S                   0000000180000000     P5Engine.exp
- 0000:fffdf000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
- 0000:fffdf000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
- 0000:fffdf000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
- 0000:fffdf000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
- 0000:fffdf000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     P5Engine.exp
+ 0000:fffde000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
+ 0000:fffde000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
+ 0000:fffde000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
+ 0000:fffde000       .debug$S                   0000000180000000     vcruntimed:VCRUNTIME140D.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     ucrtd:ucrtbased.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffde000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
  0001:00000000       ?LoadBitmap@@YAXPEAUgame_assets@@Ubitmap_id@@@Z 0000000180001000 f   p5engine.obj
- 0001:000002c0       ?LoadSound@@YAXPEAUgame_assets@@Usound_id@@@Z 00000001800012c0 f   p5engine.obj
- 0001:00000520       ?AddCollisionRule@@YAXPEAUgame_state@@IIH@Z 0000000180001520 f   p5engine.obj
- 0001:000006a0       ?ClearCollisionRulesFor@@YAXPEAUgame_state@@I@Z 00000001800016a0 f   p5engine.obj
- 0001:000007a0       ?BeginTaskWithMemory@@YAPEAUtask_with_memory@@PEAUtransient_state@@@Z 00000001800017a0 f   p5engine.obj
- 0001:00000880       ?EndTaskWithMemory@@YAXPEAUtask_with_memory@@@Z 0000000180001880 f   p5engine.obj
- 0001:000008e0       ?DrawRectangle@@YAXPEAUloaded_bitmap@@Tv2@@1Tv4@@Urectangle2i@@H@Z 00000001800018e0 f   p5engine.obj
- 0001:00000ba0       ?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Urectangle2i@@H@Z 0000000180001ba0 f   p5engine.obj
- 0001:00000fa0       ?DoTiledRenderWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180001fa0 f   p5engine.obj
- 0001:00001050       ?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180002050 f   p5engine.obj
- 0001:00001140       ?TiledRenderGroupToOutput@@YAXPEAUplatform_work_queue@@PEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180002140 f   p5engine.obj
- 0001:00001380       ?AllocateRenderGroup@@YAPEAUrender_group@@PEAUgame_assets@@PEAUmemory_arena@@I@Z 0000000180002380 f   p5engine.obj
- 0001:000014b0       ?InitializeWorld@@YAXPEAUworld@@Tv3@@@Z 00000001800024b0 f   p5engine.obj
- 0001:00001550       ?Subtract@@YA?ATv3@@PEAUworld@@PEAUworld_position@@1@Z 0000000180002550 f   p5engine.obj
- 0001:000017c0       ?ChangeEntityLocation@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUlow_entity@@Uworld_position@@@Z 00000001800027c0 f   p5engine.obj
- 0001:00001950       ?GetHashFromStorageIndex@@YAPEAUsim_entity_hash@@PEAUsim_region@@I@Z 0000000180002950 f   p5engine.obj
- 0001:00001a20       ?AddEntity@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@PEATv3@@@Z 0000000180002a20 f   p5engine.obj
- 0001:00001b80       ?AddEntityRaw@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@@Z 0000000180002b80 f   p5engine.obj
- 0001:00001d00       ?BeginSim@@YAPEAUsim_region@@PEAUmemory_arena@@PEAUgame_state@@PEAUworld@@Uworld_position@@Urectangle3@@M@Z 0000000180002d00 f   p5engine.obj
- 0001:00002370       ?EndSim@@YAXPEAUsim_region@@PEAUgame_state@@@Z 0000000180003370 f   p5engine.obj
- 0001:00002630       ?CanCollide@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180003630 f   p5engine.obj
- 0001:00002780       ?HandleCollision@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180003780 f   p5engine.obj
- 0001:00002860       ?CanOverlap@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180003860 f   p5engine.obj
- 0001:000028c0       ?HandleOverlap@@YAXPEAUgame_state@@PEAUsim_entity@@1MPEAM@Z 00000001800038c0 f   p5engine.obj
- 0001:00002960       ?SpeculativeCollide@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180003960 f   p5engine.obj
- 0001:00002a60       ?EntitiesOverlap@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180003a60 f   p5engine.obj
- 0001:00002da0       ?MoveEntity@@YAXPEAUgame_state@@PEAUsim_region@@PEAUsim_entity@@MPEAUmove_spec@@Tv3@@@Z 0000000180003da0 f   p5engine.obj
- 0001:00004700       ?LoadAssetWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180005700 f   p5engine.obj
- 0001:000047a0       ?GetBestMatchAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 00000001800057a0 f   p5engine.obj
- 0001:000049d0       ?GetRandomAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 00000001800059d0 f   p5engine.obj
- 0001:00004a60       ?GetFirstAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@@Z 0000000180005a60 f   p5engine.obj
- 0001:00004ac0       ?GetBestMatchBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180005ac0 f   p5engine.obj
- 0001:00004b10       ?GetFirstBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180005b10 f   p5engine.obj
- 0001:00004b50       ?GetRandomBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180005b50 f   p5engine.obj
- 0001:00004ba0       ?GetFirstSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180005ba0 f   p5engine.obj
- 0001:00004be0       ?GetRandomSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180005be0 f   p5engine.obj
- 0001:00004c30       ?AllocateGameAssets@@YAPEAUgame_assets@@PEAUmemory_arena@@_KPEAUtransient_state@@@Z 0000000180005c30 f   p5engine.obj
- 0001:00005430       ?PlaySound@@YAPEAUplaying_sound@@PEAUaudio_state@@Usound_id@@@Z 0000000180006430 f   p5engine.obj
- 0001:00005560       ?ChangeVolume@@YAXPEAUaudio_state@@PEAUplaying_sound@@MTv2@@@Z 0000000180006560 f   p5engine.obj
- 0001:00005630       ?OutputPlayingSounds@@YAXPEAUaudio_state@@PEAUgame_sound_output_buffer@@PEAUgame_assets@@PEAUmemory_arena@@@Z 0000000180006630 f   p5engine.obj
- 0001:00006710       ?InitializeAudioState@@YAXPEAUaudio_state@@PEAUmemory_arena@@@Z 0000000180007710 f   p5engine.obj
- 0001:00006790       ?AddLowEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@@Z 0000000180007790 f   p5engine.obj
- 0001:00006990       ?AddGroundedEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@PEAUsim_entity_collision_volume_group@@@Z 0000000180007990 f   p5engine.obj
- 0001:00006a40       ?AddStandardRoom@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180007a40 f   p5engine.obj
- 0001:00006ba0       ?AddWall@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180007ba0 f   p5engine.obj
- 0001:00006d00       ?AddStairs@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180007d00 f   p5engine.obj
- 0001:00006e90       ?InitHitPoints@@YAXPEAUlow_entity@@I@Z 0000000180007e90 f   p5engine.obj
- 0001:00006f20       ?AddSword@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180007f20 f   p5engine.obj
- 0001:00007010       ?AddPlayer@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180008010 f   p5engine.obj
- 0001:00007150       ?AddMonstar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180008150 f   p5engine.obj
- 0001:000072c0       ?AddFamiliar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 00000001800082c0 f   p5engine.obj
- 0001:00007420       ?DrawHitpoints@@YAXPEAUsim_entity@@PEAUrender_group@@@Z 0000000180008420 f   p5engine.obj
- 0001:00007690       ?MakeSimpleGroundedCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@MMM@Z 0000000180008690 f   p5engine.obj
- 0001:000077f0       ?MakeNullCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@@Z 00000001800087f0 f   p5engine.obj
- 0001:000078d0       ?FillGroundChunkWork@@YAXPEAUplatform_work_queue@@PEAX@Z 00000001800088d0 f   p5engine.obj
- 0001:00007930       ?FillGroundChunk@@YAXPEAUtransient_state@@PEAUgame_state@@PEAUground_buffer@@PEAUworld_position@@@Z 0000000180008930 f   p5engine.obj
- 0001:000081b0       ?ClearBitmap@@YAXPEAUloaded_bitmap@@@Z 00000001800091b0 f   p5engine.obj
- 0001:00008210       ?MakeEmptyBitmap@@YA?AUloaded_bitmap@@PEAUmemory_arena@@HHH@Z 0000000180009210 f   p5engine.obj
- 0001:00008300       ?MakeSphereDiffuseMap@@YAXPEAUloaded_bitmap@@MM@Z 0000000180009300 f   p5engine.obj
- 0001:00008630       ?MakeSphereNormalMap@@YAXPEAUloaded_bitmap@@MMM@Z 0000000180009630 f   p5engine.obj
- 0001:0000d590       $LN167                     000000018000e590     p5engine.obj
- 0001:00013310       $$000000                   0000000180014310     MSVCRTD:chkstk.obj
- 0001:00013370       $$000000                   0000000180014370     MSVCRTD:amdsecgs.obj
- 0001:000133a0       ?dllmain_crt_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 00000001800143a0 f   MSVCRTD:dll_dllmain.obj
- 0001:00013430       ?dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z 0000000180014430 f   MSVCRTD:dll_dllmain.obj
- 0001:00013570       ?dllmain_crt_process_detach@@YAH_N@Z 0000000180014570 f   MSVCRTD:dll_dllmain.obj
- 0001:00013610       ?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180014610 f   MSVCRTD:dll_dllmain.obj
- 0001:00013750       ?dllmain_raw@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180014750 f   MSVCRTD:dll_dllmain.obj
- 0001:00013910       capture_previous_context   0000000180014910 f   MSVCRTD:gs_report.obj
- 0001:000139d0       __get_entropy              00000001800149d0 f   MSVCRTD:gs_support.obj
- 0001:00013c20       ?find_pe_section@@YAPEAU_IMAGE_SECTION_HEADER@@QEAE_K@Z 0000000180014c20 f   MSVCRTD:utility.obj
- 0001:00013d00       ?is_potentially_valid_image_base@@YA_NQEAX@Z 0000000180014d00 f   MSVCRTD:utility.obj
- 0001:000148a0       $$000000                   00000001800158a0     MSVCRTD:guard_dispatch.obj
- 0001:000148c0       $$000000                   00000001800158c0     MSVCRTD:guard_xfg_dispatch.obj
- 0001:000148e0       ?fin$0@?0??dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z@4HA 00000001800158e0 f   MSVCRTD:dll_dllmain.obj
- 0001:00014900       ?fin$0@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 0000000180015900 f   MSVCRTD:dll_dllmain.obj
- 0001:0001491a       ?fin$1@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018001591a f   MSVCRTD:dll_dllmain.obj
- 0001:00014930       ?filt$0@?0??dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z@4HA 0000000180015930 f   MSVCRTD:dll_dllmain.obj
- 0001:00014980       __scrt_is_nonwritable_in_current_image$filt$0 0000000180015980 f   MSVCRTD:utility.obj
- 0002:00000170       $SG29496                   0000000180016170     p5engine.obj
- 0002:00000180       $SG29924                   0000000180016180     p5engine.obj
- 0002:00000190       $SG30661                   0000000180016190     p5engine.obj
- 0002:00000198       $SG30663                   0000000180016198     p5engine.obj
- 0002:000001c0       $SG30665                   00000001800161c0     p5engine.obj
- 0002:000001e0       $SG30669                   00000001800161e0     p5engine.obj
- 0002:000001f0       $SG31981                   00000001800161f0     p5engine.obj
- 0002:000003b8       GS_ExceptionPointers       00000001800163b8     MSVCRTD:gs_report.obj
- 0002:000009d8       $unwind$?AbsoluteValue@@YAMM@Z 00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?Clamp01@@YAMM@Z   00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?RoundReal32ToInt32@@YAHM@Z 00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?RoundReal32ToUInt32@@YAIM@Z 00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?SignOf@@YAMM@Z    00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?Sin@@YAMM@Z       00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?Square@@YAMM@Z    00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$?SquareRoot@@YAMM@Z 00000001800169d8     p5engine.obj
- 0002:000009d8       $unwind$TruncateReal32ToInt32 00000001800169d8     p5engine.obj
- 0002:000009e0       $unwind$?IsValid@@YAHUsound_id@@@Z 00000001800169e0     p5engine.obj
- 0002:000009e0       $unwind$SafeTruncateToUInt16 00000001800169e0     p5engine.obj
- 0002:000009e8       $unwind$?GetBitmap@@YAPEAUloaded_bitmap@@PEAUgame_assets@@Ubitmap_id@@@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$?GetFileHandleFor@@YAPEAUplatform_file_handle@@PEAUgame_assets@@I@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$?GetLowEntity@@YAPEAUlow_entity@@PEAUgame_state@@I@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$?GetSound@@YAPEAUloaded_sound@@PEAUgame_assets@@Usound_id@@@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$?GetSoundInfo@@YAPEAUp5a_sound@@PEAUgame_assets@@Usound_id@@@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$?HasFlag@@YAHPEAUsim_entity@@I@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$?RandomChoice@@YAIPEAUrandom_series@@I@Z 00000001800169e8     p5engine.obj
- 0002:000009e8       $unwind$GetController      00000001800169e8     p5engine.obj
- 0002:000009f0       $unwind$?InitializeArena@@YAXPEAUmemory_arena@@_KPEAX@Z 00000001800169f0     p5engine.obj
- 0002:000009f8       $unwind$?GetAlignmentOffset@@YA_KPEAUmemory_arena@@_K@Z 00000001800169f8     p5engine.obj
- 0002:00000a00       $unwind$??Y@YAAEATv2@@AEAT0@T0@@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?GetArenaSizeRemaining@@YA_KPEAUmemory_arena@@_K@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?Hadamard@@YA?ATv2@@T1@0@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?Inner@@YAMTv2@@0@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?Inner@@YAMTv3@@0@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?IsCanonical@@YAHPEAUworld@@Tv3@@@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?IsInRectangle@@YAHUrectangle3@@Tv3@@@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?RectanglesIntersect@@YAHUrectangle3@@0@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?ZeroSize@@YAX_KPEAX@Z 0000000180016a00     p5engine.obj
- 0002:00000a00       $unwind$?find_pe_section@@YAPEAU_IMAGE_SECTION_HEADER@@QEAE_K@Z 0000000180016a00     MSVCRTD:utility.obj
- 0002:00000a08       $unwind$?PushSize_@@YAPEAXPEAUmemory_arena@@_K1@Z 0000000180016a08     p5engine.obj
- 0002:00000a10       $unwind$?BeginTemporaryMemory@@YA?AUtemporary_memory@@PEAUmemory_arena@@@Z 0000000180016a10     p5engine.obj
- 0002:00000a24       $unwind$?AllResourcesPresent@@YAHPEAUrender_group@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?EndTemporaryMemory@@YAXUtemporary_memory@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?GetDim@@YA?ATv2@@Urectangle2@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?IsValid@@YAHUworld_position@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?LengthSq@@YAMTv2@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?RandomBilateral@@YAMPEAUrandom_series@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?RandomNextUInt32@@YAIPEAUrandom_series@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$?RandomUnilateral@@YAMPEAUrandom_series@@@Z 0000000180016a24     p5engine.obj
- 0002:00000a24       $unwind$__CheckForDebuggerJustMyCode 0000000180016a24     MSVCRTD:debugger_jmc.obj
- 0002:00000a24       $unwind$__report_gsfailure 0000000180016a24     MSVCRTD:gs_report.obj
- 0002:00000a2c       $unwind$?CheckArena@@YAXPEAUmemory_arena@@@Z 0000000180016a2c     p5engine.obj
- 0002:00000a2c       $unwind$?StoreEntityReference@@YAXPEATentity_reference@@@Z 0000000180016a2c     p5engine.obj
- 0002:00000a2c       $unwind$__raise_securityfailure 0000000180016a2c     MSVCRTD:gs_report.obj
- 0002:00000a2c       $unwind$?is_potentially_valid_image_base@@YA_NQEAX@Z 0000000180016a2c     MSVCRTD:utility.obj
- 0002:00000a34       $unwind$?SubArena@@YAXPEAUmemory_arena@@0_K1@Z 0000000180016a34     p5engine.obj
- 0002:00000a34       $unwind$__GSHandlerCheck   0000000180016a34     MSVCRTD:gshandler.obj
- 0002:00000a3c       $unwind$?AtomicCompareExchangeUInt32@@YAIPECIII@Z 0000000180016a3c     p5engine.obj
- 0002:00000a3c       $unwind$?PushRenderElement_@@YAPEAXPEAUrender_group@@IW4render_group_entry_type@@@Z 0000000180016a3c     p5engine.obj
- 0002:00000a3c       $unwind$?dllmain_crt_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180016a3c     MSVCRTD:dll_dllmain.obj
- 0002:00000a3c       $unwind$?dllmain_raw@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180016a3c     MSVCRTD:dll_dllmain.obj
- 0002:00000a44       $unwind$?ATan2@@YAMMM@Z    0000000180016a44     p5engine.obj
- 0002:00000a44       $unwind$?IsCanonical@@YAHMM@Z 0000000180016a44     p5engine.obj
- 0002:00000a44       $unwind$?SafeRatio1@@YAMMM@Z 0000000180016a44     p5engine.obj
- 0002:00000a4c       $unwind$?Clamp01MapToRange@@YAMMMM@Z 0000000180016a4c     p5engine.obj
- 0002:00000a4c       $unwind$?Clamp@@YAMMMM@Z   0000000180016a4c     p5engine.obj
- 0002:00000a4c       $unwind$?Lerp@@YAMMMM@Z    0000000180016a4c     p5engine.obj
- 0002:00000a4c       $unwind$?SafeRatioN@@YAMMMM@Z 0000000180016a4c     p5engine.obj
- 0002:00000a54       $unwind$?V2@@YA?ATv2@@MM@Z 0000000180016a54     p5engine.obj
- 0002:00000a64       $unwind$?V2i@@YA?ATv2@@HH@Z 0000000180016a64     p5engine.obj
- 0002:00000a6c       $unwind$??D@YA?ATv2@@MT0@@Z 0000000180016a6c     p5engine.obj
- 0002:00000a7c       $unwind$??G@YA?ATv2@@T0@0@Z 0000000180016a7c     p5engine.obj
- 0002:00000a7c       $unwind$??H@YA?ATv2@@T0@0@Z 0000000180016a7c     p5engine.obj
- 0002:00000a7c       $unwind$?GetBarycentric@@YA?ATv2@@Urectangle2@@T1@@Z 0000000180016a7c     p5engine.obj
- 0002:00000a8c       $unwind$?Clamp01@@YA?ATv2@@T1@@Z 0000000180016a8c     p5engine.obj
- 0002:00000a9c       $unwind$?V3@@YA?ATv3@@MMM@Z 0000000180016a9c     p5engine.obj
- 0002:00000a9c       $unwind$?V4@@YA?ATv4@@MMMM@Z 0000000180016a9c     p5engine.obj
- 0002:00000ab0       $unwind$??D@YA?ATv3@@MT0@@Z 0000000180016ab0     p5engine.obj
- 0002:00000ab0       $unwind$??D@YA?ATv4@@MT0@@Z 0000000180016ab0     p5engine.obj
- 0002:00000ab0       $unwind$?ToV3@@YA?ATv3@@Tv2@@M@Z 0000000180016ab0     p5engine.obj
- 0002:00000ac4       $unwind$??D@YA?ATv3@@T0@M@Z 0000000180016ac4     p5engine.obj
- 0002:00000ac4       $unwind$?GetCameraRectangleAtDistance@@YA?AUrectangle2@@PEAUrender_group@@M@Z 0000000180016ac4     p5engine.obj
- 0002:00000ad0       $unwind$??X@YAAEATv3@@AEAT0@M@Z 0000000180016ad0     p5engine.obj
- 0002:00000adc       $unwind$??G@YA?ATv3@@T0@0@Z 0000000180016adc     p5engine.obj
- 0002:00000adc       $unwind$??H@YA?ATv3@@T0@0@Z 0000000180016adc     p5engine.obj
- 0002:00000adc       $unwind$??H@YA?ATv4@@T0@0@Z 0000000180016adc     p5engine.obj
- 0002:00000af0       $unwind$??Y@YAAEATv3@@AEAT0@T0@@Z 0000000180016af0     p5engine.obj
- 0002:00000af0       $unwind$??Y@YAAEATv4@@AEAT0@T0@@Z 0000000180016af0     p5engine.obj
- 0002:00000af0       $unwind$??Z@YAAEATv3@@AEAT0@T0@@Z 0000000180016af0     p5engine.obj
- 0002:00000af0       $unwind$?GetDim@@YA?ATv3@@Urectangle3@@@Z 0000000180016af0     p5engine.obj
- 0002:00000afc       $unwind$?AreInSameChunk@@YAHPEAUworld@@PEAUworld_position@@1@Z 0000000180016afc     p5engine.obj
- 0002:00000afc       $unwind$?Hadamard@@YA?ATv3@@T1@0@Z 0000000180016afc     p5engine.obj
- 0002:00000afc       $unwind$?RectCenterDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180016afc     p5engine.obj
- 0002:00000b08       $unwind$?LengthSq@@YAMTv3@@@Z 0000000180016b08     p5engine.obj
- 0002:00000b14       $unwind$?Length@@YAMTv3@@@Z 0000000180016b14     p5engine.obj
- 0002:00000b14       $unwind$?MakeEntityNonSpatial@@YAXPEAUsim_entity@@@Z 0000000180016b14     p5engine.obj
- 0002:00000b20       $unwind$?RectCenterHalfDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180016b20     p5engine.obj
- 0002:00000b34       $unwind$?Intersect@@YA?AUrectangle2i@@U1@0@Z 0000000180016b34     p5engine.obj
- 0002:00000b40       $unwind$?Clear@@YAXPEAUrender_group@@Tv4@@@Z 0000000180016b40     p5engine.obj
- 0002:00000b40       $unwind$?GetMaxCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180016b40     p5engine.obj
- 0002:00000b40       $unwind$?GetMinCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180016b40     p5engine.obj
- 0002:00000b4c       $unwind$?RectMinMax@@YA?AUrectangle3@@Tv3@@0@Z 0000000180016b4c     p5engine.obj
- 0002:00000b60       $unwind$?AddRadiusTo@@YA?AUrectangle3@@U1@Tv3@@@Z 0000000180016b60     p5engine.obj
- 0002:00000b60       $unwind$?RectCenterHalfDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180016b60     p5engine.obj
- 0002:00000b74       $unwind$?RectCenterDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180016b74     p5engine.obj
- 0002:00000b80       $unwind$?RandomSeed@@YA?AUrandom_series@@I@Z 0000000180016b80     p5engine.obj
- 0002:00000b90       $unwind$?RandomBetween@@YAMPEAUrandom_series@@MM@Z 0000000180016b90     p5engine.obj
- 0002:00000b98       $unwind$?AddFlags@@YAXPEAUsim_entity@@I@Z 0000000180016b98     p5engine.obj
- 0002:00000b98       $unwind$?ClearFlags@@YAXPEAUsim_entity@@I@Z 0000000180016b98     p5engine.obj
- 0002:00000b98       $unwind$?PrefetchSound@@YAXPEAUgame_assets@@Usound_id@@@Z 0000000180016b98     p5engine.obj
- 0002:00000ba0       $unwind$?MakeEntitySpatial@@YAXPEAUsim_entity@@Tv3@@1@Z 0000000180016ba0     p5engine.obj
- 0002:00000bac       $unwind$?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@T1@@Z 0000000180016bac     p5engine.obj
- 0002:00000bb8       $unwind$?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@@Z 0000000180016bb8     p5engine.obj
- 0002:00000bc4       $unwind$?GetStairGround@@YAMPEAUsim_entity@@Tv3@@@Z 0000000180016bc4     p5engine.obj
- 0002:00000bd0       $unwind$?LoadBitmap@@YAXPEAUgame_assets@@Ubitmap_id@@@Z 0000000180016bd0     p5engine.obj
- 0002:00000bd8       $unwind$?LoadSound@@YAXPEAUgame_assets@@Usound_id@@@Z 0000000180016bd8     p5engine.obj
- 0002:00000be0       $unwind$?AddCollisionRule@@YAXPEAUgame_state@@IIH@Z 0000000180016be0     p5engine.obj
- 0002:00000be8       $unwind$?ClearCollisionRulesFor@@YAXPEAUgame_state@@I@Z 0000000180016be8     p5engine.obj
- 0002:00000bf0       $unwind$?BeginTaskWithMemory@@YAPEAUtask_with_memory@@PEAUtransient_state@@@Z 0000000180016bf0     p5engine.obj
- 0002:00000bfc       $unwind$?EndTaskWithMemory@@YAXPEAUtask_with_memory@@@Z 0000000180016bfc     p5engine.obj
- 0002:00000c08       $unwind$?DrawRectangle@@YAXPEAUloaded_bitmap@@Tv2@@1Tv4@@Urectangle2i@@H@Z 0000000180016c08     p5engine.obj
- 0002:00000c14       $unwind$?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Urectangle2i@@H@Z 0000000180016c14     p5engine.obj
- 0002:00000c20       $unwind$?DoTiledRenderWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180016c20     p5engine.obj
- 0002:00000c2c       $unwind$?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180016c2c     p5engine.obj
- 0002:00000c40       $unwind$?TiledRenderGroupToOutput@@YAXPEAUplatform_work_queue@@PEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180016c40     p5engine.obj
- 0002:00000c54       $unwind$?AllocateRenderGroup@@YAPEAUrender_group@@PEAUgame_assets@@PEAUmemory_arena@@I@Z 0000000180016c54     p5engine.obj
- 0002:00000c60       $unwind$?InitializeWorld@@YAXPEAUworld@@Tv3@@@Z 0000000180016c60     p5engine.obj
- 0002:00000c6c       $unwind$?Subtract@@YA?ATv3@@PEAUworld@@PEAUworld_position@@1@Z 0000000180016c6c     p5engine.obj
- 0002:00000c80       $unwind$?ChangeEntityLocation@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUlow_entity@@Uworld_position@@@Z 0000000180016c80     p5engine.obj
- 0002:00000c8c       $unwind$?GetHashFromStorageIndex@@YAPEAUsim_entity_hash@@PEAUsim_region@@I@Z 0000000180016c8c     p5engine.obj
- 0002:00000c94       $unwind$?AddEntity@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@PEATv3@@@Z 0000000180016c94     p5engine.obj
- 0002:00000ca0       $unwind$?AddEntityRaw@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@@Z 0000000180016ca0     p5engine.obj
- 0002:00000cac       $unwind$?BeginSim@@YAPEAUsim_region@@PEAUmemory_arena@@PEAUgame_state@@PEAUworld@@Uworld_position@@Urectangle3@@M@Z 0000000180016cac     p5engine.obj
- 0002:00000cc0       $unwind$?EndSim@@YAXPEAUsim_region@@PEAUgame_state@@@Z 0000000180016cc0     p5engine.obj
- 0002:00000ccc       $unwind$?CanCollide@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180016ccc     p5engine.obj
- 0002:00000cd4       $unwind$?HandleCollision@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180016cd4     p5engine.obj
- 0002:00000cdc       $unwind$?CanOverlap@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180016cdc     p5engine.obj
- 0002:00000ce4       $unwind$?HandleOverlap@@YAXPEAUgame_state@@PEAUsim_entity@@1MPEAM@Z 0000000180016ce4     p5engine.obj
- 0002:00000cf0       $unwind$?SpeculativeCollide@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180016cf0     p5engine.obj
- 0002:00000cfc       $unwind$?EntitiesOverlap@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180016cfc     p5engine.obj
- 0002:00000d08       $unwind$?MoveEntity@@YAXPEAUgame_state@@PEAUsim_region@@PEAUsim_entity@@MPEAUmove_spec@@Tv3@@@Z 0000000180016d08     p5engine.obj
- 0002:00000d1c       $unwind$?LoadAssetWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180016d1c     p5engine.obj
- 0002:00000d24       $unwind$?GetBestMatchAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180016d24     p5engine.obj
- 0002:00000d2c       $unwind$?GetRandomAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180016d2c     p5engine.obj
- 0002:00000d34       $unwind$?GetFirstAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@@Z 0000000180016d34     p5engine.obj
- 0002:00000d3c       $unwind$?GetBestMatchBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180016d3c     p5engine.obj
- 0002:00000d44       $unwind$?GetFirstBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180016d44     p5engine.obj
- 0002:00000d4c       $unwind$?GetRandomBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180016d4c     p5engine.obj
- 0002:00000d54       $unwind$?GetFirstSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180016d54     p5engine.obj
- 0002:00000d5c       $unwind$?GetRandomSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180016d5c     p5engine.obj
- 0002:00000d64       $unwind$?AllocateGameAssets@@YAPEAUgame_assets@@PEAUmemory_arena@@_KPEAUtransient_state@@@Z 0000000180016d64     p5engine.obj
- 0002:00000d70       $unwind$?PlaySound@@YAPEAUplaying_sound@@PEAUaudio_state@@Usound_id@@@Z 0000000180016d70     p5engine.obj
- 0002:00000d78       $unwind$?ChangeVolume@@YAXPEAUaudio_state@@PEAUplaying_sound@@MTv2@@@Z 0000000180016d78     p5engine.obj
- 0002:00000d80       $unwind$?OutputPlayingSounds@@YAXPEAUaudio_state@@PEAUgame_sound_output_buffer@@PEAUgame_assets@@PEAUmemory_arena@@@Z 0000000180016d80     p5engine.obj
- 0002:00000d94       $unwind$?InitializeAudioState@@YAXPEAUaudio_state@@PEAUmemory_arena@@@Z 0000000180016d94     p5engine.obj
- 0002:00000d9c       $unwind$?AddLowEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@@Z 0000000180016d9c     p5engine.obj
- 0002:00000db0       $unwind$?AddGroundedEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@PEAUsim_entity_collision_volume_group@@@Z 0000000180016db0     p5engine.obj
- 0002:00000dbc       $unwind$?AddStandardRoom@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180016dbc     p5engine.obj
- 0002:00000dc8       $unwind$?AddWall@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180016dc8     p5engine.obj
- 0002:00000dd4       $unwind$?AddStairs@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180016dd4     p5engine.obj
- 0002:00000de0       $unwind$?InitHitPoints@@YAXPEAUlow_entity@@I@Z 0000000180016de0     p5engine.obj
- 0002:00000de8       $unwind$?AddSword@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180016de8     p5engine.obj
- 0002:00000df4       $unwind$?AddPlayer@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180016df4     p5engine.obj
- 0002:00000e00       $unwind$?AddMonstar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180016e00     p5engine.obj
- 0002:00000e0c       $unwind$?AddFamiliar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180016e0c     p5engine.obj
- 0002:00000e18       $unwind$?DrawHitpoints@@YAXPEAUsim_entity@@PEAUrender_group@@@Z 0000000180016e18     p5engine.obj
- 0002:00000e2c       $unwind$?MakeSimpleGroundedCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@MMM@Z 0000000180016e2c     p5engine.obj
- 0002:00000e38       $unwind$?MakeNullCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@@Z 0000000180016e38     p5engine.obj
- 0002:00000e44       $unwind$?FillGroundChunkWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180016e44     p5engine.obj
- 0002:00000e4c       $unwind$?FillGroundChunk@@YAXPEAUtransient_state@@PEAUgame_state@@PEAUground_buffer@@PEAUworld_position@@@Z 0000000180016e4c     p5engine.obj
- 0002:00000e60       $unwind$?ClearBitmap@@YAXPEAUloaded_bitmap@@@Z 0000000180016e60     p5engine.obj
- 0002:00000e68       $unwind$?MakeEmptyBitmap@@YA?AUloaded_bitmap@@PEAUmemory_arena@@HHH@Z 0000000180016e68     p5engine.obj
- 0002:00000e7c       $unwind$?MakeSphereDiffuseMap@@YAXPEAUloaded_bitmap@@MM@Z 0000000180016e7c     p5engine.obj
- 0002:00000e88       $unwind$?MakeSphereNormalMap@@YAXPEAUloaded_bitmap@@MMM@Z 0000000180016e88     p5engine.obj
- 0002:00000e94       $unwind$GameUpdateAndRender 0000000180016e94     p5engine.obj
- 0002:00000ea8       $unwind$GameGetSoundSamples 0000000180016ea8     p5engine.obj
- 0002:00000eb0       $unwind$?GetNextSoundInChain@@YA?AUsound_id@@PEAUgame_assets@@U1@@Z 0000000180016eb0     p5engine.obj
- 0002:00000ec0       $unwind$?GetRenderEntityBasisPos@@YA?AUentity_basis_p_result@@PEAUrender_transform@@Tv3@@@Z 0000000180016ec0     p5engine.obj
- 0002:00000ed4       $unwind$?PushBitmap@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Tv3@@MTv4@@@Z 0000000180016ed4     p5engine.obj
- 0002:00000ee0       $unwind$?PushBitmap@@YAXPEAUrender_group@@Ubitmap_id@@Tv3@@MTv4@@@Z 0000000180016ee0     p5engine.obj
- 0002:00000eec       $unwind$?PushRect@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180016eec     p5engine.obj
- 0002:00000ef8       $unwind$?PushRectOutline@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180016ef8     p5engine.obj
- 0002:00000f04       $unwind$?Orthographic@@YAXPEAUrender_group@@HHM@Z 0000000180016f04     p5engine.obj
- 0002:00000f04       $unwind$?Perspective@@YAXPEAUrender_group@@HHMMM@Z 0000000180016f04     p5engine.obj
- 0002:00000f0c       $unwind$?RecanonicalizeCoord@@YAXMPEAHPEAM@Z 0000000180016f0c     p5engine.obj
- 0002:00000f0c       $unwind$?Unproject@@YA?ATv2@@PEAUrender_group@@T1@M@Z 0000000180016f0c     p5engine.obj
- 0002:00000f14       $unwind$?GetCameraRectangleAtTarget@@YA?AUrectangle2@@PEAUrender_group@@@Z 0000000180016f14     p5engine.obj
- 0002:00000f20       $unwind$?NullPosition@@YA?AUworld_position@@XZ 0000000180016f20     p5engine.obj
- 0002:00000f34       $unwind$?GetWorldChunk@@YAPEAUworld_chunk@@PEAUworld@@HHHPEAUmemory_arena@@@Z 0000000180016f34     p5engine.obj
- 0002:00000f34       $unwind$__scrt_dllmain_exception_filter 0000000180016f34     MSVCRTD:utility.obj
- 0002:00000f3c       $unwind$?MapIntoChunkSpace@@YA?AUworld_position@@PEAUworld@@U1@Tv3@@@Z 0000000180016f3c     p5engine.obj
- 0002:00000f50       $unwind$?ChunkPositionFromTilePosition@@YA?AUworld_position@@PEAUworld@@HHHTv3@@@Z 0000000180016f50     p5engine.obj
- 0002:00000f64       $unwind$?CenteredChunkPoint@@YA?AUworld_position@@III@Z 0000000180016f64     p5engine.obj
- 0002:00000f78       $unwind$?ChangeEntityLocationRaw@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUworld_position@@2@Z 0000000180016f78     p5engine.obj
- 0002:00000f84       $unwind$?GetSimSpacePos@@YA?ATv3@@PEAUsim_region@@PEAUlow_entity@@@Z 0000000180016f84     p5engine.obj
- 0002:00000f90       $unwind$?LoadEntityReference@@YAXPEAUgame_state@@PEAUsim_region@@PEATentity_reference@@@Z 0000000180016f90     p5engine.obj
- 0002:00000fa4       $unwind$?EntityOverlapsRectangle@@YAHTv3@@Usim_entity_collision_volume@@Urectangle3@@@Z 0000000180016fa4     p5engine.obj
- 0002:00000fb0       $unwind$?DefaultMoveSpec@@YA?AUmove_spec@@XZ 0000000180016fb0     p5engine.obj
- 0002:00000fc4       $unwind$?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180016fc4     p5engine_optimized.obj
- 0002:00000fec       $chain$9$?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180016fec     p5engine_optimized.obj
- 0002:00001024       $chain$10$?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180017024     p5engine_optimized.obj
- 0002:00001034       $unwind$__GSHandlerCheckCommon 0000000180017034     MSVCRTD:gshandler.obj
- 0002:00001040       $xdatasym                  0000000180017040     MSVCRTD:chkstk.obj
- 0002:00001048       $xdatasym                  0000000180017048     MSVCRTD:amdsecgs.obj
- 0002:0000104c       $unwind$?dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z 000000018001704c     MSVCRTD:dll_dllmain.obj
- 0002:0000106c       $unwind$?fin$0@?0??dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z@4HA 000000018001706c     MSVCRTD:dll_dllmain.obj
- 0002:0000106c       $unwind$?fin$0@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018001706c     MSVCRTD:dll_dllmain.obj
- 0002:0000106c       $unwind$?fin$1@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018001706c     MSVCRTD:dll_dllmain.obj
- 0002:0000106c       $unwind$__scrt_is_nonwritable_in_current_image$filt$0 000000018001706c     MSVCRTD:utility.obj
- 0002:00001074       $unwind$?dllmain_crt_process_detach@@YAH_N@Z 0000000180017074     MSVCRTD:dll_dllmain.obj
- 0002:000010a4       $unwind$?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 00000001800170a4     MSVCRTD:dll_dllmain.obj
- 0002:000010c4       $unwind$?filt$0@?0??dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z@4HA 00000001800170c4     MSVCRTD:dll_dllmain.obj
- 0002:000010cc       $unwind$_DllMainCRTStartup 00000001800170cc     MSVCRTD:dll_dllmain.obj
- 0002:000010cc       $unwind$DllMain            00000001800170cc     MSVCRTD:dll_dllmain_stub.obj
- 0002:000010d4       $unwind$capture_previous_context 00000001800170d4     MSVCRTD:gs_report.obj
- 0002:000010dc       $unwind$__scrt_initialize_default_local_stdio_options 00000001800170dc     MSVCRTD:default_local_stdio_options.obj
- 0002:000010dc       $unwind$__security_init_cookie 00000001800170dc     MSVCRTD:gs_support.obj
- 0002:000010e4       $unwind$__get_entropy      00000001800170e4     MSVCRTD:gs_support.obj
- 0002:000010ec       $unwind$?__scrt_initialize_type_info@@YAXXZ 00000001800170ec     MSVCRTD:tncleanup.obj
- 0002:000010ec       $unwind$?__scrt_uninitialize_type_info@@YAXXZ 00000001800170ec     MSVCRTD:tncleanup.obj
- 0002:000010ec       $unwind$?configure_argv@__scrt_narrow_argv_policy@@SAHXZ 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$?initialize_environment@__scrt_narrow_environment_policy@@SAHXZ 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$__scrt_dllmain_after_initialize_c 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$__scrt_dllmain_before_initialize_c 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$__scrt_dllmain_crt_thread_attach 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$__scrt_dllmain_crt_thread_detach 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$__scrt_dllmain_uninitialize_c 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010ec       $unwind$__scrt_dllmain_uninitialize_critical 00000001800170ec     MSVCRTD:utility.obj
- 0002:000010f4       $unwind$__scrt_is_nonwritable_in_current_image 00000001800170f4     MSVCRTD:utility.obj
- 0002:00001114       $unwind$__scrt_acquire_startup_lock 0000000180017114     MSVCRTD:utility.obj
- 0002:0000111c       $unwind$__scrt_initialize_crt 000000018001711c     MSVCRTD:utility.obj
- 0002:0000111c       $unwind$__scrt_release_startup_lock 000000018001711c     MSVCRTD:utility.obj
- 0002:00001124       $unwind$__scrt_uninitialize_crt 0000000180017124     MSVCRTD:utility.obj
- 0002:0000112c       $unwind$__scrt_initialize_onexit_tables 000000018001712c     MSVCRTD:utility.obj
- 0002:00001138       $unwind$__scrt_fastfail    0000000180017138     MSVCRTD:utility_desktop.obj
- 0002:00001144       $unwind$_RTC_Initialize    0000000180017144     MSVCRTD:initsect.obj
- 0002:00001144       $unwind$_RTC_Terminate     0000000180017144     MSVCRTD:initsect.obj
- 0002:00001150       $unwind$__isa_available_init 0000000180017150     MSVCRTD:cpu_disp.obj
- 0002:00001160       $unwind$__scrt_is_ucrt_dll_in_use 0000000180017160     MSVCRTD:ucrt_detection.obj
- 0002:00001168       $xdatasym                  0000000180017168     MSVCRTD:guard_dispatch.obj
- 0002:00001170       $xdatasym                  0000000180017170     MSVCRTD:guard_xfg_dispatch.obj
- 0002:00001180       .edata                     0000000180017180     P5Engine.exp
- 0002:000011a8       rgpv                       00000001800171a8     P5Engine.exp
- 0002:000011b0       rgszName                   00000001800171b0     P5Engine.exp
- 0002:000011b8       rgwOrd                     00000001800171b8     P5Engine.exp
- 0002:000011bc       szName                     00000001800171bc     P5Engine.exp
- 0002:000011c9       $N00001                    00000001800171c9     P5Engine.exp
- 0002:000011dd       $N00002                    00000001800171dd     P5Engine.exp
- 0002:00001380       .idata$6                   0000000180017380     vcruntimed:VCRUNTIME140D.dll
- 0002:0000145a       .idata$6                   000000018001745a     ucrtd:ucrtbased.dll
- 0002:000015ce       .idata$6                   00000001800175ce     kernel32:KERNEL32.dll
- 0003:00000000       ?RandomNumberTable@@3PAIA  0000000180018000     p5engine.obj
- 0003:00004050       ?Platform@@3Uplatform_api@@A 000000018001c050     p5engine.obj
- 0003:000040a0       ?__proc_attached@@3HA      000000018001c0a0     MSVCRTD:dll_dllmain.obj
- 0003:000040b0       GS_ExceptionRecord         000000018001c0b0     MSVCRTD:gs_report.obj
- 0003:00004150       GS_ContextRecord           000000018001c150     MSVCRTD:gs_report.obj
- 0003:00004650       ?is_initialized_as_dll@@3_NA 000000018001c650     MSVCRTD:utility.obj
- 0003:00004651       ?module_local_atexit_table_initialized@@3_NA 000000018001c651     MSVCRTD:utility.obj
- 0003:00004658       ?module_local_atexit_table@@3U_onexit_table_t@@A 000000018001c658     MSVCRTD:utility.obj
- 0003:00004670       ?module_local_at_quick_exit_table@@3U_onexit_table_t@@A 000000018001c670     MSVCRTD:utility.obj
- 0005:00000000       __20BB4341_malloc@h        000000018001e000     p5engine.obj
- 0005:00000001       __A435B42B_p5engine_types@h 000000018001e001     p5engine.obj
- 0005:00000002       __7D4BEAAE_p5engine_platform@h 000000018001e002     p5engine.obj
- 0005:00000003       __741AE07E_corecrt_math@h  000000018001e003     p5engine.obj
- 0005:00000004       __7BF3FA8A_p5engine_intrinsics@h 000000018001e004     p5engine.obj
- 0005:00000005       __87290AA6_p5engine_math@h 000000018001e005     p5engine.obj
- 0005:00000006       __B7A387D6_p5engine_random@h 000000018001e006     p5engine.obj
- 0005:00000007       __F17FF173_p5engine_entity@h 000000018001e007     p5engine.obj
- 0005:00000008       __72A74871_p5engine_asset@h 000000018001e008     p5engine.obj
- 0005:00000009       __BD87FD4A_p5engine@h      000000018001e009     p5engine.obj
- 0005:0000000a       __6F2BF339_p5engine_render_group@cpp 000000018001e00a     p5engine.obj
- 0005:0000000b       __281AC6F8_p5engine_world@cpp 000000018001e00b     p5engine.obj
- 0005:0000000c       __B07C4A52_p5engine_sim_region@cpp 000000018001e00c     p5engine.obj
- 0005:0000000d       __BDC7FEEB_p5engine_entity@cpp 000000018001e00d     p5engine.obj
- 0005:0000000e       __3D4C1499_p5engine_asset@cpp 000000018001e00e     p5engine.obj
- 0005:0000000f       __39A8D9B6_p5engine_audio@cpp 000000018001e00f     p5engine.obj
- 0005:00000010       __BAF57382_p5engine@cpp    000000018001e010     p5engine.obj
- 0005:00000011       __20BB4341_malloc@h        000000018001e011     p5engine_optimized.obj
- 0005:00000012       __A435B42B_p5engine_types@h 000000018001e012     p5engine_optimized.obj
- 0005:00000013       __7D4BEAAE_p5engine_platform@h 000000018001e013     p5engine_optimized.obj
- 0005:00000014       __741AE07E_corecrt_math@h  000000018001e014     p5engine_optimized.obj
- 0005:00000015       __7BF3FA8A_p5engine_intrinsics@h 000000018001e015     p5engine_optimized.obj
- 0005:00000016       __87290AA6_p5engine_math@h 000000018001e016     p5engine_optimized.obj
- 0005:00000017       __B7A387D6_p5engine_random@h 000000018001e017     p5engine_optimized.obj
- 0005:00000018       __F17FF173_p5engine_entity@h 000000018001e018     p5engine_optimized.obj
- 0005:00000019       __72A74871_p5engine_asset@h 000000018001e019     p5engine_optimized.obj
- 0005:0000001a       __BD87FD4A_p5engine@h      000000018001e01a     p5engine_optimized.obj
- 0005:0000001b       __03FC23C0_p5engine_optimized@cpp 000000018001e01b     p5engine_optimized.obj
- 0006:00000060       $R000000                   000000018001f060     * linker generated manifest res *
+ 0001:00000310       ?LoadSound@@YAXPEAUgame_assets@@Usound_id@@@Z 0000000180001310 f   p5engine.obj
+ 0001:000005d0       ?AddCollisionRule@@YAXPEAUgame_state@@IIH@Z 00000001800015d0 f   p5engine.obj
+ 0001:00000750       ?ClearCollisionRulesFor@@YAXPEAUgame_state@@I@Z 0000000180001750 f   p5engine.obj
+ 0001:00000850       ?BeginTaskWithMemory@@YAPEAUtask_with_memory@@PEAUtransient_state@@@Z 0000000180001850 f   p5engine.obj
+ 0001:00000930       ?EndTaskWithMemory@@YAXPEAUtask_with_memory@@@Z 0000000180001930 f   p5engine.obj
+ 0001:00000990       ?DrawRectangle@@YAXPEAUloaded_bitmap@@Tv2@@1Tv4@@Urectangle2i@@H@Z 0000000180001990 f   p5engine.obj
+ 0001:00000c50       ?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Urectangle2i@@H@Z 0000000180001c50 f   p5engine.obj
+ 0001:00001050       ?DoTiledRenderWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180002050 f   p5engine.obj
+ 0001:00001100       ?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180002100 f   p5engine.obj
+ 0001:000011f0       ?TiledRenderGroupToOutput@@YAXPEAUplatform_work_queue@@PEAUrender_group@@PEAUloaded_bitmap@@@Z 00000001800021f0 f   p5engine.obj
+ 0001:00001430       ?AllocateRenderGroup@@YAPEAUrender_group@@PEAUgame_assets@@PEAUmemory_arena@@I@Z 0000000180002430 f   p5engine.obj
+ 0001:00001560       ?InitializeWorld@@YAXPEAUworld@@Tv3@@@Z 0000000180002560 f   p5engine.obj
+ 0001:00001600       ?Subtract@@YA?ATv3@@PEAUworld@@PEAUworld_position@@1@Z 0000000180002600 f   p5engine.obj
+ 0001:00001870       ?ChangeEntityLocation@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUlow_entity@@Uworld_position@@@Z 0000000180002870 f   p5engine.obj
+ 0001:00001a00       ?GetHashFromStorageIndex@@YAPEAUsim_entity_hash@@PEAUsim_region@@I@Z 0000000180002a00 f   p5engine.obj
+ 0001:00001ad0       ?AddEntity@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@PEATv3@@@Z 0000000180002ad0 f   p5engine.obj
+ 0001:00001c30       ?AddEntityRaw@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@@Z 0000000180002c30 f   p5engine.obj
+ 0001:00001db0       ?BeginSim@@YAPEAUsim_region@@PEAUmemory_arena@@PEAUgame_state@@PEAUworld@@Uworld_position@@Urectangle3@@M@Z 0000000180002db0 f   p5engine.obj
+ 0001:00002420       ?EndSim@@YAXPEAUsim_region@@PEAUgame_state@@@Z 0000000180003420 f   p5engine.obj
+ 0001:000026e0       ?CanCollide@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 00000001800036e0 f   p5engine.obj
+ 0001:00002830       ?HandleCollision@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180003830 f   p5engine.obj
+ 0001:00002910       ?CanOverlap@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180003910 f   p5engine.obj
+ 0001:00002970       ?HandleOverlap@@YAXPEAUgame_state@@PEAUsim_entity@@1MPEAM@Z 0000000180003970 f   p5engine.obj
+ 0001:00002a10       ?SpeculativeCollide@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180003a10 f   p5engine.obj
+ 0001:00002b10       ?EntitiesOverlap@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180003b10 f   p5engine.obj
+ 0001:00002e50       ?MoveEntity@@YAXPEAUgame_state@@PEAUsim_region@@PEAUsim_entity@@MPEAUmove_spec@@Tv3@@@Z 0000000180003e50 f   p5engine.obj
+ 0001:000047b0       ?LoadAssetWork@@YAXPEAUplatform_work_queue@@PEAX@Z 00000001800057b0 f   p5engine.obj
+ 0001:000049c0       ?AddAssetHeaderToList@@YAXPEAUgame_assets@@IPEAXUasset_memory_size@@@Z 00000001800059c0 f   p5engine.obj
+ 0001:00004a60       ?RemoveAssetHeaderFromList@@YAXPEAUasset_memory_header@@@Z 0000000180005a60 f   p5engine.obj
+ 0001:00004ab0       ?GetBestMatchAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180005ab0 f   p5engine.obj
+ 0001:00004cf0       ?GetRandomAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180005cf0 f   p5engine.obj
+ 0001:00004d90       ?GetFirstAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@@Z 0000000180005d90 f   p5engine.obj
+ 0001:00004e00       ?GetBestMatchBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180005e00 f   p5engine.obj
+ 0001:00004e50       ?GetFirstBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180005e50 f   p5engine.obj
+ 0001:00004e90       ?GetRandomBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180005e90 f   p5engine.obj
+ 0001:00004ee0       ?GetFirstSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180005ee0 f   p5engine.obj
+ 0001:00004f20       ?GetRandomSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180005f20 f   p5engine.obj
+ 0001:00004f70       ?AllocateGameAssets@@YAPEAUgame_assets@@PEAUmemory_arena@@_KPEAUtransient_state@@@Z 0000000180005f70 f   p5engine.obj
+ 0001:000057d0       ?EvictAsset@@YAXPEAUgame_assets@@PEAUasset_memory_header@@@Z 00000001800067d0 f   p5engine.obj
+ 0001:00005910       ?EvictAssetsAsNecessary@@YAXPEAUgame_assets@@@Z 0000000180006910 f   p5engine.obj
+ 0001:00005990       ?PlaySound@@YAPEAUplaying_sound@@PEAUaudio_state@@Usound_id@@@Z 0000000180006990 f   p5engine.obj
+ 0001:00005ac0       ?ChangeVolume@@YAXPEAUaudio_state@@PEAUplaying_sound@@MTv2@@@Z 0000000180006ac0 f   p5engine.obj
+ 0001:00005b90       ?OutputPlayingSounds@@YAXPEAUaudio_state@@PEAUgame_sound_output_buffer@@PEAUgame_assets@@PEAUmemory_arena@@@Z 0000000180006b90 f   p5engine.obj
+ 0001:00006c70       ?InitializeAudioState@@YAXPEAUaudio_state@@PEAUmemory_arena@@@Z 0000000180007c70 f   p5engine.obj
+ 0001:00006cf0       ?AddLowEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@@Z 0000000180007cf0 f   p5engine.obj
+ 0001:00006ef0       ?AddGroundedEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@PEAUsim_entity_collision_volume_group@@@Z 0000000180007ef0 f   p5engine.obj
+ 0001:00006fa0       ?AddStandardRoom@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180007fa0 f   p5engine.obj
+ 0001:00007100       ?AddWall@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180008100 f   p5engine.obj
+ 0001:00007260       ?AddStairs@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180008260 f   p5engine.obj
+ 0001:000073f0       ?InitHitPoints@@YAXPEAUlow_entity@@I@Z 00000001800083f0 f   p5engine.obj
+ 0001:00007480       ?AddSword@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180008480 f   p5engine.obj
+ 0001:00007570       ?AddPlayer@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180008570 f   p5engine.obj
+ 0001:000076b0       ?AddMonstar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 00000001800086b0 f   p5engine.obj
+ 0001:00007820       ?AddFamiliar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180008820 f   p5engine.obj
+ 0001:00007980       ?DrawHitpoints@@YAXPEAUsim_entity@@PEAUrender_group@@@Z 0000000180008980 f   p5engine.obj
+ 0001:00007bf0       ?MakeSimpleGroundedCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@MMM@Z 0000000180008bf0 f   p5engine.obj
+ 0001:00007d50       ?MakeNullCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@@Z 0000000180008d50 f   p5engine.obj
+ 0001:00007e30       ?FillGroundChunkWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180008e30 f   p5engine.obj
+ 0001:00007e90       ?FillGroundChunk@@YAXPEAUtransient_state@@PEAUgame_state@@PEAUground_buffer@@PEAUworld_position@@@Z 0000000180008e90 f   p5engine.obj
+ 0001:00008710       ?ClearBitmap@@YAXPEAUloaded_bitmap@@@Z 0000000180009710 f   p5engine.obj
+ 0001:00008770       ?MakeEmptyBitmap@@YA?AUloaded_bitmap@@PEAUmemory_arena@@HHH@Z 0000000180009770 f   p5engine.obj
+ 0001:00008860       ?MakeSphereDiffuseMap@@YAXPEAUloaded_bitmap@@MM@Z 0000000180009860 f   p5engine.obj
+ 0001:00008b90       ?MakeSphereNormalMap@@YAXPEAUloaded_bitmap@@MMM@Z 0000000180009b90 f   p5engine.obj
+ 0001:0000db00       $LN167                     000000018000eb00     p5engine.obj
+ 0001:00013a00       $$000000                   0000000180014a00     MSVCRTD:chkstk.obj
+ 0001:00013a60       $$000000                   0000000180014a60     MSVCRTD:amdsecgs.obj
+ 0001:00013a90       ?dllmain_crt_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180014a90 f   MSVCRTD:dll_dllmain.obj
+ 0001:00013b20       ?dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z 0000000180014b20 f   MSVCRTD:dll_dllmain.obj
+ 0001:00013c60       ?dllmain_crt_process_detach@@YAH_N@Z 0000000180014c60 f   MSVCRTD:dll_dllmain.obj
+ 0001:00013d00       ?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180014d00 f   MSVCRTD:dll_dllmain.obj
+ 0001:00013e40       ?dllmain_raw@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180014e40 f   MSVCRTD:dll_dllmain.obj
+ 0001:00014000       capture_previous_context   0000000180015000 f   MSVCRTD:gs_report.obj
+ 0001:000140c0       __get_entropy              00000001800150c0 f   MSVCRTD:gs_support.obj
+ 0001:00014310       ?find_pe_section@@YAPEAU_IMAGE_SECTION_HEADER@@QEAE_K@Z 0000000180015310 f   MSVCRTD:utility.obj
+ 0001:000143f0       ?is_potentially_valid_image_base@@YA_NQEAX@Z 00000001800153f0 f   MSVCRTD:utility.obj
+ 0001:00014f90       $$000000                   0000000180015f90     MSVCRTD:guard_dispatch.obj
+ 0001:00014fb0       $$000000                   0000000180015fb0     MSVCRTD:guard_xfg_dispatch.obj
+ 0001:00014fd0       ?fin$0@?0??dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z@4HA 0000000180015fd0 f   MSVCRTD:dll_dllmain.obj
+ 0001:00014ff0       ?fin$0@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 0000000180015ff0 f   MSVCRTD:dll_dllmain.obj
+ 0001:0001500a       ?fin$1@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018001600a f   MSVCRTD:dll_dllmain.obj
+ 0001:00015020       ?filt$0@?0??dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z@4HA 0000000180016020 f   MSVCRTD:dll_dllmain.obj
+ 0001:00015070       __scrt_is_nonwritable_in_current_image$filt$0 0000000180016070 f   MSVCRTD:utility.obj
+ 0002:00000170       $SG29541                   0000000180017170     p5engine.obj
+ 0002:00000180       $SG29969                   0000000180017180     p5engine.obj
+ 0002:00000190       $SG30765                   0000000180017190     p5engine.obj
+ 0002:00000198       $SG30767                   0000000180017198     p5engine.obj
+ 0002:000001c0       $SG30769                   00000001800171c0     p5engine.obj
+ 0002:000001e0       $SG30773                   00000001800171e0     p5engine.obj
+ 0002:000001f0       $SG30806                   00000001800171f0     p5engine.obj
+ 0002:00000200       $SG32111                   0000000180017200     p5engine.obj
+ 0002:000003c8       GS_ExceptionPointers       00000001800173c8     MSVCRTD:gs_report.obj
+ 0002:000009e0       $unwind$?AbsoluteValue@@YAMM@Z 00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?Clamp01@@YAMM@Z   00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?RoundReal32ToInt32@@YAHM@Z 00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?RoundReal32ToUInt32@@YAIM@Z 00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?SignOf@@YAMM@Z    00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?Sin@@YAMM@Z       00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?Square@@YAMM@Z    00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$?SquareRoot@@YAMM@Z 00000001800179e0     p5engine.obj
+ 0002:000009e0       $unwind$TruncateReal32ToInt32 00000001800179e0     p5engine.obj
+ 0002:000009e8       $unwind$?IsValid@@YAHUsound_id@@@Z 00000001800179e8     p5engine.obj
+ 0002:000009e8       $unwind$SafeTruncateToInt16 00000001800179e8     p5engine.obj
+ 0002:000009e8       $unwind$SafeTruncateToUInt16 00000001800179e8     p5engine.obj
+ 0002:000009f0       $unwind$?GetBitmap@@YAPEAUloaded_bitmap@@PEAUgame_assets@@Ubitmap_id@@@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$?GetFileHandleFor@@YAPEAUplatform_file_handle@@PEAUgame_assets@@I@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$?GetLowEntity@@YAPEAUlow_entity@@PEAUgame_state@@I@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$?GetSound@@YAPEAUloaded_sound@@PEAUgame_assets@@Usound_id@@@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$?GetSoundInfo@@YAPEAUp5a_sound@@PEAUgame_assets@@Usound_id@@@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$?HasFlag@@YAHPEAUsim_entity@@I@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$?RandomChoice@@YAIPEAUrandom_series@@I@Z 00000001800179f0     p5engine.obj
+ 0002:000009f0       $unwind$GetController      00000001800179f0     p5engine.obj
+ 0002:000009f8       $unwind$?InitializeArena@@YAXPEAUmemory_arena@@_KPEAX@Z 00000001800179f8     p5engine.obj
+ 0002:00000a00       $unwind$?GetAlignmentOffset@@YA_KPEAUmemory_arena@@_K@Z 0000000180017a00     p5engine.obj
+ 0002:00000a08       $unwind$??Y@YAAEATv2@@AEAT0@T0@@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?AcquireAssetMemory@@YAPEAXPEAUgame_assets@@_K@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?GetArenaSizeRemaining@@YA_KPEAUmemory_arena@@_K@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?Hadamard@@YA?ATv2@@T1@0@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?Inner@@YAMTv2@@0@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?Inner@@YAMTv3@@0@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?IsCanonical@@YAHPEAUworld@@Tv3@@@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?IsInRectangle@@YAHUrectangle3@@Tv3@@@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?RectanglesIntersect@@YAHUrectangle3@@0@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?ZeroSize@@YAX_KPEAX@Z 0000000180017a08     p5engine.obj
+ 0002:00000a08       $unwind$?find_pe_section@@YAPEAU_IMAGE_SECTION_HEADER@@QEAE_K@Z 0000000180017a08     MSVCRTD:utility.obj
+ 0002:00000a10       $unwind$?PushSize_@@YAPEAXPEAUmemory_arena@@_K1@Z 0000000180017a10     p5engine.obj
+ 0002:00000a18       $unwind$?BeginTemporaryMemory@@YA?AUtemporary_memory@@PEAUmemory_arena@@@Z 0000000180017a18     p5engine.obj
+ 0002:00000a2c       $unwind$?AllResourcesPresent@@YAHPEAUrender_group@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?EndTemporaryMemory@@YAXUtemporary_memory@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?GetDim@@YA?ATv2@@Urectangle2@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?GetState@@YAIPEAUasset_slot@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?GetType@@YAIPEAUasset_slot@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?IsValid@@YAHUworld_position@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?LengthSq@@YAMTv2@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?RandomBilateral@@YAMPEAUrandom_series@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?RandomNextUInt32@@YAIPEAUrandom_series@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$?RandomUnilateral@@YAMPEAUrandom_series@@@Z 0000000180017a2c     p5engine.obj
+ 0002:00000a2c       $unwind$__CheckForDebuggerJustMyCode 0000000180017a2c     MSVCRTD:debugger_jmc.obj
+ 0002:00000a2c       $unwind$__report_gsfailure 0000000180017a2c     MSVCRTD:gs_report.obj
+ 0002:00000a34       $unwind$?CheckArena@@YAXPEAUmemory_arena@@@Z 0000000180017a34     p5engine.obj
+ 0002:00000a34       $unwind$?StoreEntityReference@@YAXPEATentity_reference@@@Z 0000000180017a34     p5engine.obj
+ 0002:00000a34       $unwind$__raise_securityfailure 0000000180017a34     MSVCRTD:gs_report.obj
+ 0002:00000a34       $unwind$?is_potentially_valid_image_base@@YA_NQEAX@Z 0000000180017a34     MSVCRTD:utility.obj
+ 0002:00000a3c       $unwind$?SubArena@@YAXPEAUmemory_arena@@0_K1@Z 0000000180017a3c     p5engine.obj
+ 0002:00000a3c       $unwind$__GSHandlerCheck   0000000180017a3c     MSVCRTD:gshandler.obj
+ 0002:00000a44       $unwind$?AtomicCompareExchangeUInt32@@YAIPECIII@Z 0000000180017a44     p5engine.obj
+ 0002:00000a44       $unwind$?PushRenderElement_@@YAPEAXPEAUrender_group@@IW4render_group_entry_type@@@Z 0000000180017a44     p5engine.obj
+ 0002:00000a44       $unwind$?dllmain_crt_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180017a44     MSVCRTD:dll_dllmain.obj
+ 0002:00000a44       $unwind$?dllmain_raw@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180017a44     MSVCRTD:dll_dllmain.obj
+ 0002:00000a4c       $unwind$?ATan2@@YAMMM@Z    0000000180017a4c     p5engine.obj
+ 0002:00000a4c       $unwind$?IsCanonical@@YAHMM@Z 0000000180017a4c     p5engine.obj
+ 0002:00000a4c       $unwind$?SafeRatio1@@YAMMM@Z 0000000180017a4c     p5engine.obj
+ 0002:00000a54       $unwind$?Clamp01MapToRange@@YAMMMM@Z 0000000180017a54     p5engine.obj
+ 0002:00000a54       $unwind$?Clamp@@YAMMMM@Z   0000000180017a54     p5engine.obj
+ 0002:00000a54       $unwind$?Lerp@@YAMMMM@Z    0000000180017a54     p5engine.obj
+ 0002:00000a54       $unwind$?SafeRatioN@@YAMMMM@Z 0000000180017a54     p5engine.obj
+ 0002:00000a5c       $unwind$?V2@@YA?ATv2@@MM@Z 0000000180017a5c     p5engine.obj
+ 0002:00000a6c       $unwind$?V2i@@YA?ATv2@@HH@Z 0000000180017a6c     p5engine.obj
+ 0002:00000a74       $unwind$??D@YA?ATv2@@MT0@@Z 0000000180017a74     p5engine.obj
+ 0002:00000a84       $unwind$??G@YA?ATv2@@T0@0@Z 0000000180017a84     p5engine.obj
+ 0002:00000a84       $unwind$??H@YA?ATv2@@T0@0@Z 0000000180017a84     p5engine.obj
+ 0002:00000a84       $unwind$?GetBarycentric@@YA?ATv2@@Urectangle2@@T1@@Z 0000000180017a84     p5engine.obj
+ 0002:00000a94       $unwind$?Clamp01@@YA?ATv2@@T1@@Z 0000000180017a94     p5engine.obj
+ 0002:00000aa4       $unwind$?V3@@YA?ATv3@@MMM@Z 0000000180017aa4     p5engine.obj
+ 0002:00000aa4       $unwind$?V4@@YA?ATv4@@MMMM@Z 0000000180017aa4     p5engine.obj
+ 0002:00000ab8       $unwind$??D@YA?ATv3@@MT0@@Z 0000000180017ab8     p5engine.obj
+ 0002:00000ab8       $unwind$??D@YA?ATv4@@MT0@@Z 0000000180017ab8     p5engine.obj
+ 0002:00000ab8       $unwind$?ToV3@@YA?ATv3@@Tv2@@M@Z 0000000180017ab8     p5engine.obj
+ 0002:00000acc       $unwind$??D@YA?ATv3@@T0@M@Z 0000000180017acc     p5engine.obj
+ 0002:00000acc       $unwind$?GetCameraRectangleAtDistance@@YA?AUrectangle2@@PEAUrender_group@@M@Z 0000000180017acc     p5engine.obj
+ 0002:00000ad8       $unwind$??X@YAAEATv3@@AEAT0@M@Z 0000000180017ad8     p5engine.obj
+ 0002:00000ae4       $unwind$??G@YA?ATv3@@T0@0@Z 0000000180017ae4     p5engine.obj
+ 0002:00000ae4       $unwind$??H@YA?ATv3@@T0@0@Z 0000000180017ae4     p5engine.obj
+ 0002:00000ae4       $unwind$??H@YA?ATv4@@T0@0@Z 0000000180017ae4     p5engine.obj
+ 0002:00000af8       $unwind$??Y@YAAEATv3@@AEAT0@T0@@Z 0000000180017af8     p5engine.obj
+ 0002:00000af8       $unwind$??Y@YAAEATv4@@AEAT0@T0@@Z 0000000180017af8     p5engine.obj
+ 0002:00000af8       $unwind$??Z@YAAEATv3@@AEAT0@T0@@Z 0000000180017af8     p5engine.obj
+ 0002:00000af8       $unwind$?GetDim@@YA?ATv3@@Urectangle3@@@Z 0000000180017af8     p5engine.obj
+ 0002:00000b04       $unwind$?AreInSameChunk@@YAHPEAUworld@@PEAUworld_position@@1@Z 0000000180017b04     p5engine.obj
+ 0002:00000b04       $unwind$?Hadamard@@YA?ATv3@@T1@0@Z 0000000180017b04     p5engine.obj
+ 0002:00000b04       $unwind$?RectCenterDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180017b04     p5engine.obj
+ 0002:00000b10       $unwind$?LengthSq@@YAMTv3@@@Z 0000000180017b10     p5engine.obj
+ 0002:00000b1c       $unwind$?Length@@YAMTv3@@@Z 0000000180017b1c     p5engine.obj
+ 0002:00000b1c       $unwind$?MakeEntityNonSpatial@@YAXPEAUsim_entity@@@Z 0000000180017b1c     p5engine.obj
+ 0002:00000b28       $unwind$?RectCenterHalfDim@@YA?AUrectangle2@@Tv2@@0@Z 0000000180017b28     p5engine.obj
+ 0002:00000b3c       $unwind$?Intersect@@YA?AUrectangle2i@@U1@0@Z 0000000180017b3c     p5engine.obj
+ 0002:00000b48       $unwind$?Clear@@YAXPEAUrender_group@@Tv4@@@Z 0000000180017b48     p5engine.obj
+ 0002:00000b48       $unwind$?GetMaxCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180017b48     p5engine.obj
+ 0002:00000b48       $unwind$?GetMinCorner@@YA?ATv3@@Urectangle3@@@Z 0000000180017b48     p5engine.obj
+ 0002:00000b54       $unwind$?RectMinMax@@YA?AUrectangle3@@Tv3@@0@Z 0000000180017b54     p5engine.obj
+ 0002:00000b68       $unwind$?AddRadiusTo@@YA?AUrectangle3@@U1@Tv3@@@Z 0000000180017b68     p5engine.obj
+ 0002:00000b68       $unwind$?RectCenterHalfDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180017b68     p5engine.obj
+ 0002:00000b7c       $unwind$?RectCenterDim@@YA?AUrectangle3@@Tv3@@0@Z 0000000180017b7c     p5engine.obj
+ 0002:00000b88       $unwind$?RandomSeed@@YA?AUrandom_series@@I@Z 0000000180017b88     p5engine.obj
+ 0002:00000b98       $unwind$?RandomBetween@@YAMPEAUrandom_series@@MM@Z 0000000180017b98     p5engine.obj
+ 0002:00000ba0       $unwind$?AddFlags@@YAXPEAUsim_entity@@I@Z 0000000180017ba0     p5engine.obj
+ 0002:00000ba0       $unwind$?ClearFlags@@YAXPEAUsim_entity@@I@Z 0000000180017ba0     p5engine.obj
+ 0002:00000ba0       $unwind$?PrefetchSound@@YAXPEAUgame_assets@@Usound_id@@@Z 0000000180017ba0     p5engine.obj
+ 0002:00000ba8       $unwind$?MakeEntitySpatial@@YAXPEAUsim_entity@@Tv3@@1@Z 0000000180017ba8     p5engine.obj
+ 0002:00000bb4       $unwind$?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@T1@@Z 0000000180017bb4     p5engine.obj
+ 0002:00000bc0       $unwind$?GetEntityGroundPoint@@YA?ATv3@@PEAUsim_entity@@@Z 0000000180017bc0     p5engine.obj
+ 0002:00000bcc       $unwind$?GetStairGround@@YAMPEAUsim_entity@@Tv3@@@Z 0000000180017bcc     p5engine.obj
+ 0002:00000bd8       $unwind$?LoadBitmap@@YAXPEAUgame_assets@@Ubitmap_id@@@Z 0000000180017bd8     p5engine.obj
+ 0002:00000be4       $unwind$?LoadSound@@YAXPEAUgame_assets@@Usound_id@@@Z 0000000180017be4     p5engine.obj
+ 0002:00000bf0       $unwind$?AddCollisionRule@@YAXPEAUgame_state@@IIH@Z 0000000180017bf0     p5engine.obj
+ 0002:00000bf8       $unwind$?ClearCollisionRulesFor@@YAXPEAUgame_state@@I@Z 0000000180017bf8     p5engine.obj
+ 0002:00000c00       $unwind$?BeginTaskWithMemory@@YAPEAUtask_with_memory@@PEAUtransient_state@@@Z 0000000180017c00     p5engine.obj
+ 0002:00000c0c       $unwind$?EndTaskWithMemory@@YAXPEAUtask_with_memory@@@Z 0000000180017c0c     p5engine.obj
+ 0002:00000c18       $unwind$?DrawRectangle@@YAXPEAUloaded_bitmap@@Tv2@@1Tv4@@Urectangle2i@@H@Z 0000000180017c18     p5engine.obj
+ 0002:00000c24       $unwind$?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Urectangle2i@@H@Z 0000000180017c24     p5engine.obj
+ 0002:00000c30       $unwind$?DoTiledRenderWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180017c30     p5engine.obj
+ 0002:00000c3c       $unwind$?RenderGroupToOutput@@YAXPEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180017c3c     p5engine.obj
+ 0002:00000c50       $unwind$?TiledRenderGroupToOutput@@YAXPEAUplatform_work_queue@@PEAUrender_group@@PEAUloaded_bitmap@@@Z 0000000180017c50     p5engine.obj
+ 0002:00000c64       $unwind$?AllocateRenderGroup@@YAPEAUrender_group@@PEAUgame_assets@@PEAUmemory_arena@@I@Z 0000000180017c64     p5engine.obj
+ 0002:00000c70       $unwind$?InitializeWorld@@YAXPEAUworld@@Tv3@@@Z 0000000180017c70     p5engine.obj
+ 0002:00000c7c       $unwind$?Subtract@@YA?ATv3@@PEAUworld@@PEAUworld_position@@1@Z 0000000180017c7c     p5engine.obj
+ 0002:00000c90       $unwind$?ChangeEntityLocation@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUlow_entity@@Uworld_position@@@Z 0000000180017c90     p5engine.obj
+ 0002:00000c9c       $unwind$?GetHashFromStorageIndex@@YAPEAUsim_entity_hash@@PEAUsim_region@@I@Z 0000000180017c9c     p5engine.obj
+ 0002:00000ca4       $unwind$?AddEntity@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@PEATv3@@@Z 0000000180017ca4     p5engine.obj
+ 0002:00000cb0       $unwind$?AddEntityRaw@@YAPEAUsim_entity@@PEAUgame_state@@PEAUsim_region@@IPEAUlow_entity@@@Z 0000000180017cb0     p5engine.obj
+ 0002:00000cbc       $unwind$?BeginSim@@YAPEAUsim_region@@PEAUmemory_arena@@PEAUgame_state@@PEAUworld@@Uworld_position@@Urectangle3@@M@Z 0000000180017cbc     p5engine.obj
+ 0002:00000cd0       $unwind$?EndSim@@YAXPEAUsim_region@@PEAUgame_state@@@Z 0000000180017cd0     p5engine.obj
+ 0002:00000cdc       $unwind$?CanCollide@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180017cdc     p5engine.obj
+ 0002:00000ce4       $unwind$?HandleCollision@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180017ce4     p5engine.obj
+ 0002:00000cec       $unwind$?CanOverlap@@YAHPEAUgame_state@@PEAUsim_entity@@1@Z 0000000180017cec     p5engine.obj
+ 0002:00000cf4       $unwind$?HandleOverlap@@YAXPEAUgame_state@@PEAUsim_entity@@1MPEAM@Z 0000000180017cf4     p5engine.obj
+ 0002:00000d00       $unwind$?SpeculativeCollide@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180017d00     p5engine.obj
+ 0002:00000d0c       $unwind$?EntitiesOverlap@@YAHPEAUsim_entity@@0Tv3@@@Z 0000000180017d0c     p5engine.obj
+ 0002:00000d18       $unwind$?MoveEntity@@YAXPEAUgame_state@@PEAUsim_region@@PEAUsim_entity@@MPEAUmove_spec@@Tv3@@@Z 0000000180017d18     p5engine.obj
+ 0002:00000d2c       $unwind$?LoadAssetWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180017d2c     p5engine.obj
+ 0002:00000d34       $unwind$?GetSizeOfAsset@@YA?AUasset_memory_size@@PEAUgame_assets@@II@Z 0000000180017d34     p5engine.obj
+ 0002:00000d48       $unwind$?AddAssetHeaderToList@@YAXPEAUgame_assets@@IPEAXUasset_memory_size@@@Z 0000000180017d48     p5engine.obj
+ 0002:00000d50       $unwind$?RemoveAssetHeaderFromList@@YAXPEAUasset_memory_header@@@Z 0000000180017d50     p5engine.obj
+ 0002:00000d58       $unwind$?GetBestMatchAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180017d58     p5engine.obj
+ 0002:00000d60       $unwind$?GetRandomAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180017d60     p5engine.obj
+ 0002:00000d68       $unwind$?GetFirstAssetFrom@@YAIPEAUgame_assets@@W4asset_type_id@@@Z 0000000180017d68     p5engine.obj
+ 0002:00000d70       $unwind$?GetBestMatchBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUasset_vector@@2@Z 0000000180017d70     p5engine.obj
+ 0002:00000d78       $unwind$?GetFirstBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180017d78     p5engine.obj
+ 0002:00000d80       $unwind$?GetRandomBitmapFrom@@YA?AUbitmap_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180017d80     p5engine.obj
+ 0002:00000d88       $unwind$?GetFirstSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@@Z 0000000180017d88     p5engine.obj
+ 0002:00000d90       $unwind$?GetRandomSoundFrom@@YA?AUsound_id@@PEAUgame_assets@@W4asset_type_id@@PEAUrandom_series@@@Z 0000000180017d90     p5engine.obj
+ 0002:00000d98       $unwind$?AllocateGameAssets@@YAPEAUgame_assets@@PEAUmemory_arena@@_KPEAUtransient_state@@@Z 0000000180017d98     p5engine.obj
+ 0002:00000da4       $unwind$?EvictAsset@@YAXPEAUgame_assets@@PEAUasset_memory_header@@@Z 0000000180017da4     p5engine.obj
+ 0002:00000db0       $unwind$?EvictAssetsAsNecessary@@YAXPEAUgame_assets@@@Z 0000000180017db0     p5engine.obj
+ 0002:00000db8       $unwind$?PlaySound@@YAPEAUplaying_sound@@PEAUaudio_state@@Usound_id@@@Z 0000000180017db8     p5engine.obj
+ 0002:00000dc0       $unwind$?ChangeVolume@@YAXPEAUaudio_state@@PEAUplaying_sound@@MTv2@@@Z 0000000180017dc0     p5engine.obj
+ 0002:00000dc8       $unwind$?OutputPlayingSounds@@YAXPEAUaudio_state@@PEAUgame_sound_output_buffer@@PEAUgame_assets@@PEAUmemory_arena@@@Z 0000000180017dc8     p5engine.obj
+ 0002:00000ddc       $unwind$?InitializeAudioState@@YAXPEAUaudio_state@@PEAUmemory_arena@@@Z 0000000180017ddc     p5engine.obj
+ 0002:00000de4       $unwind$?AddLowEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@@Z 0000000180017de4     p5engine.obj
+ 0002:00000df8       $unwind$?AddGroundedEntity@@YA?AUadd_low_entity_result@@PEAUgame_state@@W4entity_type@@Uworld_position@@PEAUsim_entity_collision_volume_group@@@Z 0000000180017df8     p5engine.obj
+ 0002:00000e04       $unwind$?AddStandardRoom@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180017e04     p5engine.obj
+ 0002:00000e10       $unwind$?AddWall@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180017e10     p5engine.obj
+ 0002:00000e1c       $unwind$?AddStairs@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180017e1c     p5engine.obj
+ 0002:00000e28       $unwind$?InitHitPoints@@YAXPEAUlow_entity@@I@Z 0000000180017e28     p5engine.obj
+ 0002:00000e30       $unwind$?AddSword@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180017e30     p5engine.obj
+ 0002:00000e3c       $unwind$?AddPlayer@@YA?AUadd_low_entity_result@@PEAUgame_state@@@Z 0000000180017e3c     p5engine.obj
+ 0002:00000e48       $unwind$?AddMonstar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180017e48     p5engine.obj
+ 0002:00000e54       $unwind$?AddFamiliar@@YA?AUadd_low_entity_result@@PEAUgame_state@@III@Z 0000000180017e54     p5engine.obj
+ 0002:00000e60       $unwind$?DrawHitpoints@@YAXPEAUsim_entity@@PEAUrender_group@@@Z 0000000180017e60     p5engine.obj
+ 0002:00000e74       $unwind$?MakeSimpleGroundedCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@MMM@Z 0000000180017e74     p5engine.obj
+ 0002:00000e80       $unwind$?MakeNullCollision@@YAPEAUsim_entity_collision_volume_group@@PEAUgame_state@@@Z 0000000180017e80     p5engine.obj
+ 0002:00000e8c       $unwind$?FillGroundChunkWork@@YAXPEAUplatform_work_queue@@PEAX@Z 0000000180017e8c     p5engine.obj
+ 0002:00000e94       $unwind$?FillGroundChunk@@YAXPEAUtransient_state@@PEAUgame_state@@PEAUground_buffer@@PEAUworld_position@@@Z 0000000180017e94     p5engine.obj
+ 0002:00000ea8       $unwind$?ClearBitmap@@YAXPEAUloaded_bitmap@@@Z 0000000180017ea8     p5engine.obj
+ 0002:00000eb0       $unwind$?MakeEmptyBitmap@@YA?AUloaded_bitmap@@PEAUmemory_arena@@HHH@Z 0000000180017eb0     p5engine.obj
+ 0002:00000ec4       $unwind$?MakeSphereDiffuseMap@@YAXPEAUloaded_bitmap@@MM@Z 0000000180017ec4     p5engine.obj
+ 0002:00000ed0       $unwind$?MakeSphereNormalMap@@YAXPEAUloaded_bitmap@@MMM@Z 0000000180017ed0     p5engine.obj
+ 0002:00000edc       $unwind$GameUpdateAndRender 0000000180017edc     p5engine.obj
+ 0002:00000ef0       $unwind$GameGetSoundSamples 0000000180017ef0     p5engine.obj
+ 0002:00000ef8       $unwind$?GetNextSoundInChain@@YA?AUsound_id@@PEAUgame_assets@@U1@@Z 0000000180017ef8     p5engine.obj
+ 0002:00000f08       $unwind$?GetRenderEntityBasisPos@@YA?AUentity_basis_p_result@@PEAUrender_transform@@Tv3@@@Z 0000000180017f08     p5engine.obj
+ 0002:00000f1c       $unwind$?PushBitmap@@YAXPEAUrender_group@@PEAUloaded_bitmap@@Tv3@@MTv4@@@Z 0000000180017f1c     p5engine.obj
+ 0002:00000f28       $unwind$?PushBitmap@@YAXPEAUrender_group@@Ubitmap_id@@Tv3@@MTv4@@@Z 0000000180017f28     p5engine.obj
+ 0002:00000f34       $unwind$?PushRect@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180017f34     p5engine.obj
+ 0002:00000f40       $unwind$?PushRectOutline@@YAXPEAUrender_group@@Tv3@@Tv2@@Tv4@@@Z 0000000180017f40     p5engine.obj
+ 0002:00000f4c       $unwind$?Orthographic@@YAXPEAUrender_group@@HHM@Z 0000000180017f4c     p5engine.obj
+ 0002:00000f4c       $unwind$?Perspective@@YAXPEAUrender_group@@HHMMM@Z 0000000180017f4c     p5engine.obj
+ 0002:00000f54       $unwind$?RecanonicalizeCoord@@YAXMPEAHPEAM@Z 0000000180017f54     p5engine.obj
+ 0002:00000f54       $unwind$?Unproject@@YA?ATv2@@PEAUrender_group@@T1@M@Z 0000000180017f54     p5engine.obj
+ 0002:00000f5c       $unwind$?GetCameraRectangleAtTarget@@YA?AUrectangle2@@PEAUrender_group@@@Z 0000000180017f5c     p5engine.obj
+ 0002:00000f68       $unwind$?NullPosition@@YA?AUworld_position@@XZ 0000000180017f68     p5engine.obj
+ 0002:00000f7c       $unwind$?GetWorldChunk@@YAPEAUworld_chunk@@PEAUworld@@HHHPEAUmemory_arena@@@Z 0000000180017f7c     p5engine.obj
+ 0002:00000f7c       $unwind$__scrt_dllmain_exception_filter 0000000180017f7c     MSVCRTD:utility.obj
+ 0002:00000f84       $unwind$?MapIntoChunkSpace@@YA?AUworld_position@@PEAUworld@@U1@Tv3@@@Z 0000000180017f84     p5engine.obj
+ 0002:00000f98       $unwind$?ChunkPositionFromTilePosition@@YA?AUworld_position@@PEAUworld@@HHHTv3@@@Z 0000000180017f98     p5engine.obj
+ 0002:00000fac       $unwind$?CenteredChunkPoint@@YA?AUworld_position@@III@Z 0000000180017fac     p5engine.obj
+ 0002:00000fc0       $unwind$?ChangeEntityLocationRaw@@YAXPEAUmemory_arena@@PEAUworld@@IPEAUworld_position@@2@Z 0000000180017fc0     p5engine.obj
+ 0002:00000fcc       $unwind$?GetSimSpacePos@@YA?ATv3@@PEAUsim_region@@PEAUlow_entity@@@Z 0000000180017fcc     p5engine.obj
+ 0002:00000fd8       $unwind$?LoadEntityReference@@YAXPEAUgame_state@@PEAUsim_region@@PEATentity_reference@@@Z 0000000180017fd8     p5engine.obj
+ 0002:00000fec       $unwind$?EntityOverlapsRectangle@@YAHTv3@@Usim_entity_collision_volume@@Urectangle3@@@Z 0000000180017fec     p5engine.obj
+ 0002:00000ff8       $unwind$?DefaultMoveSpec@@YA?AUmove_spec@@XZ 0000000180017ff8     p5engine.obj
+ 0002:0000100c       $unwind$?ReleaseAssetMemory@@YAXPEAUgame_assets@@_KPEAX@Z 000000018001800c     p5engine.obj
+ 0002:00001014       $unwind$?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180018014     p5engine_optimized.obj
+ 0002:0000103c       $chain$9$?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 000000018001803c     p5engine_optimized.obj
+ 0002:00001074       $chain$10$?DrawRectangleQuickly@@YAXPEAUloaded_bitmap@@Tv2@@11Tv4@@0MUrectangle2i@@H@Z 0000000180018074     p5engine_optimized.obj
+ 0002:00001084       $unwind$__GSHandlerCheckCommon 0000000180018084     MSVCRTD:gshandler.obj
+ 0002:00001090       $xdatasym                  0000000180018090     MSVCRTD:chkstk.obj
+ 0002:00001098       $xdatasym                  0000000180018098     MSVCRTD:amdsecgs.obj
+ 0002:0000109c       $unwind$?dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z 000000018001809c     MSVCRTD:dll_dllmain.obj
+ 0002:000010bc       $unwind$?fin$0@?0??dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z@4HA 00000001800180bc     MSVCRTD:dll_dllmain.obj
+ 0002:000010bc       $unwind$?fin$0@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 00000001800180bc     MSVCRTD:dll_dllmain.obj
+ 0002:000010bc       $unwind$?fin$1@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 00000001800180bc     MSVCRTD:dll_dllmain.obj
+ 0002:000010bc       $unwind$__scrt_is_nonwritable_in_current_image$filt$0 00000001800180bc     MSVCRTD:utility.obj
+ 0002:000010c4       $unwind$?dllmain_crt_process_detach@@YAH_N@Z 00000001800180c4     MSVCRTD:dll_dllmain.obj
+ 0002:000010f4       $unwind$?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 00000001800180f4     MSVCRTD:dll_dllmain.obj
+ 0002:00001114       $unwind$?filt$0@?0??dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z@4HA 0000000180018114     MSVCRTD:dll_dllmain.obj
+ 0002:0000111c       $unwind$_DllMainCRTStartup 000000018001811c     MSVCRTD:dll_dllmain.obj
+ 0002:0000111c       $unwind$DllMain            000000018001811c     MSVCRTD:dll_dllmain_stub.obj
+ 0002:00001124       $unwind$capture_previous_context 0000000180018124     MSVCRTD:gs_report.obj
+ 0002:0000112c       $unwind$__scrt_initialize_default_local_stdio_options 000000018001812c     MSVCRTD:default_local_stdio_options.obj
+ 0002:0000112c       $unwind$__security_init_cookie 000000018001812c     MSVCRTD:gs_support.obj
+ 0002:00001134       $unwind$__get_entropy      0000000180018134     MSVCRTD:gs_support.obj
+ 0002:0000113c       $unwind$?__scrt_initialize_type_info@@YAXXZ 000000018001813c     MSVCRTD:tncleanup.obj
+ 0002:0000113c       $unwind$?__scrt_uninitialize_type_info@@YAXXZ 000000018001813c     MSVCRTD:tncleanup.obj
+ 0002:0000113c       $unwind$?configure_argv@__scrt_narrow_argv_policy@@SAHXZ 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$?initialize_environment@__scrt_narrow_environment_policy@@SAHXZ 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$__scrt_dllmain_after_initialize_c 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$__scrt_dllmain_before_initialize_c 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$__scrt_dllmain_crt_thread_attach 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$__scrt_dllmain_crt_thread_detach 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$__scrt_dllmain_uninitialize_c 000000018001813c     MSVCRTD:utility.obj
+ 0002:0000113c       $unwind$__scrt_dllmain_uninitialize_critical 000000018001813c     MSVCRTD:utility.obj
+ 0002:00001144       $unwind$__scrt_is_nonwritable_in_current_image 0000000180018144     MSVCRTD:utility.obj
+ 0002:00001164       $unwind$__scrt_acquire_startup_lock 0000000180018164     MSVCRTD:utility.obj
+ 0002:0000116c       $unwind$__scrt_initialize_crt 000000018001816c     MSVCRTD:utility.obj
+ 0002:0000116c       $unwind$__scrt_release_startup_lock 000000018001816c     MSVCRTD:utility.obj
+ 0002:00001174       $unwind$__scrt_uninitialize_crt 0000000180018174     MSVCRTD:utility.obj
+ 0002:0000117c       $unwind$__scrt_initialize_onexit_tables 000000018001817c     MSVCRTD:utility.obj
+ 0002:00001188       $unwind$__scrt_fastfail    0000000180018188     MSVCRTD:utility_desktop.obj
+ 0002:00001194       $unwind$_RTC_Initialize    0000000180018194     MSVCRTD:initsect.obj
+ 0002:00001194       $unwind$_RTC_Terminate     0000000180018194     MSVCRTD:initsect.obj
+ 0002:000011a0       $unwind$__isa_available_init 00000001800181a0     MSVCRTD:cpu_disp.obj
+ 0002:000011b0       $unwind$__scrt_is_ucrt_dll_in_use 00000001800181b0     MSVCRTD:ucrt_detection.obj
+ 0002:000011b8       $xdatasym                  00000001800181b8     MSVCRTD:guard_dispatch.obj
+ 0002:000011c0       $xdatasym                  00000001800181c0     MSVCRTD:guard_xfg_dispatch.obj
+ 0002:000011d0       .edata                     00000001800181d0     P5Engine.exp
+ 0002:000011f8       rgpv                       00000001800181f8     P5Engine.exp
+ 0002:00001200       rgszName                   0000000180018200     P5Engine.exp
+ 0002:00001208       rgwOrd                     0000000180018208     P5Engine.exp
+ 0002:0000120c       szName                     000000018001820c     P5Engine.exp
+ 0002:00001219       $N00001                    0000000180018219     P5Engine.exp
+ 0002:0000122d       $N00002                    000000018001822d     P5Engine.exp
+ 0002:000013d0       .idata$6                   00000001800183d0     vcruntimed:VCRUNTIME140D.dll
+ 0002:000014aa       .idata$6                   00000001800184aa     ucrtd:ucrtbased.dll
+ 0002:0000161e       .idata$6                   000000018001861e     kernel32:KERNEL32.dll
+ 0003:00000000       ?RandomNumberTable@@3PAIA  0000000180019000     p5engine.obj
+ 0003:00004050       ?Platform@@3Uplatform_api@@A 000000018001d050     p5engine.obj
+ 0003:000040b0       ?__proc_attached@@3HA      000000018001d0b0     MSVCRTD:dll_dllmain.obj
+ 0003:000040c0       GS_ExceptionRecord         000000018001d0c0     MSVCRTD:gs_report.obj
+ 0003:00004160       GS_ContextRecord           000000018001d160     MSVCRTD:gs_report.obj
+ 0003:00004660       ?is_initialized_as_dll@@3_NA 000000018001d660     MSVCRTD:utility.obj
+ 0003:00004661       ?module_local_atexit_table_initialized@@3_NA 000000018001d661     MSVCRTD:utility.obj
+ 0003:00004668       ?module_local_atexit_table@@3U_onexit_table_t@@A 000000018001d668     MSVCRTD:utility.obj
+ 0003:00004680       ?module_local_at_quick_exit_table@@3U_onexit_table_t@@A 000000018001d680     MSVCRTD:utility.obj
+ 0005:00000000       __20BB4341_malloc@h        000000018001f000     p5engine.obj
+ 0005:00000001       __A435B42B_p5engine_types@h 000000018001f001     p5engine.obj
+ 0005:00000002       __7D4BEAAE_p5engine_platform@h 000000018001f002     p5engine.obj
+ 0005:00000003       __741AE07E_corecrt_math@h  000000018001f003     p5engine.obj
+ 0005:00000004       __7BF3FA8A_p5engine_intrinsics@h 000000018001f004     p5engine.obj
+ 0005:00000005       __87290AA6_p5engine_math@h 000000018001f005     p5engine.obj
+ 0005:00000006       __B7A387D6_p5engine_random@h 000000018001f006     p5engine.obj
+ 0005:00000007       __F17FF173_p5engine_entity@h 000000018001f007     p5engine.obj
+ 0005:00000008       __72A74871_p5engine_asset@h 000000018001f008     p5engine.obj
+ 0005:00000009       __BD87FD4A_p5engine@h      000000018001f009     p5engine.obj
+ 0005:0000000a       __6F2BF339_p5engine_render_group@cpp 000000018001f00a     p5engine.obj
+ 0005:0000000b       __281AC6F8_p5engine_world@cpp 000000018001f00b     p5engine.obj
+ 0005:0000000c       __B07C4A52_p5engine_sim_region@cpp 000000018001f00c     p5engine.obj
+ 0005:0000000d       __BDC7FEEB_p5engine_entity@cpp 000000018001f00d     p5engine.obj
+ 0005:0000000e       __3D4C1499_p5engine_asset@cpp 000000018001f00e     p5engine.obj
+ 0005:0000000f       __39A8D9B6_p5engine_audio@cpp 000000018001f00f     p5engine.obj
+ 0005:00000010       __BAF57382_p5engine@cpp    000000018001f010     p5engine.obj
+ 0005:00000011       __20BB4341_malloc@h        000000018001f011     p5engine_optimized.obj
+ 0005:00000012       __A435B42B_p5engine_types@h 000000018001f012     p5engine_optimized.obj
+ 0005:00000013       __7D4BEAAE_p5engine_platform@h 000000018001f013     p5engine_optimized.obj
+ 0005:00000014       __741AE07E_corecrt_math@h  000000018001f014     p5engine_optimized.obj
+ 0005:00000015       __7BF3FA8A_p5engine_intrinsics@h 000000018001f015     p5engine_optimized.obj
+ 0005:00000016       __87290AA6_p5engine_math@h 000000018001f016     p5engine_optimized.obj
+ 0005:00000017       __B7A387D6_p5engine_random@h 000000018001f017     p5engine_optimized.obj
+ 0005:00000018       __F17FF173_p5engine_entity@h 000000018001f018     p5engine_optimized.obj
+ 0005:00000019       __72A74871_p5engine_asset@h 000000018001f019     p5engine_optimized.obj
+ 0005:0000001a       __BD87FD4A_p5engine@h      000000018001f01a     p5engine_optimized.obj
+ 0005:0000001b       __03FC23C0_p5engine_optimized@cpp 000000018001f01b     p5engine_optimized.obj
+ 0006:00000060       $R000000                   0000000180020060     * linker generated manifest res *
