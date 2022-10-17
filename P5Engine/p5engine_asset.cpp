@@ -125,10 +125,12 @@ RemoveAssetHeaderFromList(asset_memory_header* Header)
 {
 	Header->Prev->Next = Header->Next;
 	Header->Next->Prev = Header->Prev;
+
+	Header->Next = Header->Prev = 0;
 }
 
 internal void
-LoadBitmap(game_assets* Assets, bitmap_id ID)
+LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 {
 	asset_slot* Slot = Assets->Slots + ID.Value;
 	if (ID.Value &&
@@ -157,9 +159,12 @@ LoadBitmap(game_assets* Assets, bitmap_id ID)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Bitmap->Memory;
-			Work->FinalState = (AssetState_Loaded | AssetState_Bitmap);
+			Work->FinalState = (AssetState_Bitmap | (Locked ? AssetState_Locked : AssetState_Loaded));
 
-			AddAssetHeaderToList(Assets, ID.Value, Bitmap->Memory, Size);
+			if (!Locked)
+			{
+				AddAssetHeaderToList(Assets, ID.Value, Bitmap->Memory, Size);
+			}
 
 			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 		}
@@ -207,7 +212,7 @@ LoadSound(game_assets* Assets, sound_id ID)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Memory;
-			Work->FinalState = (AssetState_Loaded | AssetState_Sound);
+			Work->FinalState = (AssetState_Sound | AssetState_Loaded);
 
 			AddAssetHeaderToList(Assets, ID.Value, Memory, Size);
 
@@ -221,9 +226,9 @@ LoadSound(game_assets* Assets, sound_id ID)
 }
 
 inline void
-PrefetchBitmap(game_assets* Assets, bitmap_id ID)
+PrefetchBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 {
-	LoadBitmap(Assets, ID);
+	LoadBitmap(Assets, ID, Locked);
 }
 
 inline void
@@ -504,7 +509,8 @@ internal void
 EvictAsset(game_assets* Assets, asset_memory_header* Header)
 {
 	u32 SlotIndex = Header->SlotIndex;
-	asset_slot* Slot = Assets->Slots + SlotIndex;
+	asset_slot* Slot = Assets->Slots + Header->SlotIndex;
+
 	Assert(GetState(Slot) == AssetState_Loaded);
 
 	asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Slot), SlotIndex);
@@ -532,10 +538,14 @@ EvictAssetsAsNecessary(game_assets* Assets)
 {
 	while (Assets->TotalMemoryUsed > Assets->TargetMemoryUsed)
 	{
-		asset_memory_header* Asset = Assets->LoadedAssetSentinel.Prev;
-		if (Asset != &Assets->LoadedAssetSentinel)
+		asset_memory_header* Header = Assets->LoadedAssetSentinel.Prev;
+		if (Header != &Assets->LoadedAssetSentinel)
 		{
-			EvictAsset(Assets, Asset);
+			asset_slot* Slot = Assets->Slots + Header->SlotIndex;
+			if (GetState(Slot) >= AssetState_Loaded)
+			{
+				EvictAsset(Assets, Header);
+			}
 		}
 		else
 		{

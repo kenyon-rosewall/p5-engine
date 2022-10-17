@@ -120,7 +120,7 @@ GetType(asset_slot* Slot)
 	return(Result);
 }
 
-inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
+inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLocked)
 {
 	Assert(ID.Value <= Assets->AssetCount);
 
@@ -128,6 +128,7 @@ inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID)
 	loaded_bitmap* Result = 0;
 	if (GetState(Slot) >= AssetState_Loaded)
 	{
+		Assert(!MustBeLocked || (GetState(Slot) == AssetState_Locked));
 		CompletePreviousReadsBeforeFutureReads;
 		Result = &Slot->Bitmap;
 	}
@@ -175,7 +176,7 @@ IsValid(sound_id ID)
 	return(Result);
 }
 
-internal void LoadBitmap(game_assets* Assets, bitmap_id ID);
+internal void LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked);
 internal void LoadSound(game_assets* Assets, sound_id ID);
 
 inline sound_id

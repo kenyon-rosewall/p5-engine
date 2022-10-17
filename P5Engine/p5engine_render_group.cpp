@@ -644,14 +644,14 @@ PushBitmap(render_group* Group, loaded_bitmap* Bitmap, v3 Offset, f32 Height, v4
 inline void
 PushBitmap(render_group* Group, bitmap_id ID, v3 Offset, f32 Height, v4 Color = V4(1, 1, 1, 1))
 {
-	loaded_bitmap* Bitmap = GetBitmap(Group->Assets, ID);
+	loaded_bitmap* Bitmap = GetBitmap(Group->Assets, ID, Group->AssetsShouldBeLocked);
 	if (Bitmap)
 	{
 		PushBitmap(Group, Bitmap, Offset, Height, Color);
 	}
 	else
 	{
-		LoadBitmap(Group->Assets, ID);
+		LoadBitmap(Group->Assets, ID, Group->AssetsShouldBeLocked);
 		++Group->MissingResourceCount;
 	}
 }
@@ -937,7 +937,7 @@ TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderG
 }
 
 internal render_group*
-AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferSize)
+AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferSize, b32 AssetsShouldBeLocked)
 {
 	render_group* Result = PushStruct(Arena, render_group);
 	
@@ -958,6 +958,7 @@ AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferS
 	Result->Transform.Scale = 1.0f;
 
 	Result->MissingResourceCount = 0;
+	Result->AssetsShouldBeLocked = AssetsShouldBeLocked;
 
 	return(Result);
 }
