@@ -31,10 +31,10 @@ struct loaded_bitmap
 	void* Memory;
 	v2 AlignPercentage;
 	f32 WidthOverHeight;
-	i16 Width;
-	i16 Height;
+	i32 Width;
+	i32 Height;
 	// TODO: Get rid of pitch
-	i16 Pitch;
+	i32 Pitch;
 
 };
 

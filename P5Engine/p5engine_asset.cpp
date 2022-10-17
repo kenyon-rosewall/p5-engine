@@ -17,7 +17,6 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 {
 	load_asset_work* Work = (load_asset_work*)FindData;
 
-
 	Platform.ReadDataFromFile(Work->Handle, Work->Offset, Work->Size, Work->Destination);
 
 	CompletePreviousWritesBeforeFutureWrites;
@@ -43,36 +42,23 @@ GetFileHandleFor(game_assets* Assets, u32 FileIndex)
 	return(Result);
 }
 
-inline void*
-AcquireAssetMemory(game_assets* Assets, memory_index Size)
+internal asset_memory_block*
+InsertBlock(asset_memory_block* Prev, u64 Size, void* Memory)
 {
-	void* Result = Platform.AllocateMemory(Size);
+	Assert(Size > sizeof(asset_memory_block));
 
-	if (Result)
-	{
-		Assets->TotalMemoryUsed += Size;
-	}
+	asset_memory_block* Block = (asset_memory_block*)Memory;
+	Block->Flags = 0;
+	Block->Size = Size - sizeof(asset_memory_block);
 
-	return(Result);
+	Block->Prev = Prev;
+	Block->Next = Prev->Next;
+
+	Block->Prev->Next = Block;
+	Block->Next->Prev = Block;
+
+	return(Block);
 }
-
-inline void
-ReleaseAssetMemory(game_assets* Assets, memory_index Size, void* Memory)
-{
-	if (Memory)
-	{
-		Assets->TotalMemoryUsed -= Size;
-	}
-
-	Platform.DeallocateMemory(Memory);
-}
-
-struct asset_memory_size
-{
-	u32 Total;
-	u32 Data;
-	u32 Section;
-};
 
 inline void
 InsertAssetHeaderAtFront(game_assets* Assets, asset_memory_header* Header)
@@ -86,6 +72,160 @@ InsertAssetHeaderAtFront(game_assets* Assets, asset_memory_header* Header)
 	Header->Prev->Next = Header;
 }
 
+internal void
+RemoveAssetHeaderFromList(asset_memory_header* Header)
+{
+	Header->Prev->Next = Header->Next;
+	Header->Next->Prev = Header->Prev;
+
+	Header->Next = Header->Prev = 0;
+}
+
+inline void
+ReleaseAssetMemory(game_assets* Assets, memory_index Size, void* Memory)
+{
+	if (Memory)
+	{
+		Assets->TotalMemoryUsed -= Size;
+	}
+
+#if 0
+	// NOTE: THis is the platform memory path
+	Platform.DeallocateMemory(Memory);
+#else
+	asset_memory_block* Block = (asset_memory_block*)Memory - 1;
+	Block->Flags &= ~AssetMemory_Used;
+	// TODO: Merge
+#endif
+}
+
+internal void
+EvictAsset(game_assets* Assets, asset_memory_header* Header)
+{
+	u32 AssetIndex = Header->AssetIndex;
+	asset* Asset = Assets->Assets + Header->AssetIndex;
+
+	Assert(GetState(Asset) == AssetState_Loaded);
+	Assert(!IsLocked(Asset));
+
+	RemoveAssetHeaderFromList(Header);
+	ReleaseAssetMemory(Assets, Asset->Header->TotalSize, Asset->Header);
+	Asset->State = AssetState_Unloaded;
+	Asset->Header = 0;
+}
+
+internal void
+EvictAssetsAsNecessary(game_assets* Assets)
+{
+	while (Assets->TotalMemoryUsed > Assets->TargetMemoryUsed)
+	{
+		asset_memory_header* Header = Assets->LoadedAssetSentinel.Prev;
+		if (Header != &Assets->LoadedAssetSentinel)
+		{
+			asset* Asset = Assets->Assets + Header->AssetIndex;
+			if (GetState(Asset) >= AssetState_Loaded)
+			{
+				EvictAsset(Assets, Header);
+			}
+		}
+		else
+		{
+			InvalidCodePath;
+			break;
+		}
+	}
+}
+
+internal asset_memory_block*
+FindBlockForSize(game_assets* Assets, memory_index Size)
+{
+	asset_memory_block* Result = 0;
+
+	// TODO: Best match block
+	for (asset_memory_block* Block = Assets->MemorySentinel.Next;
+		 Block != &Assets->MemorySentinel;
+		 Block = Block->Next)
+	{
+		if (!(Block->Flags & AssetMemory_Used))
+		{
+			if (Block->Size >= Size)
+			{
+				Result = Block;
+				break;
+			}
+		}
+	}
+
+	return(Result);
+}
+
+internal void*
+AcquireAssetMemory(game_assets* Assets, memory_index Size)
+{
+	void* Result = 0;
+#if 0
+	// NOTE: THis is the platform memory path
+	EvictAssetsAsNecessary(Assets);
+	Result = Platform.AllocateMemory(Size);
+#else
+	for (;;)
+	{
+		asset_memory_block* Block = FindBlockForSize(Assets, Size);
+		if (Block)
+		{
+			Block->Flags |= AssetMemory_Used;
+
+			Assert(Size <= Block->Size);
+
+			Result = (u8*)(Block + 1);
+
+			memory_index RemainingSize = Block->Size - Size;
+			memory_index BlockSplitThreshold = 4096;
+			if (RemainingSize > BlockSplitThreshold)
+			{
+				Block->Size -= RemainingSize;
+				InsertBlock(Block, RemainingSize, (u8*)Result + Size);
+			}
+
+			break;
+		}
+		else
+		{
+			for (asset_memory_header* Header = Assets->LoadedAssetSentinel.Prev;
+				Header != &Assets->LoadedAssetSentinel;
+				Header = Header->Prev)
+			{
+				if (Header != &Assets->LoadedAssetSentinel)
+				{
+					asset* Asset = Assets->Assets + Header->AssetIndex;
+					if (GetState(Asset) >= AssetState_Loaded)
+					{
+						EvictAsset(Assets, Header);
+						// Block = EvictAsset(Assets, Header);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+#endif
+
+	if (Result)
+	{
+		Assets->TotalMemoryUsed += Size;
+	}
+
+	return(Result);
+}
+
+struct asset_memory_size
+{
+	u32 Total;
+	u32 Data;
+	u32 Section;
+};
+
 inline void
 AddAssetHeaderToList(game_assets* Assets, u32 AssetIndex, asset_memory_size Size)
 {
@@ -94,15 +234,6 @@ AddAssetHeaderToList(game_assets* Assets, u32 AssetIndex, asset_memory_size Size
 	Header->TotalSize = Size.Total;
 
 	InsertAssetHeaderAtFront(Assets, Header);
-}
-
-internal void
-RemoveAssetHeaderFromList(asset_memory_header* Header)
-{
-	Header->Prev->Next = Header->Next;
-	Header->Next->Prev = Header->Prev;
-
-	Header->Next = Header->Prev = 0;
 }
 
 internal void
@@ -118,8 +249,8 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 			p5a_bitmap* Info = &Asset->P5A.Bitmap;
 
 			asset_memory_size Size = {};
-			u32 Width = SafeTruncateToUInt16(Info->Dim[0]);
-			u32 Height = SafeTruncateToUInt16(Info->Dim[1]);
+			u32 Width = Info->Dim[0];
+			u32 Height = Info->Dim[1];
 			Size.Section = 4 * Width;
 			Size.Data = Size.Section * Height;
 			Size.Total = Size.Data + sizeof(asset_memory_header);
@@ -129,9 +260,9 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 			loaded_bitmap* Bitmap = &Asset->Header->Bitmap;
 			Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
 			Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
-			Bitmap->Width = SafeTruncateToUInt16(Info->Dim[0]);
-			Bitmap->Height = SafeTruncateToUInt16(Info->Dim[1]);
-			Bitmap->Pitch = SafeTruncateToInt16(Size.Section);
+			Bitmap->Width = Info->Dim[0];
+			Bitmap->Height = Info->Dim[1];
+			Bitmap->Pitch = Size.Section;
 			Bitmap->Memory = (Asset->Header + 1);
 
 			load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
@@ -343,7 +474,14 @@ internal game_assets*
 AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* TransientState)
 {
 	game_assets* Assets = PushStruct(Arena, game_assets);
-	SubArena(&Assets->Arena, Arena, Size);
+
+	Assets->MemorySentinel.Flags = 0;
+	Assets->MemorySentinel.Size = 0;
+	Assets->MemorySentinel.Prev = &Assets->MemorySentinel;
+	Assets->MemorySentinel.Next = &Assets->MemorySentinel;
+
+	InsertBlock(&Assets->MemorySentinel, Size, (asset_memory_block*)PushSize(Arena, Size));
+	
 	Assets->TransientState = TransientState;
 	Assets->TotalMemoryUsed = 0;
 	Assets->TargetMemoryUsed = Size;
@@ -517,42 +655,5 @@ MoveHeaderToFront(game_assets* Assets, asset* Asset)
 
 		RemoveAssetHeaderFromList(Header);
 		InsertAssetHeaderAtFront(Assets, Header);
-	}
-}
-
-internal void
-EvictAsset(game_assets* Assets, asset_memory_header* Header)
-{
-	u32 AssetIndex = Header->AssetIndex;
-	asset* Asset = Assets->Assets + Header->AssetIndex;
-
-	Assert(GetState(Asset) == AssetState_Loaded);
-	Assert(!IsLocked(Asset));
-
-	RemoveAssetHeaderFromList(Header);
-	ReleaseAssetMemory(Assets, Asset->Header->TotalSize, Asset->Header);
-	Asset->State = AssetState_Unloaded;
-	Asset->Header = 0;
-}
-
-internal void
-EvictAssetsAsNecessary(game_assets* Assets)
-{
-	while (Assets->TotalMemoryUsed > Assets->TargetMemoryUsed)
-	{
-		asset_memory_header* Header = Assets->LoadedAssetSentinel.Prev;
-		if (Header != &Assets->LoadedAssetSentinel)
-		{
-			asset* Asset = Assets->Assets + Header->AssetIndex;
-			if (GetState(Asset) >= AssetState_Loaded)
-			{
-				EvictAsset(Assets, Header);
-			}
-		}
-		else
-		{
-			InvalidCodePath;
-			break;
-		}
 	}
 }
