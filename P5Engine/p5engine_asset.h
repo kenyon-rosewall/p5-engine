@@ -24,12 +24,13 @@ enum asset_state
 	AssetState_Unloaded,
 	AssetState_Queued,
 	AssetState_Loaded,
-	AssetState_Locked,
 	AssetState_StateMask = 0xFFF,
 
 	AssetState_Sound = 0x1000,
 	AssetState_Bitmap = 0x2000,
 	AssetState_TypeMask = 0xF000,
+
+	AssetState_Lock = 0x10000,
 };
 
 struct asset_slot
@@ -104,6 +105,13 @@ struct game_assets
 	asset_type AssetTypes[(u32)asset_type_id::Count];
 };
 
+inline b32 IsLocked(asset_slot* Slot)
+{
+	b32 Result = (Slot->State & AssetState_Lock);
+
+	return(Result);
+}
+
 inline u32
 GetState(asset_slot* Slot)
 {
@@ -129,7 +137,7 @@ inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLoc
 	loaded_bitmap* Result = 0;
 	if (GetState(Slot) >= AssetState_Loaded)
 	{
-		Assert(!MustBeLocked || (GetState(Slot) == AssetState_Locked));
+		Assert(!MustBeLocked || IsLocked(Slot));
 		CompletePreviousReadsBeforeFutureReads;
 		Result = &Slot->Bitmap;
 		MoveHeaderToFront(Assets, ID.Value, Slot);

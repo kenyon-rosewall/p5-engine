@@ -164,7 +164,9 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Bitmap->Memory;
-			Work->FinalState = (AssetState_Bitmap | (Locked ? AssetState_Locked : AssetState_Loaded));
+			Work->FinalState = (AssetState_Bitmap | AssetState_Loaded | (Locked ? AssetState_Lock : 0));
+
+			Slot->State |= AssetState_Lock;
 
 			if (!Locked)
 			{
@@ -513,7 +515,7 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 internal void
 MoveHeaderToFront(game_assets* Assets, u32 SlotIndex, asset_slot* Slot)
 {
-	if (GetState(Slot) != AssetState_Locked)
+	if (!IsLocked(Slot))
 	{
 		asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Slot), SlotIndex);
 		void* Memory = 0;
@@ -541,6 +543,7 @@ EvictAsset(game_assets* Assets, asset_memory_header* Header)
 	asset_slot* Slot = Assets->Slots + Header->SlotIndex;
 
 	Assert(GetState(Slot) == AssetState_Loaded);
+	Assert(!IsLocked(Slot));
 
 	asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Slot), SlotIndex);
 
