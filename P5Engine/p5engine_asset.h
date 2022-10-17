@@ -26,21 +26,27 @@ enum asset_state
 	AssetState_Loaded,
 	AssetState_StateMask = 0xFFF,
 
-	AssetState_Sound = 0x1000,
-	AssetState_Bitmap = 0x2000,
-	AssetState_TypeMask = 0xF000,
-
-	AssetState_Lock = 0x10000,
+	AssetState_Lock = 0x1000,
 };
 
-struct asset
+struct asset_memory_header
 {
-	u32 State;
+	asset_memory_header* Next;
+	asset_memory_header* Prev;
+
+	u32 AssetIndex;
+	u32 TotalSize;
 	union
 	{
 		loaded_bitmap Bitmap;
 		loaded_sound Sound;
 	};
+};
+
+struct asset
+{
+	u32 State;
+	asset_memory_header* Header;
 
 	p5a_asset P5A;
 	u32 FileIndex;
@@ -55,14 +61,6 @@ struct asset_type
 {
 	u32 FirstAssetIndex;
 	u32 OnePastLastAssetIndex;
-};
-
-struct asset_memory_header
-{
-	asset_memory_header* Next;
-	asset_memory_header* Prev;
-	u32 AssetIndex;
-	u32 Reserved;
 };
 
 struct asset_file
@@ -101,7 +99,8 @@ struct game_assets
 	asset_type AssetTypes[(u32)asset_type_id::Count];
 };
 
-inline b32 IsLocked(asset* Asset)
+inline b32
+IsLocked(asset* Asset)
 {
 	b32 Result = (Asset->State & AssetState_Lock);
 
@@ -116,15 +115,7 @@ GetState(asset* Asset)
 	return(Result);
 }
 
-inline u32
-GetType(asset* Asset)
-{
-	u32 Result = Asset->State & AssetState_TypeMask;
-
-	return(Result);
-}
-
-internal void MoveHeaderToFront(game_assets* Assets, u32 AssetIndex, asset* Asset);
+internal void MoveHeaderToFront(game_assets* Assets, asset* Asset);
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLocked)
 {
 	Assert(ID.Value <= Assets->AssetCount);
@@ -135,8 +126,8 @@ inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLoc
 	{
 		Assert(!MustBeLocked || IsLocked(Asset));
 		CompletePreviousReadsBeforeFutureReads;
-		Result = &Asset->Bitmap;
-		MoveHeaderToFront(Assets, ID.Value, Asset);
+		Result = &Asset->Header->Bitmap;
+		MoveHeaderToFront(Assets, Asset);
 	}
 
 	return(Result);
@@ -151,8 +142,8 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 	if (GetState(Asset) >= AssetState_Loaded)
 	{
 		CompletePreviousReadsBeforeFutureReads;
-		Result = &Asset->Sound;
-		MoveHeaderToFront(Assets, ID.Value, Asset);
+		Result = &Asset->Header->Sound;
+		MoveHeaderToFront(Assets, Asset);
 	}
 
 	return(Result);
