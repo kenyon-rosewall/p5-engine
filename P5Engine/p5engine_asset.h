@@ -33,7 +33,7 @@ enum asset_state
 	AssetState_Lock = 0x10000,
 };
 
-struct asset_slot
+struct asset
 {
 	u32 State;
 	union
@@ -41,10 +41,7 @@ struct asset_slot
 		loaded_bitmap Bitmap;
 		loaded_sound Sound;
 	};
-};
 
-struct asset
-{
 	p5a_asset P5A;
 	u32 FileIndex;
 };
@@ -64,7 +61,7 @@ struct asset_memory_header
 {
 	asset_memory_header* Next;
 	asset_memory_header* Prev;
-	u32 SlotIndex;
+	u32 AssetIndex;
 	u32 Reserved;
 };
 
@@ -100,47 +97,46 @@ struct game_assets
 
 	u32 AssetCount;
 	asset* Assets;
-	asset_slot* Slots;
 
 	asset_type AssetTypes[(u32)asset_type_id::Count];
 };
 
-inline b32 IsLocked(asset_slot* Slot)
+inline b32 IsLocked(asset* Asset)
 {
-	b32 Result = (Slot->State & AssetState_Lock);
+	b32 Result = (Asset->State & AssetState_Lock);
 
 	return(Result);
 }
 
 inline u32
-GetState(asset_slot* Slot)
+GetState(asset* Asset)
 {
-	u32 Result = Slot->State & AssetState_StateMask;
+	u32 Result = Asset->State & AssetState_StateMask;
 
 	return(Result);
 }
 
 inline u32
-GetType(asset_slot* Slot)
+GetType(asset* Asset)
 {
-	u32 Result = Slot->State & AssetState_TypeMask;
+	u32 Result = Asset->State & AssetState_TypeMask;
 
 	return(Result);
 }
 
-internal void MoveHeaderToFront(game_assets* Assets, u32 SlotIndex, asset_slot* Slot);
+internal void MoveHeaderToFront(game_assets* Assets, u32 AssetIndex, asset* Asset);
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLocked)
 {
 	Assert(ID.Value <= Assets->AssetCount);
 
-	asset_slot* Slot = Assets->Slots + ID.Value;
+	asset* Asset = Assets->Assets + ID.Value;
 	loaded_bitmap* Result = 0;
-	if (GetState(Slot) >= AssetState_Loaded)
+	if (GetState(Asset) >= AssetState_Loaded)
 	{
-		Assert(!MustBeLocked || IsLocked(Slot));
+		Assert(!MustBeLocked || IsLocked(Asset));
 		CompletePreviousReadsBeforeFutureReads;
-		Result = &Slot->Bitmap;
-		MoveHeaderToFront(Assets, ID.Value, Slot);
+		Result = &Asset->Bitmap;
+		MoveHeaderToFront(Assets, ID.Value, Asset);
 	}
 
 	return(Result);
@@ -150,13 +146,13 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 {
 	Assert(ID.Value <= Assets->AssetCount);
 
-	asset_slot* Slot = Assets->Slots + ID.Value;
+	asset* Asset = Assets->Assets + ID.Value;
 	loaded_sound* Result = 0;
-	if (GetState(Slot) >= AssetState_Loaded)
+	if (GetState(Asset) >= AssetState_Loaded)
 	{
 		CompletePreviousReadsBeforeFutureReads;
-		Result = &Slot->Sound;
-		MoveHeaderToFront(Assets, ID.Value, Slot);
+		Result = &Asset->Sound;
+		MoveHeaderToFront(Assets, ID.Value, Asset);
 	}
 
 	return(Result);

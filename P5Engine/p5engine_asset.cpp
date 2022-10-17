@@ -3,7 +3,7 @@
 struct load_asset_work
 {
 	task_with_memory* Task;
-	asset_slot* Slot;
+	asset* Asset;
 
 	platform_file_handle* Handle;
 	u64 Offset;
@@ -28,7 +28,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(LoadAssetWork)
 		ZeroSize(Work->Size, Work->Destination);
 	}
 
-	Work->Slot->State = Work->FinalState;
+	Work->Asset->State = Work->FinalState;
 	
 	EndTaskWithMemory(Work->Task);
 }
@@ -75,9 +75,9 @@ struct asset_memory_size
 };
 
 asset_memory_size
-GetSizeOfAsset(game_assets* Assets, u32 Type, u32 SlotIndex)
+GetSizeOfAsset(game_assets* Assets, u32 Type, u32 AssetIndex)
 {
-	asset* Asset = Assets->Assets + SlotIndex;
+	asset* Asset = Assets->Assets + AssetIndex;
 
 	asset_memory_size Result = {};
 
@@ -118,10 +118,10 @@ InsertAssetHeaderAtFront(game_assets* Assets, asset_memory_header* Header)
 }
 
 inline void
-AddAssetHeaderToList(game_assets* Assets, u32 SlotIndex, void* Memory, asset_memory_size Size)
+AddAssetHeaderToList(game_assets* Assets, u32 AssetIndex, void* Memory, asset_memory_size Size)
 {
 	asset_memory_header* Header = (asset_memory_header*)((u8*)Memory + Size.Data);
-	Header->SlotIndex = SlotIndex;
+	Header->AssetIndex = AssetIndex;
 	InsertAssetHeaderAtFront(Assets, Header);
 }
 
@@ -137,16 +137,16 @@ RemoveAssetHeaderFromList(asset_memory_header* Header)
 internal void
 LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 {
-	asset_slot* Slot = Assets->Slots + ID.Value;
+	asset* Asset = Assets->Assets + ID.Value;
 	if (ID.Value &&
-		(AtomicCompareExchangeUInt32((u32*)&Slot->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
+		(AtomicCompareExchangeUInt32((u32*)&Asset->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
 	{
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
 		{
-			asset* Asset = Assets->Assets + ID.Value;
+			// asset* Asset = Assets->Assets + ID.Value;
 			p5a_bitmap* Info = &Asset->P5A.Bitmap;
-			loaded_bitmap* Bitmap = &Slot->Bitmap;
+			loaded_bitmap* Bitmap = &Asset->Bitmap;
 
 			Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
 			Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
@@ -159,14 +159,14 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 
 			load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
 			Work->Task = Task;
-			Work->Slot = Assets->Slots + ID.Value;
+			Work->Asset = Asset; // Assets->Assets + ID.Value;
 			Work->Handle = GetFileHandleFor(Assets, Asset->FileIndex);
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Bitmap->Memory;
 			Work->FinalState = (AssetState_Bitmap | AssetState_Loaded | (Locked ? AssetState_Lock : 0));
 
-			Slot->State |= AssetState_Lock;
+			Asset->State |= AssetState_Lock;
 
 			if (!Locked)
 			{
@@ -177,7 +177,7 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 		}
 		else
 		{
-			Slot->State = AssetState_Unloaded;
+			Asset->State = AssetState_Unloaded;
 		}
 	}
 }
@@ -185,16 +185,16 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 internal void
 LoadSound(game_assets* Assets, sound_id ID)
 {
-	asset_slot* Slot = Assets->Slots + ID.Value;
+	asset* Asset = Assets->Assets + ID.Value;
 	if (ID.Value &&
-		(AtomicCompareExchangeUInt32((u32*)&Slot->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
+		(AtomicCompareExchangeUInt32((u32*)&Asset->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
 	{
 		task_with_memory* Task = BeginTaskWithMemory(Assets->TransientState);
 		if (Task)
 		{
-			asset* Asset = Assets->Assets + ID.Value;
+			// asset* Asset = Assets->Assets + ID.Value;
 			p5a_sound* Info = &Asset->P5A.Sound;
-			loaded_sound* Sound = &Slot->Sound;
+			loaded_sound* Sound = &Asset->Sound;
 
 			Sound->SampleCount = Info->SampleCount;
 			Sound->ChannelCount = Info->ChannelCount;
@@ -214,7 +214,7 @@ LoadSound(game_assets* Assets, sound_id ID)
 
 			load_asset_work* Work = PushStruct(&Task->Arena, load_asset_work);
 			Work->Task = Task;
-			Work->Slot = Assets->Slots + ID.Value;
+			Work->Asset = Asset; // Assets->Slots + ID.Value;
 			Work->Handle = GetFileHandleFor(Assets, Asset->FileIndex);
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
@@ -227,7 +227,7 @@ LoadSound(game_assets* Assets, sound_id ID)
 		}
 		else
 		{
-			Slot->State = AssetState_Unloaded;
+			Asset->State = AssetState_Unloaded;
 		}
 	}
 }
@@ -369,7 +369,9 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 
 	Assets->LoadedAssetSentinel.Next = Assets->LoadedAssetSentinel.Prev = &Assets->LoadedAssetSentinel;
 
-	for (u32 TagType = 0; TagType < (u32)asset_tag_id::Count; ++TagType)
+	for (u32 TagType = 0;
+		 TagType < (u32)asset_tag_id::Count;
+		 ++TagType)
 	{
 		Assets->TagRange[TagType] = 1000000.0f;
 	}
@@ -382,7 +384,9 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 		platform_file_group* FileGroup = Platform.GetAllFilesOfTypeBegin((char*)"p5a");
 		Assets->FileCount = FileGroup->FileCount;
 		Assets->Files = PushArray(Arena, Assets->FileCount, asset_file);
-		for (u32 FileIndex = 0; FileIndex < Assets->FileCount; ++FileIndex)
+		for (u32 FileIndex = 0;
+			 FileIndex < Assets->FileCount;
+			 ++FileIndex)
 		{
 			asset_file* File = Assets->Files + FileIndex;
 			File->TagBase = Assets->TagCount;
@@ -425,14 +429,16 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 
 	// NOTE: Allocate all metadata space
 	Assets->Assets = PushArray(Arena, Assets->AssetCount, asset);
-	Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
+	// Assets->Slots = PushArray(Arena, Assets->AssetCount, asset_slot);
 	Assets->Tags = PushArray(Arena, Assets->TagCount, p5a_tag);
 
 	// NOTE: Reserve one null tag at the beginning
 	ZeroStruct(Assets->Tags[0]);
 
 	// NOTE: Load tags
-	for (u32 FileIndex = 0; FileIndex < Assets->FileCount; ++FileIndex)
+	for (u32 FileIndex = 0;
+		 FileIndex < Assets->FileCount;
+		 ++FileIndex)
 	{
 		asset_file* File = Assets->Files + FileIndex;
 		if (PlatformNoFileErrors(File->Handle))
@@ -454,17 +460,23 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 
 	// TODO: Exercise for the reader - how would you do this in a way that scaled gracefully
 	// to hundreds of asset pack files? (or more!)
-	for (u32 DestTypeID = 0; DestTypeID < (u32)asset_type_id::Count; ++DestTypeID)
+	for (u32 DestTypeID = 0;
+		 DestTypeID < (u32)asset_type_id::Count;
+		 ++DestTypeID)
 	{
 		asset_type* DestType = Assets->AssetTypes + DestTypeID;
 		DestType->FirstAssetIndex = AssetCount;
 
-		for (u32 FileIndex = 0; FileIndex < Assets->FileCount; ++FileIndex)
+		for (u32 FileIndex = 0;
+			 FileIndex < Assets->FileCount;
+			 ++FileIndex)
 		{
 			asset_file* File = Assets->Files + FileIndex;
 			if (PlatformNoFileErrors(File->Handle))
 			{
-				for (u32 SourceIndex = 0; SourceIndex < File->Header.AssetTypeCount; ++SourceIndex)
+				for (u32 SourceIndex = 0;
+					 SourceIndex < File->Header.AssetTypeCount;
+					 ++SourceIndex)
 				{
 					p5a_asset_type* SourceType = File->AssetTypeArray + SourceIndex;
 
@@ -479,7 +491,10 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 							AssetCountForType * sizeof(p5a_asset),
 							P5AAssetArray
 						);
-						for (u32 AssetIndex = 0; AssetIndex < AssetCountForType; ++AssetIndex)
+
+						for (u32 AssetIndex = 0;
+							 AssetIndex < AssetCountForType;
+							 ++AssetIndex)
 						{
 							p5a_asset* P5AAsset = P5AAssetArray + AssetIndex;
 							Assert(AssetCount < Assets->AssetCount);
@@ -513,21 +528,21 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 }
 
 internal void
-MoveHeaderToFront(game_assets* Assets, u32 SlotIndex, asset_slot* Slot)
+MoveHeaderToFront(game_assets* Assets, u32 AssetIndex, asset* Asset)
 {
-	if (!IsLocked(Slot))
+	if (!IsLocked(Asset))
 	{
-		asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Slot), SlotIndex);
+		asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Asset), AssetIndex);
 		void* Memory = 0;
-		if (GetType(Slot) == AssetState_Bitmap)
+		if (GetType(Asset) == AssetState_Bitmap)
 		{
-			Memory = Slot->Bitmap.Memory;
+			Memory = Asset->Bitmap.Memory;
 		}
 		else
 		{
-			Assert(GetType(Slot) == AssetState_Sound);
+			Assert(GetType(Asset) == AssetState_Sound);
 
-			Memory = Slot->Sound.Samples[0];
+			Memory = Asset->Sound.Samples[0];
 		}
 		asset_memory_header* Header = (asset_memory_header*)((u8*)Memory + Size.Data);
 
@@ -539,30 +554,30 @@ MoveHeaderToFront(game_assets* Assets, u32 SlotIndex, asset_slot* Slot)
 internal void
 EvictAsset(game_assets* Assets, asset_memory_header* Header)
 {
-	u32 SlotIndex = Header->SlotIndex;
-	asset_slot* Slot = Assets->Slots + Header->SlotIndex;
+	u32 AssetIndex = Header->AssetIndex;
+	asset* Asset = Assets->Assets + Header->AssetIndex;
 
-	Assert(GetState(Slot) == AssetState_Loaded);
-	Assert(!IsLocked(Slot));
+	Assert(GetState(Asset) == AssetState_Loaded);
+	Assert(!IsLocked(Asset));
 
-	asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Slot), SlotIndex);
+	asset_memory_size Size = GetSizeOfAsset(Assets, GetType(Asset), AssetIndex);
 
 	void* Memory = 0;
-	if (GetType(Slot) == AssetState_Sound)
+	if (GetType(Asset) == AssetState_Sound)
 	{
-		Memory = Slot->Sound.Samples[0];
+		Memory = Asset->Sound.Samples[0];
 	}
 	else
 	{
-		Assert(GetType(Slot) == AssetState_Bitmap);
+		Assert(GetType(Asset) == AssetState_Bitmap);
 
-		Memory = Slot->Bitmap.Memory;
+		Memory = Asset->Bitmap.Memory;
 	}
 
 	RemoveAssetHeaderFromList(Header);
 	ReleaseAssetMemory(Assets, Size.Total, Memory);
 
-	Slot->State = AssetState_Unloaded;
+	Asset->State = AssetState_Unloaded;
 }
 
 internal void
@@ -573,8 +588,8 @@ EvictAssetsAsNecessary(game_assets* Assets)
 		asset_memory_header* Header = Assets->LoadedAssetSentinel.Prev;
 		if (Header != &Assets->LoadedAssetSentinel)
 		{
-			asset_slot* Slot = Assets->Slots + Header->SlotIndex;
-			if (GetState(Slot) >= AssetState_Loaded)
+			asset* Asset = Assets->Assets + Header->AssetIndex;
+			if (GetState(Asset) >= AssetState_Loaded)
 			{
 				EvictAsset(Assets, Header);
 			}
