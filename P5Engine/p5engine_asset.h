@@ -120,6 +120,7 @@ GetType(asset_slot* Slot)
 	return(Result);
 }
 
+internal void MoveHeaderToFront(game_assets* Assets, u32 SlotIndex, asset_slot* Slot);
 inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLocked)
 {
 	Assert(ID.Value <= Assets->AssetCount);
@@ -131,6 +132,7 @@ inline loaded_bitmap* GetBitmap(game_assets* Assets, bitmap_id ID, b32 MustBeLoc
 		Assert(!MustBeLocked || (GetState(Slot) == AssetState_Locked));
 		CompletePreviousReadsBeforeFutureReads;
 		Result = &Slot->Bitmap;
+		MoveHeaderToFront(Assets, ID.Value, Slot);
 	}
 
 	return(Result);
@@ -146,6 +148,7 @@ inline loaded_sound* GetSound(game_assets* Assets, sound_id ID)
 	{
 		CompletePreviousReadsBeforeFutureReads;
 		Result = &Slot->Sound;
+		MoveHeaderToFront(Assets, ID.Value, Slot);
 	}
 
 	return(Result);
