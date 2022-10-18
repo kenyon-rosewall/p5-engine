@@ -1,6 +1,9 @@
 
 #include "asset_builder.h"
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
 #pragma pack(push, 1)
 struct bitmap_header
 {
@@ -185,6 +188,54 @@ LoadBMP(char* Filename)
 	Result.Memory = (uint32*)((uint8*)Result.Memory + Result.Pitch * (Result.Height - 1));
 	Result.Pitch = -Result.Width;
 #endif
+
+	return(Result);
+}
+
+internal loaded_bitmap
+LoadGlyphBitmap(char* Filename, u32 Codepoint)
+{
+	loaded_bitmap Result = {};
+
+	entire_file TTFFile = ReadEntireFile(Filename);
+	if (TTFFile.ContentsSize != 0)
+	{
+		stbtt_fontinfo Font;
+		stbtt_InitFont(&Font, (u8*)TTFFile.Contents, stbtt_GetFontOffsetForIndex((u8*)TTFFile.Contents, 0));
+
+		i32 Width, Height, XOffset, YOffset;
+		u8* MonoBitmap = stbtt_GetCodepointBitmap(&Font, 0, stbtt_ScaleForPixelHeight(&Font, 128.0f), Codepoint, &Width, &Height, &XOffset, &YOffset);
+
+		Result.Width = Width;
+		Result.Height = Height;
+		Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
+		Result.Memory = malloc(Height * Result.Pitch);
+		Result.Free = Result.Memory;
+
+		u8* Source = MonoBitmap;
+		u8* DestRow = (u8*)Result.Memory + (Height - 1) * Result.Pitch;
+		for (i32 Y = 0;
+			 Y < Height;
+			 ++Y)
+		{
+			u32* Dest = (u32*)DestRow;
+			for (i32 X = 0;
+				 X < Width;
+				 ++X)
+			{
+				u8 Alpha = *Source++;
+				*Dest++ = ((Alpha << 24) |
+						   (Alpha << 16) |
+						   (Alpha << 8) |
+						   (Alpha << 0));
+			}
+
+			DestRow -= Result.Pitch;
+		}
+		stbtt_FreeBitmap(MonoBitmap, 0);
+
+		free(TTFFile.Contents);
+	}
 
 	return(Result);
 }
@@ -398,6 +449,31 @@ AddBitmapAsset(game_assets* Assets, char* Filename, f32 AlignPercentageX = 0.5f,
 	return(Result);
 }
 
+internal bitmap_id
+AddCharacterAsset(game_assets* Assets, char* FontFile, u32 Codepoint, f32 AlignPercentageX = 0.5f, f32 AlignPercentageY = 0.5f)
+{
+	Assert(Assets->DEBUGAssetType);
+	Assert(Assets->DEBUGAssetType->OnePastLastAssetIndex < ArrayCount(Assets->Assets));
+
+	bitmap_id Result = { Assets->DEBUGAssetType->OnePastLastAssetIndex++ };
+
+	asset_source* Source = Assets->AssetSources + Result.Value;
+	p5a_asset* P5A = Assets->Assets + Result.Value;
+
+	P5A->FirstTagIndex = Assets->TagCount;
+	P5A->OnePastLastTagIndex = P5A->FirstTagIndex;
+	P5A->Bitmap.AlignPercentage[0] = AlignPercentageX;
+	P5A->Bitmap.AlignPercentage[1] = AlignPercentageY;
+
+	Source->Type = asset_type::Font;
+	Source->Filename = FontFile;
+	Source->Codepoint = Codepoint;
+
+	Assets->AssetIndex = Result.Value;
+
+	return(Result);
+}
+
 internal sound_id
 AddSoundAsset(game_assets* Assets, char* Filename, u32 FirstSampleIndex = 0, u32 SampleCount = 0)
 {
@@ -493,17 +569,25 @@ WriteP5A(game_assets* Assets, char* Filename)
 			}
 			else
 			{
-				Assert(Source->Type == asset_type::Bitmap);
+				loaded_bitmap Bitmap;
+				if (Source->Type == asset_type::Font)
+				{
+					Bitmap = LoadGlyphBitmap(Source->Filename, Source->Codepoint);
+				}
+				else
+				{
+					Assert(Source->Type == asset_type::Bitmap);
 
-				loaded_bitmap BMP = LoadBMP(Source->Filename);
+					Bitmap = LoadBMP(Source->Filename);
+				}
 
-				Dest->Bitmap.Dim[0] = BMP.Width;
-				Dest->Bitmap.Dim[1] = BMP.Height;
+				Dest->Bitmap.Dim[0] = Bitmap.Width;
+				Dest->Bitmap.Dim[1] = Bitmap.Height;
 
-				Assert((BMP.Width * 4) == BMP.Pitch);
-				fwrite(BMP.Memory, BMP.Width * BMP.Height * 4, 1, Out);
+				Assert((Bitmap.Width * 4) == Bitmap.Pitch);
 
-				free(BMP.Free);
+				fwrite(Bitmap.Memory, Bitmap.Width * Bitmap.Height * 4, 1, Out);
+				free(Bitmap.Free);
 			}
 		}
 		fseek(Out, (u32)Header.Assets, SEEK_SET);
@@ -608,6 +692,16 @@ WriteNonHero(void)
 	BeginAssetType(Assets, asset_type_id::Tuft);
 	AddBitmapAsset(Assets, (char*)"data/bitmaps/tuft1.bmp");
 	AddBitmapAsset(Assets, (char*)"data/bitmaps/tuft2.bmp");
+	EndAssetType(Assets);
+
+	BeginAssetType(Assets, asset_type_id::Font);
+	for (u32 Character = 'A';
+		 Character <= 'Z';
+		 ++Character)
+	{
+		AddCharacterAsset(Assets, (char*)"c:/Windows/Fonts/arial.ttf", Character);
+		AddTag(Assets, asset_tag_id::UnicodeCodepoint, (f32)Character);
+	}
 	EndAssetType(Assets);
 
 	WriteP5A(Assets, (char*)"data/assets2.p5a");

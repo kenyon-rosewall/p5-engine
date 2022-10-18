@@ -1,8 +1,8 @@
 #define internal
-#include "../P5Engine/p5engine.h"
+#include "p5engine.h"
 
 #if 0
-#include "..\iaca-win64\iacaMarks.h"
+#include "iaca-win64/iacaMarks.h"
 #else
 #define IACA_VC64_START
 #define IACA_VC64_END

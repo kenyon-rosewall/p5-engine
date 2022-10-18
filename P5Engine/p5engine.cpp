@@ -468,6 +468,9 @@ MakeEmptyBitmap(memory_arena* Arena, i32 Width, i32 Height, b32 ClearToZero = tr
 {
 	loaded_bitmap Result = {};
 
+	Result.AlignPercentage = V2(0.5f, 0.5f);
+	Result.WidthOverHeight = SafeRatio1((f32)Width, (f32)Height);
+
 	Result.Width = Width;
 	Result.Height = Height;
 	Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
@@ -866,7 +869,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
 
-		GameState->Music = PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
+		GameState->Music = 0; // PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
 		TransientState->GroundBuffers = PushArray(&TransientState->TransientArena, TransientState->GroundBufferCount, ground_buffer);
@@ -1314,7 +1317,17 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 											 RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
 											 1.0f);
 						Particle->dColor = V4(0, 0, 0, -0.25f);
-						Particle->BitmapID = GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar);
+
+						asset_vector MatchVector = {};
+						asset_vector WeightVector = {};
+						char Nothings[] = "NOTHINGS";
+						MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = (f32)Nothings[RandomChoice(&GameState->EffectsEntropy, ArrayCount(Nothings) - 1)];
+						WeightVector.E[(u32)asset_tag_id::UnicodeCodepoint] = 1.0f;
+
+						Particle->BitmapID = GetBestMatchBitmapFrom(TransientState->Assets, asset_type_id::Font, &MatchVector, &WeightVector);
+
+						// Particle->BitmapID = GetRandomBitmapFrom(TransientState->Assets, asset_type_id::Font, &GameState->EffectsEntropy);
+						// Particle->BitmapID = GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar);
 					}
 
 					ZeroStruct(GameState->ParticleCels);
@@ -1422,7 +1435,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						}
 						
 						// NOTE: Render the particle
-						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.5f, Color);
+						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.2f, Color);
 					}
 				} break;
 

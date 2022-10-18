@@ -3,6 +3,52 @@
 #ifndef P5ENGINE_FILE_FORMATS_H
 #define P5ENGINE_FILE_FORMATS_H
 
+enum class asset_tag_id
+{
+	Smoothness,
+	Flatness,
+	FacingDirection,
+	UnicodeCodepoint,
+
+	Count,
+};
+
+enum class asset_type_id
+{
+	None,
+
+	//
+	// NOTE: Bitmaps
+	//
+
+	Shadow,
+	Tree,
+	Monstar,
+	Familiar,
+	Grass,
+
+	Soil,
+	Tuft,
+
+	Character,
+	Sword,
+
+	Font,
+
+	//
+	// NOTE: Sounds
+	//
+
+	Bloop,
+	Crack,
+	Drop,
+	Glide,
+	Music,
+	Puhp,
+
+	Count,
+};
+
 #define P5A_CODE(a, b, c, d) (((u32)(a) << 0) | ((u32)(b) << 8) | ((u32)(c) << 16) | ((u32)(d) << 24))
 
 #pragma pack(push, 1)

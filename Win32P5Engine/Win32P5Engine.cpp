@@ -17,7 +17,7 @@ TODO: THIS IS NOT A FINAL PLATFORM LAYER!!!
 Just a partial list of stuff!!
 */
 
-#include "../P5Engine/p5engine_platform.h"
+#include "p5engine_platform.h"
 
 #include <Windows.h>
 #include <strsafe.h>

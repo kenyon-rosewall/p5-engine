@@ -3,8 +3,6 @@
 #ifndef P5ENGINE_ASSET_H
 #define P5ENGINE_ASSET_H
 
-#include "p5engine_asset_type_id.h"
-
 struct hero_bitmaps
 {
 	loaded_bitmap Character;

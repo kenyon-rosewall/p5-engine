@@ -154,6 +154,7 @@
       <DisableSpecificWarnings>4201;4100;4189;4505;4244;4456;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>C:\Users\pguru\source\repos\p5-engine\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -206,7 +207,6 @@
     <ClInclude Include="p5engine_tile.h" />
     <ClInclude Include="p5engine_types.h" />
     <ClInclude Include="p5engine_world.h" />
-    <ClInclude Include="p5engine_asset_type_id.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="p5engine.cpp" />
@@ -224,6 +224,7 @@
     </ClCompile>
     <ClCompile Include="p5engine_optimized.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\pguru\source\repos\p5-engine\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="p5engine_render_group.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
