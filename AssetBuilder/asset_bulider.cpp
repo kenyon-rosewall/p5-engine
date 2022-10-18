@@ -1,8 +1,14 @@
 
 #include "asset_builder.h"
 
+#define USE_FONTS_FROM_WINDOWS 1
+
+#if USE_FONTS_FROM_WINDOWS
+#include <Windows.h>
+#else
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
+#endif
 
 #pragma pack(push, 1)
 struct bitmap_header
@@ -193,9 +199,122 @@ LoadBMP(char* Filename)
 }
 
 internal loaded_bitmap
-LoadGlyphBitmap(char* Filename, u32 Codepoint)
+LoadGlyphBitmap(char* Filename, wchar_t* FontName, u32 Codepoint)
 {
 	loaded_bitmap Result = {};
+
+#if USE_FONTS_FROM_WINDOWS
+	static HDC DeviceContext = 0;
+	if (!DeviceContext)
+	{
+		AddFontResourceExA(Filename, FR_PRIVATE, 0);
+		i32 Height = 128; // TODO: Figure out how to specify pixels properly here
+		HFONT Font = CreateFont(Height, 0, 0, 0,
+			FW_NORMAL, // NOTE: Weight
+			FALSE, // NOTE: Italic
+			FALSE, // NOTE: Underline
+			FALSE, // NOTE: Strikeout
+			DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, 
+			DEFAULT_PITCH | FF_DONTCARE, FontName);
+
+		DeviceContext = CreateCompatibleDC(0);
+		HBITMAP Bitmap = CreateCompatibleBitmap(DeviceContext, 1024, 1024);
+		SelectObject(DeviceContext, Bitmap);
+		SelectObject(DeviceContext, Font);
+		SetBkColor(DeviceContext, RGB(0, 0, 0));
+
+		TEXTMETRIC TextMetric;
+		GetTextMetrics(DeviceContext, &TextMetric);
+	}
+
+	wchar_t CheesePoint = (wchar_t)Codepoint;
+
+	SIZE Size;
+	GetTextExtentPoint32W(DeviceContext, &CheesePoint, 1, &Size);
+
+	i32 Width = Size.cx;
+	i32 Height = Size.cy;
+
+	SetTextColor(DeviceContext, RGB(255, 255, 255));
+	TextOutW(DeviceContext, 0, 0, &CheesePoint, 1);
+
+	i32 MinX = 10000;
+	i32 MinY = 10000;
+	i32 MaxX = -10000;
+	i32 MaxY = -10000;
+	for (i32 Y = 0;
+		 Y < Height;
+		 ++Y)
+	{
+		for (i32 X = 0;
+			 X < Width;
+			 ++X)
+		{
+			COLORREF Pixel = GetPixel(DeviceContext, X, Y);
+			if (Pixel != 0)
+			{
+				if (MinX > X)
+				{
+					MinX = X;
+				}
+
+				if (MinY > Y)
+				{
+					MinY = Y;
+				}
+
+				if (MaxX < X)
+				{
+					MaxX = X;
+				}
+
+				if (MaxY < Y)
+				{
+					MaxY = Y;
+				}
+			}
+		}
+	}
+
+	if (MinX <= MaxX)
+	{
+		--MinX;
+		--MinY;
+		++MaxX;
+		++MaxY;
+
+		Width = (MaxX - MinX) + 1;
+		Height = (MaxY - MinY) + 1; 
+		
+		Result.Width = Width;
+		Result.Height = Height;
+		Result.Pitch = Result.Width * BITMAP_BYTES_PER_PIXEL;
+		Result.Memory = malloc(Height * Result.Pitch);
+		Result.Free = Result.Memory;
+
+		u8* DestRow = (u8*)Result.Memory + (Height - 1) * Result.Pitch;
+		for (i32 Y = MinY;
+			Y <= MaxY;
+			++Y)
+		{
+			u32* Dest = (u32*)DestRow;
+			for (i32 X = MinX;
+				X <= MaxX;
+				++X)
+			{
+				COLORREF Pixel = GetPixel(DeviceContext, X, Y);
+				u8 Gray = (u8)(Pixel & 0xFF);
+				u8 Alpha = 0xFF;
+				*Dest++ = ((Alpha << 24) |
+					(Gray << 16) |
+					(Gray << 8) |
+					(Gray << 0));
+			}
+
+			DestRow -= Result.Pitch;
+		}
+	}
+#else
 
 	entire_file TTFFile = ReadEntireFile(Filename);
 	if (TTFFile.ContentsSize != 0)
@@ -223,11 +342,12 @@ LoadGlyphBitmap(char* Filename, u32 Codepoint)
 				 X < Width;
 				 ++X)
 			{
-				u8 Alpha = *Source++;
+				u8 Gray = *Source++;
+				u8 Alpha = 0xFF;
 				*Dest++ = ((Alpha << 24) |
-						   (Alpha << 16) |
-						   (Alpha << 8) |
-						   (Alpha << 0));
+						   (Gray  << 16) |
+						   (Gray  << 8) |
+						   (Gray  << 0));
 			}
 
 			DestRow -= Result.Pitch;
@@ -236,6 +356,7 @@ LoadGlyphBitmap(char* Filename, u32 Codepoint)
 
 		free(TTFFile.Contents);
 	}
+#endif
 
 	return(Result);
 }
@@ -450,7 +571,7 @@ AddBitmapAsset(game_assets* Assets, char* Filename, f32 AlignPercentageX = 0.5f,
 }
 
 internal bitmap_id
-AddCharacterAsset(game_assets* Assets, char* FontFile, u32 Codepoint, f32 AlignPercentageX = 0.5f, f32 AlignPercentageY = 0.5f)
+AddCharacterAsset(game_assets* Assets, char* FontFile, wchar_t* FontName, u32 Codepoint, f32 AlignPercentageX = 0.5f, f32 AlignPercentageY = 0.5f)
 {
 	Assert(Assets->DEBUGAssetType);
 	Assert(Assets->DEBUGAssetType->OnePastLastAssetIndex < ArrayCount(Assets->Assets));
@@ -467,6 +588,7 @@ AddCharacterAsset(game_assets* Assets, char* FontFile, u32 Codepoint, f32 AlignP
 
 	Source->Type = asset_type::Font;
 	Source->Filename = FontFile;
+	Source->FontName = FontName;
 	Source->Codepoint = Codepoint;
 
 	Assets->AssetIndex = Result.Value;
@@ -572,7 +694,7 @@ WriteP5A(game_assets* Assets, char* Filename)
 				loaded_bitmap Bitmap;
 				if (Source->Type == asset_type::Font)
 				{
-					Bitmap = LoadGlyphBitmap(Source->Filename, Source->Codepoint);
+					Bitmap = LoadGlyphBitmap(Source->Filename, Source->FontName, Source->Codepoint);
 				}
 				else
 				{
@@ -629,13 +751,13 @@ WriteHero(void)
 	f32 HeroAlignY = 0.109375f;
 
 	BeginAssetType(Assets, asset_type_id::Character);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/char-right-0.bmp", HeroAlignX, HeroAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/char-right-0.bmp", HeroAlignX, HeroAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleRight);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/char-back-0.bmp", HeroAlignX, HeroAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/char-back-0.bmp", HeroAlignX, HeroAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleBack);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/char-left-0.bmp", HeroAlignX, HeroAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/char-left-0.bmp", HeroAlignX, HeroAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/char-front-0.bmp", HeroAlignX, HeroAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/char-front-0.bmp", HeroAlignX, HeroAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
 	EndAssetType(Assets);
 
@@ -643,17 +765,17 @@ WriteHero(void)
 	f32 SwordAlignY = 0.828125f;
 
 	BeginAssetType(Assets, asset_type_id::Sword);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/sword-right.bmp", SwordAlignX, SwordAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/sword-right.bmp", SwordAlignX, SwordAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleRight);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/sword-back.bmp", SwordAlignX, SwordAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/sword-back.bmp", SwordAlignX, SwordAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleBack);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/sword-left.bmp", SwordAlignX, SwordAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/sword-left.bmp", SwordAlignX, SwordAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleLeft);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/sword-front.bmp", SwordAlignX, SwordAlignY);
+	AddBitmapAsset(Assets, "data/bitmaps/sword-front.bmp", SwordAlignX, SwordAlignY);
 	AddTag(Assets, asset_tag_id::FacingDirection, AngleFront);
 	EndAssetType(Assets);
 
-	WriteP5A(Assets, (char*)"data/assets1.p5a");
+	WriteP5A(Assets, "data/assets1.p5a");
 }
 
 internal void
@@ -664,34 +786,34 @@ WriteNonHero(void)
 	Initialize(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Shadow);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/shadow.bmp", 0.5f, 1.09090912f);
+	AddBitmapAsset(Assets, "data/bitmaps/shadow.bmp", 0.5f, 1.09090912f);
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Tree);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/tree.bmp", 0.5f, 0.340425521f);
+	AddBitmapAsset(Assets, "data/bitmaps/tree.bmp", 0.5f, 0.340425521f);
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Monstar);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/enemy.bmp", 0.5f, 0.0f);
+	AddBitmapAsset(Assets, "data/bitmaps/enemy.bmp", 0.5f, 0.0f);
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Familiar);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/orb.bmp", 0.5f, 0.0f);
+	AddBitmapAsset(Assets, "data/bitmaps/orb.bmp", 0.5f, 0.0f);
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Grass);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/grass1.bmp", 0.5f, 0.5f);
+	AddBitmapAsset(Assets, "data/bitmaps/grass1.bmp", 0.5f, 0.5f);
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Soil);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/soil1.bmp");
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/soil2.bmp");
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/soil4.bmp");
+	AddBitmapAsset(Assets, "data/bitmaps/soil1.bmp");
+	AddBitmapAsset(Assets, "data/bitmaps/soil2.bmp");
+	AddBitmapAsset(Assets, "data/bitmaps/soil4.bmp");
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Tuft);
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/tuft1.bmp");
-	AddBitmapAsset(Assets, (char*)"data/bitmaps/tuft2.bmp");
+	AddBitmapAsset(Assets, "data/bitmaps/tuft1.bmp");
+	AddBitmapAsset(Assets, "data/bitmaps/tuft2.bmp");
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Font);
@@ -699,12 +821,13 @@ WriteNonHero(void)
 		 Character <= 'Z';
 		 ++Character)
 	{
-		AddCharacterAsset(Assets, (char*)"c:/Windows/Fonts/arial.ttf", Character);
+		// AddCharacterAsset(Assets, "c:/Windows/Fonts/arial.ttf", L"Arial", Character);
+		AddCharacterAsset(Assets, "c:/Windows/Fonts/cour.ttf", L"Courier New", Character);
 		AddTag(Assets, asset_tag_id::UnicodeCodepoint, (f32)Character);
 	}
 	EndAssetType(Assets);
 
-	WriteP5A(Assets, (char*)"data/assets2.p5a");
+	WriteP5A(Assets, "data/assets2.p5a");
 }
 
 internal void
@@ -715,23 +838,23 @@ WriteSounds(void)
 	Initialize(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Bloop);
-	AddSoundAsset(Assets, (char*)"data/audio/bloop_00.wav");
-	AddSoundAsset(Assets, (char*)"data/audio/bloop_01.wav");
-	AddSoundAsset(Assets, (char*)"data/audio/bloop_02.wav");
-	AddSoundAsset(Assets, (char*)"data/audio/bloop_03.wav");
-	AddSoundAsset(Assets, (char*)"data/audio/bloop_04.wav");
+	AddSoundAsset(Assets, "data/audio/bloop_00.wav");
+	AddSoundAsset(Assets, "data/audio/bloop_01.wav");
+	AddSoundAsset(Assets, "data/audio/bloop_02.wav");
+	AddSoundAsset(Assets, "data/audio/bloop_03.wav");
+	AddSoundAsset(Assets, "data/audio/bloop_04.wav");
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Crack);
-	AddSoundAsset(Assets, (char*)"data/audio/crack_00.wav");
+	AddSoundAsset(Assets, "data/audio/crack_00.wav");
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Drop);
-	AddSoundAsset(Assets, (char*)"data/audio/drop_00.wav");
+	AddSoundAsset(Assets, "data/audio/drop_00.wav");
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Glide);
-	AddSoundAsset(Assets, (char*)"data/audio/glide_00.wav");
+	AddSoundAsset(Assets, "data/audio/glide_00.wav");
 	EndAssetType(Assets);
 
 	u32 OneMusicChunk = 10 * 44100;
@@ -745,7 +868,7 @@ WriteSounds(void)
 			SampleCount = OneMusicChunk;
 		}
 
-		sound_id ThisMusic = AddSoundAsset(Assets, (char*)"data/audio/music_test.wav", FirstSampleIndex, SampleCount);
+		sound_id ThisMusic = AddSoundAsset(Assets, "data/audio/music_test.wav", FirstSampleIndex, SampleCount);
 		if ((FirstSampleIndex + OneMusicChunk) < TotalMusicSampleCount)
 		{
 			Assets->Assets[ThisMusic.Value].Sound.Chain = p5a_sound_chain::Advance;
@@ -754,11 +877,11 @@ WriteSounds(void)
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Puhp);
-	AddSoundAsset(Assets, (char*)"data/audio/puhp_00.wav");
-	AddSoundAsset(Assets, (char*)"data/audio/puhp_01.wav");
+	AddSoundAsset(Assets, "data/audio/puhp_00.wav");
+	AddSoundAsset(Assets, "data/audio/puhp_01.wav");
 	EndAssetType(Assets);
 
-	WriteP5A(Assets, (char*)"data/assets3.p5a");
+	WriteP5A(Assets, "data/assets3.p5a");
 }
 
 int

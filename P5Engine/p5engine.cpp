@@ -1435,7 +1435,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						}
 						
 						// NOTE: Render the particle
-						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.2f, Color);
+						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.4f, Color);
 					}
 				} break;
 

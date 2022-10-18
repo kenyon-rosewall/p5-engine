@@ -22,6 +22,7 @@ struct asset_source
 {
 	asset_type Type;
 	char* Filename;
+	wchar_t* FontName;
 	u32 FirstSampleIndex;
 	u32 Codepoint;
 };
