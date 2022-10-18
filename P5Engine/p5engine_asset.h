@@ -63,7 +63,7 @@ struct asset_type
 
 struct asset_file
 {
-	platform_file_handle* Handle;
+	platform_file_handle Handle;
 
 	// TODO: If we ever do thread stacks, AssetTypeArray doesn't
 	// actually need to be kept here probably.
@@ -93,8 +93,6 @@ struct game_assets
 
 	asset_memory_block MemorySentinel;
 
-	u64 TargetMemoryUsed;
-	u64 TotalMemoryUsed;
 	asset_memory_header LoadedAssetSentinel;
 
 	f32 TagRange[(u32)asset_tag_id::Count];

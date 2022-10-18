@@ -59,7 +59,7 @@ typedef double f64;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 inline void
-Concat(char* String1, char* String2, u32 Size)
+Concat(wchar_t* String1, wchar_t* String2, u32 Size)
 {
 	u32 String1Size = 0;
 	for (u32 Index = 0; Index < Size; ++Index)
