@@ -167,13 +167,12 @@ AcquireAssetMemory(game_assets* Assets, memory_index Size)
 				if (Header != &Assets->LoadedAssetSentinel)
 				{
 					asset* Asset = Assets->Assets + Header->AssetIndex;
-					if (GetState(Asset) >= AssetState_Loaded)
+					if (Asset->State == AssetState_Loaded)
 					{
 						u32 AssetIndex = Header->AssetIndex;
 						asset* Asset = Assets->Assets + Header->AssetIndex;
 
-						Assert(GetState(Asset) == AssetState_Loaded);
-						Assert(!IsLocked(Asset));
+						Assert(Asset->State == AssetState_Loaded);
 
 						RemoveAssetHeaderFromList(Header);
 
@@ -217,7 +216,7 @@ AddAssetHeaderToList(game_assets* Assets, u32 AssetIndex, asset_memory_size Size
 }
 
 internal void
-LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
+LoadBitmap(game_assets* Assets, bitmap_id ID)
 {
 	asset* Asset = Assets->Assets + ID.Value;
 	if (ID.Value &&
@@ -252,14 +251,9 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Bitmap->Memory;
-			Work->FinalState = (AssetState_Loaded) | (Locked ? AssetState_Lock : 0);
+			Work->FinalState = AssetState_Loaded;
 
-			Asset->State |= AssetState_Lock;
-
-			if (!Locked)
-			{
-				AddAssetHeaderToList(Assets, ID.Value, Size);
-			}
+			AddAssetHeaderToList(Assets, ID.Value, Size);
 
 			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
 		}
@@ -311,7 +305,7 @@ LoadSound(game_assets* Assets, sound_id ID)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Memory;
-			Work->FinalState = (AssetState_Loaded);
+			Work->FinalState = AssetState_Loaded;
 
 			AddAssetHeaderToList(Assets, ID.Value, Size);
 
@@ -325,9 +319,9 @@ LoadSound(game_assets* Assets, sound_id ID)
 }
 
 inline void
-PrefetchBitmap(game_assets* Assets, bitmap_id ID, b32 Locked)
+PrefetchBitmap(game_assets* Assets, bitmap_id ID)
 {
-	LoadBitmap(Assets, ID, Locked);
+	LoadBitmap(Assets, ID);
 }
 
 inline void
@@ -626,11 +620,8 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 internal void
 MoveHeaderToFront(game_assets* Assets, asset* Asset)
 {
-	if (!IsLocked(Asset))
-	{
-		asset_memory_header* Header = Asset->Header;
+	asset_memory_header* Header = Asset->Header;
 
-		RemoveAssetHeaderFromList(Header);
-		InsertAssetHeaderAtFront(Assets, Header);
-	}
+	RemoveAssetHeaderFromList(Header);
+	InsertAssetHeaderAtFront(Assets, Header);
 }
