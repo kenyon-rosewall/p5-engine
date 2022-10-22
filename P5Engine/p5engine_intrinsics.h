@@ -17,12 +17,6 @@ inline u32 AtomicCompareExchangeUInt32(u32 volatile* Value, u32 New, u32 Expecte
 
 	return(Result);
 }
-inline u32 AtomicAdd(u32 volatile* Value, u32 Addend)
-{
-	u32 Result = (_InterlockedExchangeAdd((long*)Value, Addend) + Addend);
-
-	return(Result);
-}
 #elif COMPILER_LLVM
 // TODO: Does LLVM have read-specific barriers yet?
 #define CompletePreviousReadsBeforeFutureReads asm volatile("" ::: "memory")
