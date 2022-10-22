@@ -27,12 +27,6 @@ inline uint32 AtomicCompareExchangeUInt32(uint32 volatile* Value, uint32 New, ui
 
 	return(Result);
 }
-inline u32 AtomicAdd(u32 volatile* Value, u32 Addend)
-{
-	u32 Result = (__sync_fetch_and_add((long*)Value, Addend) + Addend);
-
-	return(Result);
-}
 #else
 // TODO: Other compilers/platforms?
 #endif
