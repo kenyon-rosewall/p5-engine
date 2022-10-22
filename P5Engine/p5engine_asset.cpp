@@ -224,60 +224,73 @@ internal void
 LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Immediate)
 {
 	asset* Asset = Assets->Assets + ID.Value;
-	if (ID.Value &&
-		(AtomicCompareExchangeUInt32((u32*)&Asset->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded))
+	if (ID.Value)
 	{
-		task_with_memory* Task = 0;
-
-		if (!Immediate)
+		if (AtomicCompareExchangeUInt32((u32*)&Asset->State, AssetState_Queued, AssetState_Unloaded) == AssetState_Unloaded)
 		{
-			Task = BeginTaskWithMemory(Assets->TransientState);
-		}
+			task_with_memory* Task = 0;
 
-		if (Immediate || Task)
-		{
-			p5a_bitmap* Info = &Asset->P5A.Bitmap;
-
-			asset_memory_size Size = {};
-			u32 Width = Info->Dim[0];
-			u32 Height = Info->Dim[1];
-			Size.Section = 4 * Width;
-			Size.Data = Size.Section * Height;
-			Size.Total = Size.Data + sizeof(asset_memory_header);
-
-			Asset->Header = AcquireAssetMemory(Assets, Size.Total, ID.Value);
-
-			loaded_bitmap* Bitmap = &Asset->Header->Bitmap;
-			Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
-			Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
-			Bitmap->Width = Info->Dim[0];
-			Bitmap->Height = Info->Dim[1];
-			Bitmap->Pitch = Size.Section;
-			Bitmap->Memory = (Asset->Header + 1);
-
-			load_asset_work Work;
-			Work.Task = Task;
-			Work.Asset = Asset;
-			Work.Handle = GetFileHandleFor(Assets, Asset->FileIndex);
-			Work.Offset = Asset->P5A.DataOffset;
-			Work.Size = Size.Data;
-			Work.Destination = Bitmap->Memory;
-			Work.FinalState = AssetState_Loaded;
-
-			if (Task)
+			if (!Immediate)
 			{
-				load_asset_work* TaskWork = PushStruct(&Task->Arena, load_asset_work);
-				*TaskWork = Work;
-				Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, TaskWork);
+				Task = BeginTaskWithMemory(Assets->TransientState);
+			}
+
+			if (Immediate || Task)
+			{
+				p5a_bitmap* Info = &Asset->P5A.Bitmap;
+
+				asset_memory_size Size = {};
+				u32 Width = Info->Dim[0];
+				u32 Height = Info->Dim[1];
+				Size.Section = 4 * Width;
+				Size.Data = Size.Section * Height;
+				Size.Total = Size.Data + sizeof(asset_memory_header);
+
+				Asset->Header = AcquireAssetMemory(Assets, Size.Total, ID.Value);
+
+				loaded_bitmap* Bitmap = &Asset->Header->Bitmap;
+				Bitmap->AlignPercentage = V2(Info->AlignPercentage[0], Info->AlignPercentage[1]);
+				Bitmap->WidthOverHeight = (f32)Info->Dim[0] / (f32)Info->Dim[1];
+				Bitmap->Width = Info->Dim[0];
+				Bitmap->Height = Info->Dim[1];
+				Bitmap->Pitch = Size.Section;
+				Bitmap->Memory = (Asset->Header + 1);
+
+				load_asset_work Work;
+				Work.Task = Task;
+				Work.Asset = Asset;
+				Work.Handle = GetFileHandleFor(Assets, Asset->FileIndex);
+				Work.Offset = Asset->P5A.DataOffset;
+				Work.Size = Size.Data;
+				Work.Destination = Bitmap->Memory;
+				Work.FinalState = AssetState_Loaded;
+
+				if (Task)
+				{
+					load_asset_work* TaskWork = PushStruct(&Task->Arena, load_asset_work);
+					*TaskWork = Work;
+					Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, TaskWork);
+				}
+				else
+				{
+					LoadAssetWorkDirectly(&Work);
+				}
 			}
 			else
 			{
-				LoadAssetWorkDirectly(&Work);
+				Asset->State = AssetState_Unloaded;
 			}
 		}
 		else
 		{
-			Asset->State = AssetState_Unloaded;
+			// TODO: Do we want to have a more coherent story here
+			// for what happens when two force-load people hit the load
+			//  at the same time?
+			asset_state volatile* State = (asset_state volatile*)&Asset->State;
+			while (Asset->State == AssetState_Queued)
+			{
+				// Just wait
+			}
 		}
 	}
 }

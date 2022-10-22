@@ -336,16 +336,112 @@ EndTaskWithMemory(task_with_memory* Task)
 
 struct fill_ground_chunk_work
 {
-	render_group* RenderGroup;
-	loaded_bitmap* Buffer;
+	transient_state* TransientState;
+	game_state* GameState;
+	ground_buffer* GroundBuffer;
+	world_position ChunkPos;
+	
 	task_with_memory* Task;
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 {
 	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)FindData;
 
-	RenderGroupToOutput(Work->RenderGroup, Work->Buffer);
-	FinishRenderGroup(Work->RenderGroup);
+	loaded_bitmap* Buffer = &Work->GroundBuffer->Bitmap;
+	Buffer->AlignPercentage = V2(0.5f, 0.5f);
+	Buffer->WidthOverHeight = 1.0f;
+
+	f32 Width = Work->GameState->World->ChunkDimInMeters.x;
+	f32 Height = Work->GameState->World->ChunkDimInMeters.y;
+	Assert(Width == Height);
+
+	v2 HalfDim = 0.5f * V2(Width, Height);
+
+	// TODO: Decide what our pushbuffer size is!
+	// TODO: Safe cast from memory_uint to uint32?
+	render_group* RenderGroup = AllocateRenderGroup(Work->TransientState->Assets, &Work->Task->Arena, 0, true);
+	Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
+	Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
+
+	for (i32 ChunkOffsetY = -1;
+		 ChunkOffsetY <= 1;
+		 ++ChunkOffsetY)
+	{
+		for (i32 ChunkOffsetX = -1;
+			 ChunkOffsetX <= 1;
+			 ++ChunkOffsetX)
+		{
+			i32 ChunkX = Work->ChunkPos.ChunkX + ChunkOffsetX;
+			i32 ChunkY = Work->ChunkPos.ChunkY + ChunkOffsetY;
+			i32 ChunkZ = Work->ChunkPos.ChunkZ;
+
+			// TODO: Make random number generation more systemic
+			// TODO: Look into wang hashing here or some other spatial seed generation
+			random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
+
+			v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
+
+			bitmap_id Stamp = GetFirstBitmapFrom(Work->TransientState->Assets, asset_type_id::Soil);
+			Stamp.Value += 2;
+
+			for (u32 SoilIndex = 0;
+				 SoilIndex < 32;
+				 ++SoilIndex)
+			{
+				v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
+
+				PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f, V4(0.5f, 0.5f, 0.5f, 0.1f));
+			}
+		}
+	}
+
+	for (i32 ChunkOffsetY = -1;
+		 ChunkOffsetY <= 1;
+		 ++ChunkOffsetY)
+	{
+		for (i32 ChunkOffsetX = -1;
+			 ChunkOffsetX <= 1;
+			 ++ChunkOffsetX)
+		{
+			for (u32 GrassIndex = 0;
+				 GrassIndex < 5;
+				 ++GrassIndex)
+			{
+				i32 ChunkX = Work->ChunkPos.ChunkX + ChunkOffsetX;
+				i32 ChunkY = Work->ChunkPos.ChunkY + ChunkOffsetY;
+				i32 ChunkZ = Work->ChunkPos.ChunkZ;
+
+				// TODO: Make random number generation more systemic
+				// TODO: Look into wang hashing here or some other spatial seed generation
+				random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
+
+				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
+
+				bitmap_id Stamp = {};
+
+				if (RandomChoice(&Series, 12) == 1)
+				{
+					Stamp = GetRandomBitmapFrom(Work->TransientState->Assets, asset_type_id::Grass, &Series);
+				}
+				else
+				{
+					Stamp = GetRandomBitmapFrom(Work->TransientState->Assets, asset_type_id::Tuft, &Series);
+				}
+
+				if (Stamp.Value)
+				{
+					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
+
+					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
+				}
+			}
+		}
+	}
+
+	Assert(AllResourcesPresent(RenderGroup));
+
+	RenderGroupToOutput(RenderGroup, Buffer);
+	FinishRenderGroup(RenderGroup);
 
 	EndTaskWithMemory(Work->Task);
 }
@@ -357,92 +453,11 @@ FillGroundChunk(transient_state* TransientState, game_state* GameState, ground_b
 	if (Task)
 	{
 		fill_ground_chunk_work* Work = PushStruct(&Task->Arena, fill_ground_chunk_work);
-
-		loaded_bitmap* Buffer = &GroundBuffer->Bitmap;
-		Buffer->AlignPercentage = V2(0.5f, 0.5f);
-		Buffer->WidthOverHeight = 1.0f;
-
-		f32 Width = GameState->World->ChunkDimInMeters.x;
-		f32 Height = GameState->World->ChunkDimInMeters.y;
-		Assert(Width == Height);
-		v2 HalfDim = 0.5f * V2(Width, Height);
-
-		// TODO: Decide what our pushbuffer size is!
-		// TODO: Safe cast from memory_uint to uint32?
-		render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &Task->Arena, 0, true); // (uint32)GetArenaSizeRemaining(&Task->Arena));
-		Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
-		Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
-
-		Work->Buffer = Buffer;
-		Work->RenderGroup = RenderGroup;
 		Work->Task = Task;
-
-		for (i32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
-		{
-			for (i32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
-			{
-				i32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
-				i32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
-				i32 ChunkZ = ChunkPos->ChunkZ;
-
-				// TODO: Make random number generation more systemic
-				// TODO: Look into wang hashing here or some other spatial seed generation
-				random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
-
-				v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
-
-				bitmap_id Stamp = GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Soil);
-				Stamp.Value += 2;
-
-				for (u32 SoilIndex = 0; SoilIndex < 32; ++SoilIndex)
-				{
-					v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
-
-					PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 4.0f, V4(0.5f, 0.5f, 0.5f, 0.1f));
-				}
-			}
-		}
-
-		for (i32 ChunkOffsetY = -1; ChunkOffsetY <= 1; ++ChunkOffsetY)
-		{
-			for (i32 ChunkOffsetX = -1; ChunkOffsetX <= 1; ++ChunkOffsetX)
-			{
-				for (u32 GrassIndex = 0; GrassIndex < 5; ++GrassIndex)
-				{
-					i32 ChunkX = ChunkPos->ChunkX + ChunkOffsetX;
-					i32 ChunkY = ChunkPos->ChunkY + ChunkOffsetY;
-					i32 ChunkZ = ChunkPos->ChunkZ;
-
-					// TODO: Make random number generation more systemic
-					// TODO: Look into wang hashing here or some other spatial seed generation
-					random_series Series = RandomSeed(139 * ChunkX + 593 * ChunkY + 329 * ChunkZ);
-
-					v2 Center = V2(ChunkOffsetX * Width, ChunkOffsetY * Height);
-
-					bitmap_id Stamp = {};
-
-					if (RandomChoice(&Series, 12) == 1)
-					{
-						Stamp = GetRandomBitmapFrom(TransientState->Assets, asset_type_id::Grass, &Series);
-					}
-					else
-					{
-						Stamp = GetRandomBitmapFrom(TransientState->Assets, asset_type_id::Tuft, &Series);
-					}
-
-					if (Stamp.Value)
-					{
-						v2 Pos = Center + Hadamard(HalfDim, V2(RandomBilateral(&Series), RandomBilateral(&Series)));
-
-						PushBitmap(RenderGroup, Stamp, ToV3(Pos, 0), 1.3f, V4(1, 1, 1, 0.4f));
-					}
-				}
-			}
-		}
-
-
-		Assert(AllResourcesPresent(RenderGroup));
-
+		Work->TransientState = TransientState;
+		Work->GameState = GameState;
+		Work->GroundBuffer = GroundBuffer;
+		Work->ChunkPos = *ChunkPos;
 		GroundBuffer->Pos = *ChunkPos;
 		Platform.AddEntry(TransientState->LowPriorityQueue, FillGroundChunkWork, Work);
 	}
@@ -1116,12 +1131,16 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 	// NOTE: This is the camera position relative to the origin
 	v3 CameraPos = Subtract(World, &GameState->CameraP, &SimCenterPos);
+	v3 ParticleCameraDisplacement = -Subtract(World, &GameState->CameraP, &GameState->LastCameraP);
+	GameState->LastCameraP = GameState->CameraP;
 
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(ScreenBounds), V4(1, 1, 0, 1));
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimBounds).xy, V4(0, 1, 1, 1));
 	PushRectOutline(RenderGroup, V3(0, 0, 0), GetDim(SimRegion->Bounds).xy, V4(1, 0, 1, 1));
 
-	for (u32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
+	for (u32 EntityIndex = 0;
+		 EntityIndex < SimRegion->EntityCount;
+		 ++EntityIndex)
 	{
 		sim_entity* Entity = SimRegion->Entities + EntityIndex;
 		if (Entity->Updatable)
@@ -1304,7 +1323,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 							GameState->NextParticle = 0;
 						}
 
-						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f), 0, 0);
+						Particle->Pos = V3(RandomBetween(&GameState->EffectsEntropy, -0.05f, 0.05f), 0, 0) - ParticleCameraDisplacement;
 						Particle->dPos = V3(RandomBetween(&GameState->EffectsEntropy, -0.01f, 0.01f), 7.0f * RandomBetween(&GameState->EffectsEntropy, 0.7f, 1.0f), 0.0f);
 						Particle->ddPos = V3(0.0f, -9.8f, 0.0f);
 						Particle->Color = V4(RandomBetween(&GameState->EffectsEntropy, 0.75f, 1.0f),
@@ -1335,6 +1354,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						 ++ParticleIndex)
 					{
 						particle* Particle = GameState->Particles + ParticleIndex;
+
+						Particle->Pos += ParticleCameraDisplacement;
 
 						v3 Pos = InvGridScale * (Particle->Pos - GridOrigin);
 
