@@ -668,21 +668,53 @@ DEBUGTextLine(char* String)
 		asset_vector WeightVector = {};
 		WeightVector.E[(u32)asset_tag_id::UnicodeCodepoint] = 1.0f;
 
+		f32 CharScale = FontScale;
+		v4 Color = V4(1, 1, 1, 1);
 		f32 AtX = LeftEdge;
 		for (char* At = String;
 			 *At;
-			 ++At)
+			 )
 		{
-			if (*At != ' ')
+			if ((At[0] == '\\') &&
+				(At[1] == '#') &&
+				(At[2] != 0) &&
+				(At[3] != 0) &&
+				(At[4] != 0))
 			{
-				MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = *At;
-				// TODO: This is too slow for text, at the moment
-				bitmap_id BitmapID = GetBestMatchBitmapFrom(RenderGroup->Assets, asset_type_id::Font,
-					&MatchVector, &WeightVector);
+				f32 CScale = 1.0f / 9.0f;
+				Color = V4(
+					Clamp01(CScale * (f32)(At[2] - '0')),
+					Clamp01(CScale * (f32)(At[3] - '0')),
+					Clamp01(CScale * (f32)(At[4] - '0')),
+					1.0f
+				);
 
-				PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), FontScale, V4(1, 1, 1, 1));
+				At += 5;
 			}
-			AtX += FontScale;
+			else if ((At[0] == '\\') &&
+				(At[1] == '^') &&
+				(At[2] != 0))
+			{
+				f32 CScale = 1.0f / 9.0f;
+				CharScale = FontScale * Clamp01(CScale * (f32)(At[2] - '0'));
+
+				At += 3;
+			}
+			else
+			{
+				if (*At != ' ')
+				{
+					MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = *At;
+					// TODO: This is too slow for text, at the moment
+					bitmap_id BitmapID = GetBestMatchBitmapFrom(RenderGroup->Assets, asset_type_id::Font,
+						&MatchVector, &WeightVector);
+
+					PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), CharScale, Color);
+				}
+
+				AtX += CharScale;
+				++At;
+			}
 		}
 
 		AtY -= 1.2f * FontScale;
@@ -702,7 +734,7 @@ OverlayCycleCounters(game_memory* GameMemory)
 	};
 
 #if P5ENGINE_INTERNAL
-	DEBUGTextLine("DEBUG CYCLE COUNTS:");
+	DEBUGTextLine("\\#900DEBUG \\#090CYCLE \\#990\\^5COUNTS:");
 	for (int CounterIndex = 0;
 		 CounterIndex < ArrayCount(GameMemory->Counters);
 		 ++CounterIndex)
