@@ -360,6 +360,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 	// TODO: Decide what our pushbuffer size is!
 	// TODO: Safe cast from memory_uint to uint32?
 	render_group* RenderGroup = AllocateRenderGroup(Work->TransientState->Assets, &Work->Task->Arena, 0, true);
+	BeginRender(RenderGroup);
 	Orthographic(RenderGroup, Buffer->Width, Buffer->Height, (Buffer->Width - 2) / Width);
 	Clear(RenderGroup, V4(0.25f, 0.44f, 0.3f, 1));
 
@@ -441,7 +442,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 	Assert(AllResourcesPresent(RenderGroup));
 
 	RenderGroupToOutput(RenderGroup, Buffer);
-	FinishRenderGroup(RenderGroup);
+	EndRender(RenderGroup);
 
 	EndTaskWithMemory(Work->Task);
 }
@@ -639,6 +640,92 @@ MakePyramidNormalMap(loaded_bitmap* Bitmap, f32 Roughness)
 
 		Row += Bitmap->Pitch;
 	}
+}
+
+// TODO: Fix this for looped live code editing
+global_variable render_group* DEBUGRenderGroup;
+global_variable f32 LeftEdge;
+global_variable f32 FontScale;
+global_variable f32 AtY;
+
+internal void
+DEBUGReset(u32 Width, u32 Height)
+{
+	FontScale = 20.0f;
+	Orthographic(DEBUGRenderGroup, Width, Height, 1.0f);
+	AtY = 0.5f * (f32)Height - 0.5f * FontScale;
+	LeftEdge = -0.5f * (f32)Width + 0.5f * FontScale;
+}
+
+internal void
+DEBUGTextLine(char* String)
+{
+	if (DEBUGRenderGroup)
+	{
+		render_group* RenderGroup = DEBUGRenderGroup;
+
+		asset_vector MatchVector = {};
+		asset_vector WeightVector = {};
+		WeightVector.E[(u32)asset_tag_id::UnicodeCodepoint] = 1.0f;
+
+		f32 AtX = LeftEdge;
+		for (char* At = String;
+			 *At;
+			 ++At)
+		{
+			if (*At != ' ')
+			{
+				MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = *At;
+				// TODO: This is too slow for text, at the moment
+				bitmap_id BitmapID = GetBestMatchBitmapFrom(RenderGroup->Assets, asset_type_id::Font,
+					&MatchVector, &WeightVector);
+
+				PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), FontScale, V4(1, 1, 1, 1));
+			}
+			AtX += FontScale;
+		}
+
+		AtY -= 1.2f * FontScale;
+	}
+}
+
+internal void
+OverlayCycleCounters(game_memory* GameMemory)
+{
+	char* NameTable[] = 
+	{
+		"GameUpdateRender",
+		"RenderGroupOutput",
+		"DrawRectangleSlow",
+		"ProcessPixel",
+		"DrawRectangleQuick",
+	};
+
+#if P5ENGINE_INTERNAL
+	DEBUGTextLine("DEBUG CYCLE COUNTS:");
+	for (int CounterIndex = 0;
+		 CounterIndex < ArrayCount(GameMemory->Counters);
+		 ++CounterIndex)
+	{
+		debug_cycle_counter* Counter = GameMemory->Counters + CounterIndex;
+
+		if (Counter->HitCount)
+		{
+#if 0
+			char TextBuffer[256];
+			_snprintf_s(TextBuffer, sizeof(TextBuffer),
+				"  %d: %I64ucy %uh %I64ucy/h\n",
+				CounterIndex,
+				Counter->CycleCount,
+				Counter->HitCount,
+				Counter->CycleCount / Counter->HitCount
+			);
+#else
+			DEBUGTextLine(NameTable[CounterIndex]);
+#endif
+		}
+	}
+#endif
 }
 
 #if P5ENGINE_INTERNAL
@@ -879,6 +966,8 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 		TransientState->Assets = AllocateGameAssets(&TransientState->TransientArena, Megabytes(64), TransientState);
 
+		DEBUGRenderGroup = AllocateRenderGroup(TransientState->Assets, &TransientState->TransientArena, Megabytes(16), false);
+
 		GameState->Music = 0; // PlaySound(&GameState->AudioState, GetFirstSoundFrom(TransientState->Assets, asset_type_id::Music));
 
 		TransientState->GroundBufferCount = 256;
@@ -913,6 +1002,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 		}
 
 		TransientState->IsInitialized = true;
+	}
+
+	if (DEBUGRenderGroup)
+	{
+		BeginRender(DEBUGRenderGroup);
+		DEBUGReset(Buffer->Width, Buffer->Height);
 	}
 
 #if 0
@@ -1038,6 +1133,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	
 	// TODO: Decide what our push buffer size is
 	render_group* RenderGroup = AllocateRenderGroup(TransientState->Assets, &TransientState->TransientArena, Megabytes(4), false);
+	BeginRender(RenderGroup);
 	f32 WidthOfMonitor = 0.635f; // NOTE: Horizontal measurement of monitor in meters (approximate)
 	f32 MetersToPixels = (f32)DrawBuffer->Width * WidthOfMonitor;
 	f32 FocalLength = 0.6f;
@@ -1620,7 +1716,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #endif
 
 	TiledRenderGroupToOutput(TransientState->HighPriorityQueue, RenderGroup, DrawBuffer);
-	FinishRenderGroup(RenderGroup);
+	EndRender(RenderGroup);
 
 	// TODO: Make sure we hoist the camera update out to a place where the renderer
 	// can know about the location of the camera at the end of cthe frame so there isn't
@@ -1633,6 +1729,14 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	CheckArena(&TransientState->TransientArena);
 
 	END_TIMED_BLOCK(GameUpdateRender);
+
+	OverlayCycleCounters(Memory);
+
+	if (DEBUGRenderGroup)
+	{
+		TiledRenderGroupToOutput(TransientState->HighPriorityQueue, DEBUGRenderGroup, DrawBuffer);
+		EndRender(DEBUGRenderGroup);
+	}
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)

@@ -8,11 +8,17 @@
 
   - Flush all thread queues before reloading DLL
 
+  - Debug code
+	- Fonts
+	- Logging
+	- Diagramming
+	- (A LITTLE GUI, but only a little!) Switchs / sliders / etc.
+	- Draw tile chunks so we can verify that things are aligned /
+	  in the chunks we want them to be in /
+	- Thread visualization
+
   - Audio
 	- Fix clicking bug at end of samples
-
-  - Asset streaming
-	- Memory management
 
   - Particle systems
 
@@ -23,15 +29,6 @@
 	  - Texture
     - Lighting
 	- Final Optimization
-
-  - Debug code
-    - Fonts
-	- Logging
-	- Diagramming
-	- (A LITTLE GUI, but only a little!) Switchs / sliders / etc.
-	- Draw tile chunks so we can verify that things are aligned /
-	  in the chunks we want them to be in / 
-	- Thread visualization
 
   ARCHITECTURE EXPLORATION
   - z

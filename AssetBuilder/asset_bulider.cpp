@@ -869,8 +869,8 @@ WriteNonHero(void)
 	EndAssetType(Assets);
 
 	BeginAssetType(Assets, asset_type_id::Font);
-	for (u32 Character = 'A';
-		 Character <= 'Z';
+	for (u32 Character = '!';
+		 Character <= '~';
 		 ++Character)
 	{
 		// AddCharacterAsset(Assets, "c:/Windows/Fonts/arial.ttf", L"Arial", Character);
