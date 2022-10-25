@@ -281,13 +281,13 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Immediate)
 				Asset->State = AssetState_Unloaded;
 			}
 		}
-		else
+		else if (Immediate)
 		{
 			// TODO: Do we want to have a more coherent story here
 			// for what happens when two force-load people hit the load
 			//  at the same time?
 			asset_state volatile* State = (asset_state volatile*)&Asset->State;
-			while (Asset->State == AssetState_Queued)
+			while (*State == AssetState_Queued)
 			{
 				// Just wait
 			}
