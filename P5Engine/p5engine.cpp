@@ -645,13 +645,13 @@ MakePyramidNormalMap(loaded_bitmap* Bitmap, f32 Roughness)
 // TODO: Fix this for looped live code editing
 global_variable render_group* DEBUGRenderGroup;
 global_variable f32 LeftEdge;
-global_variable f32 FontScale;
 global_variable f32 AtY;
+global_variable f32 FontScale;
 
 internal void
 DEBUGReset(u32 Width, u32 Height)
 {
-	FontScale = 20.0f;
+	FontScale = 0.7f;
 	Orthographic(DEBUGRenderGroup, Width, Height, 1.0f);
 	AtY = 0.5f * (f32)Height - 0.5f * FontScale;
 	LeftEdge = -0.5f * (f32)Width + 0.5f * FontScale;
@@ -702,6 +702,7 @@ DEBUGTextLine(char* String)
 			}
 			else
 			{
+				f32 CharDim = 1.0f;
 				if (*At != ' ')
 				{
 					MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = *At;
@@ -709,15 +710,18 @@ DEBUGTextLine(char* String)
 					bitmap_id BitmapID = GetBestMatchBitmapFrom(RenderGroup->Assets, asset_type_id::Font,
 						&MatchVector, &WeightVector);
 
-					PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), CharScale, Color);
+					p5a_bitmap* Info = GetBitmapInfo(RenderGroup->Assets, BitmapID);
+					CharDim = CharScale * (f32)(Info->Dim[0] + 2);
+
+					PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), CharScale * (f32)Info->Dim[1], Color);
 				}
 
-				AtX += CharScale;
+				AtX += CharDim;
 				++At;
 			}
 		}
 
-		AtY -= 1.2f * FontScale;
+		AtY -= 1.2f * 80.0f * FontScale;
 	}
 }
 
