@@ -15,6 +15,13 @@ struct loaded_sound
 	u32 ChannelCount;
 };
 
+struct loaded_font
+{
+	bitmap_id* Codepoints;
+	f32* HorizontalAdvance;
+	u32 BitmapIDOffset;
+};
+
 // TODO: Streamline this, by using header pointer as an indicator of 
 // unloaded status?
 enum asset_state
@@ -36,6 +43,7 @@ struct asset_memory_header
 	{
 		loaded_bitmap Bitmap;
 		loaded_sound Sound;
+		loaded_font Font;
 	};
 };
 
@@ -69,6 +77,7 @@ struct asset_file
 	p5a_asset_type* AssetTypeArray;
 
 	u32 TagBase;
+	u32 FontBitmapIDOffset;
 };
 
 enum asset_memory_block_flags
@@ -216,6 +225,26 @@ GetSoundInfo(game_assets* Assets, sound_id ID)
 {
 	Assert(ID.Value <= Assets->AssetCount);
 	p5a_sound* Result = &Assets->Assets[ID.Value].P5A.Sound;
+
+	return(Result);
+}
+
+inline loaded_font*
+GetFont(game_assets* Assets, font_id ID, u32 GenerationID)
+{
+	asset_memory_header* Header = GetAsset(Assets, ID.Value, GenerationID);
+
+	loaded_font* Result = Header ? &Header->Font : 0;
+
+	return(Result);
+}
+
+inline p5a_font*
+GetFontInfo(game_assets* Assets, font_id ID)
+{
+	Assert(ID.Value <= Assets->AssetCount);
+
+	p5a_font* Result = &Assets->Assets[ID.Value].P5A.Font;
 
 	return(Result);
 }

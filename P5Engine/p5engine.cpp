@@ -666,62 +666,67 @@ DEBUGTextLine(char* String)
 
 		asset_vector MatchVector = {};
 		asset_vector WeightVector = {};
-		WeightVector.E[(u32)asset_tag_id::UnicodeCodepoint] = 1.0f;
+		font_id FontID = GetBestMatchFontFrom(RenderGroup->Assets, asset_type_id::Font, &MatchVector, &WeightVector);
 
-		f32 CharScale = FontScale;
-		v4 Color = V4(1, 1, 1, 1);
-		f32 AtX = LeftEdge;
-		for (char* At = String;
-			 *At;
-			 )
+		loaded_font* Font = GetFont(RenderGroup->Assets, FontID, RenderGroup->GenerationID);
+		if (Font)
 		{
-			if ((At[0] == '\\') &&
-				(At[1] == '#') &&
-				(At[2] != 0) &&
-				(At[3] != 0) &&
-				(At[4] != 0))
+			p5a_font* Info = GetFontInfo(RenderGroup->Assets, FontID);
+			u32 PreviousCodePoint = 0;
+			f32 CharScale = FontScale;
+			v4 Color = V4(1, 1, 1, 1);
+			f32 AtX = LeftEdge;
+			for (char* At = String;
+				*At;
+				)
 			{
-				f32 CScale = 1.0f / 9.0f;
-				Color = V4(
-					Clamp01(CScale * (f32)(At[2] - '0')),
-					Clamp01(CScale * (f32)(At[3] - '0')),
-					Clamp01(CScale * (f32)(At[4] - '0')),
-					1.0f
-				);
-
-				At += 5;
-			}
-			else if ((At[0] == '\\') &&
-				(At[1] == '^') &&
-				(At[2] != 0))
-			{
-				f32 CScale = 1.0f / 9.0f;
-				CharScale = FontScale * Clamp01(CScale * (f32)(At[2] - '0'));
-
-				At += 3;
-			}
-			else
-			{
-				f32 CharDim = 1.0f;
-				if (*At != ' ')
+				if ((At[0] == '\\') &&
+					(At[1] == '#') &&
+					(At[2] != 0) &&
+					(At[3] != 0) &&
+					(At[4] != 0))
 				{
-					MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = *At;
-					// TODO: This is too slow for text, at the moment
-					bitmap_id BitmapID = GetBestMatchBitmapFrom(RenderGroup->Assets, asset_type_id::Font,
-						&MatchVector, &WeightVector);
+					f32 CScale = 1.0f / 9.0f;
+					Color = V4(
+						Clamp01(CScale * (f32)(At[2] - '0')),
+						Clamp01(CScale * (f32)(At[3] - '0')),
+						Clamp01(CScale * (f32)(At[4] - '0')),
+						1.0f
+					);
 
-					p5a_bitmap* Info = GetBitmapInfo(RenderGroup->Assets, BitmapID);
-					CharDim = CharScale * (f32)(Info->Dim[0] + 2);
-
-					PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), CharScale * (f32)Info->Dim[1], Color);
+					At += 5;
 				}
+				else if ((At[0] == '\\') &&
+					(At[1] == '^') &&
+					(At[2] != 0))
+				{
+					f32 CScale = 1.0f / 9.0f;
+					CharScale = FontScale * Clamp01(CScale * (f32)(At[2] - '0'));
 
-				AtX += CharDim;
-				++At;
+					At += 3;
+				}
+				else
+				{
+					u32 Codepoint = *At;
+					f32 AdvanceX = CharScale * GetHorizontalAdvanceForPair(Info, Font, PreviousCodePoint, Codepoint);
+					AtX += AdvanceX;
+
+					if (Codepoint != ' ')
+					{
+						bitmap_id BitmapID = GetBitmapForGlyph(RenderGroup->Assets, Info, Font, Codepoint);
+
+						p5a_bitmap* Info = GetBitmapInfo(RenderGroup->Assets, BitmapID);
+
+						PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), CharScale * (f32)Info->Dim[1], Color);
+					}
+
+					PreviousCodePoint = Codepoint;
+					++At;
+				}
 			}
-		}
 
-		AtY -= 1.2f * 80.0f * FontScale;
+			AtY -= GetLineAdvanceFor(Info) * FontScale;
+		}
 	}
 }
 
@@ -1444,6 +1449,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 					DrawHitpoints(Entity, RenderGroup);
 
+#if 0
 					// NOTE: Particle system test
 					for (u32 ParticleSpawnIndex = 0;
 						 ParticleSpawnIndex < 3;
@@ -1585,6 +1591,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 						// NOTE: Render the particle
 						PushBitmap(RenderGroup, Particle->BitmapID, Particle->Pos, 0.4f, Color);
 					}
+#endif
 				} break;
 
 				case entity_type::Wall:

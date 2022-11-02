@@ -34,6 +34,7 @@ enum class asset_type_id
 	Sword,
 
 	Font,
+	FontGlyph, 
 
 	//
 	// NOTE: Sounds
@@ -58,6 +59,11 @@ struct bitmap_id
 };
 
 struct sound_id
+{
+	u32 Value;
+};
+
+struct font_id
 {
 	u32 Value;
 };
@@ -117,6 +123,10 @@ struct p5a_bitmap
 {
 	u32 Dim[2];
 	f32 AlignPercentage[2];
+	/* NOTE: Data is:
+	
+		u32 Pixels[Dim[1]][Dim[0]]
+	*/
 };
 
 struct p5a_sound
@@ -124,6 +134,22 @@ struct p5a_sound
 	u32 SampleCount;
 	u32 ChannelCount;
 	p5a_sound_chain Chain; // NOTE: p5a_sound_chain
+	/* NOTE: Data is: 
+	
+		i16 Channels[ChannelCount][SampleCount];
+	*/
+};
+
+struct p5a_font
+{
+	u32 CodepointCount;
+	f32 LineAdvance;
+	/* NOTE: Data is: 
+	
+		p5a_font_header Header;
+		bitmap_id Codepoints[CodepointCount];
+		f32 HorizontalAdvance[CodepointCount];
+	*/
 };
 
 struct p5a_asset
@@ -135,6 +161,7 @@ struct p5a_asset
 	{
 		p5a_bitmap Bitmap;
 		p5a_sound Sound;
+		p5a_font Font;
 	};
 };
 #pragma pack(pop)
