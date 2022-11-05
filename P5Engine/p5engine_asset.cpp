@@ -431,13 +431,19 @@ LoadFont(game_assets* Assets, font_id ID, b32 Immediate)
 inline void
 PrefetchBitmap(game_assets* Assets, bitmap_id ID)
 {
-	LoadBitmap(Assets, ID, true);
+	LoadBitmap(Assets, ID, false);
 }
 
 inline void
 PrefetchSound(game_assets* Assets, sound_id ID)
 {
 	LoadSound(Assets, ID);
+}
+
+inline void
+PrefetchFont(game_assets* Assets, font_id ID)
+{
+	LoadFont(Assets, ID, false);
 }
 
 internal u32

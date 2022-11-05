@@ -668,7 +668,7 @@ DEBUGTextLine(char* String)
 		asset_vector WeightVector = {};
 		font_id FontID = GetBestMatchFontFrom(RenderGroup->Assets, asset_type_id::Font, &MatchVector, &WeightVector);
 
-		loaded_font* Font = GetFont(RenderGroup->Assets, FontID, RenderGroup->GenerationID);
+		loaded_font* Font = PushFont(RenderGroup, FontID);
 		if (Font)
 		{
 			p5a_font* Info = GetFontInfo(RenderGroup->Assets, FontID);
@@ -1374,12 +1374,12 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 #if 0
 					// TODO: Make spatial queries easy for things
-					for (uint32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
+					for (u32 EntityIndex = 0; EntityIndex < SimRegion->EntityCount; ++EntityIndex)
 					{
 						sim_entity* TestEntity = SimRegion->Entities + EntityIndex;
 						if (TestEntity->Type == entity_type::Hero)
 						{
-							real32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
+							f32 TestDSq = LengthSq(TestEntity->Pos - Entity->Pos);
 
 							if (ClosestHeroDSq > TestDSq)
 							{
@@ -1470,16 +1470,17 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 											 1.0f);
 						Particle->dColor = V4(0, 0, 0, -0.25f);
 
+#if 0
 						asset_vector MatchVector = {};
 						asset_vector WeightVector = {};
 						char Nothings[] = "NOTHINGS";
 						MatchVector.E[(u32)asset_tag_id::UnicodeCodepoint] = (f32)Nothings[RandomChoice(&GameState->EffectsEntropy, ArrayCount(Nothings) - 1)];
 						WeightVector.E[(u32)asset_tag_id::UnicodeCodepoint] = 1.0f;
-
-						Particle->BitmapID = GetBestMatchBitmapFrom(TransientState->Assets, asset_type_id::Font, &MatchVector, &WeightVector);
+#endif
+						// Particle->BitmapID = GetBestMatchBitmapFrom(TransientState->Assets, asset_type_id::Font, &MatchVector, &WeightVector);
 
 						// Particle->BitmapID = GetRandomBitmapFrom(TransientState->Assets, asset_type_id::Font, &GameState->EffectsEntropy);
-						// Particle->BitmapID = GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Familiar);
+						Particle->BitmapID = GetFirstBitmapFrom(TransientState->Assets, asset_type_id::Character);
 					}
 
 					ZeroStruct(GameState->ParticleCels);

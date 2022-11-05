@@ -267,6 +267,7 @@ IsValid(sound_id ID)
 
 internal void LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Immediate);
 internal void LoadSound(game_assets* Assets, sound_id ID);
+internal void LoadFont(game_assets* Assets, font_id ID, b32 Immediate);
 
 inline sound_id
 GetNextSoundInChain(game_assets* Assets, sound_id ID)
