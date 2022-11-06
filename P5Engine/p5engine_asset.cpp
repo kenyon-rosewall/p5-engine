@@ -803,7 +803,15 @@ GetBitmapForGlyph(game_assets* Assets, p5a_font* Info, loaded_font* Font, u32 De
 internal f32
 GetLineAdvanceFor(p5a_font* Info)
 {
-	f32 Result = Info->LineAdvance;
+	f32 Result = Info->AscenderHeight + Info->DescenderHeight + Info->ExternalLeading;
+
+	return(Result);
+}
+
+internal f32
+GetStartingBaselineY(p5a_font* Info)
+{
+	f32 Result = Info->AscenderHeight;
 
 	return(Result);
 }

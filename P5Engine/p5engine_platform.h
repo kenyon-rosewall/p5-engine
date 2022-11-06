@@ -127,7 +127,7 @@ typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
 // TODO: Give these things names soon
 enum class debug_cycle_counter_id
 {
-	/* 0 */ GameUpdateRender,
+	/* 0 */ GameUpdateAndRender,
 	/* 1 */ RenderGroupOutput,
 	/* 2 */ DrawRectangleSlow,
 	/* 3 */ ProcessPixel,

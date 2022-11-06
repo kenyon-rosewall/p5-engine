@@ -143,7 +143,9 @@ struct p5a_sound
 struct p5a_font
 {
 	u32 CodepointCount;
-	f32 LineAdvance;
+	f32 AscenderHeight;
+	f32 DescenderHeight;
+	f32 ExternalLeading;
 	/* NOTE: Data is: 
 	
 		p5a_font_header Header;

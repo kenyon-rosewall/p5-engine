@@ -647,14 +647,21 @@ global_variable render_group* DEBUGRenderGroup;
 global_variable f32 LeftEdge;
 global_variable f32 AtY;
 global_variable f32 FontScale;
+global_variable font_id FontID;
 
 internal void
-DEBUGReset(u32 Width, u32 Height)
+DEBUGReset(game_assets* Assets, u32 Width, u32 Height)
 {
-	FontScale = 0.7f;
+	asset_vector MatchVector = {};
+	asset_vector WeightVector = {};
+	FontID = GetBestMatchFontFrom(Assets, asset_type_id::Font, &MatchVector, &WeightVector);
+
+	FontScale = 0.5f;
 	Orthographic(DEBUGRenderGroup, Width, Height, 1.0f);
-	AtY = 0.5f * (f32)Height - 0.5f * FontScale;
-	LeftEdge = -0.5f * (f32)Width + 0.5f * FontScale;
+	LeftEdge = -0.5f * Width;
+	
+	p5a_font* Info = GetFontInfo(Assets, FontID);
+	AtY = 0.5 * Height - FontScale * GetStartingBaselineY(Info);
 }
 
 internal void
@@ -663,10 +670,6 @@ DEBUGTextLine(char* String)
 	if (DEBUGRenderGroup)
 	{
 		render_group* RenderGroup = DEBUGRenderGroup;
-
-		asset_vector MatchVector = {};
-		asset_vector WeightVector = {};
-		font_id FontID = GetBestMatchFontFrom(RenderGroup->Assets, asset_type_id::Font, &MatchVector, &WeightVector);
 
 		loaded_font* Font = PushFont(RenderGroup, FontID);
 		if (Font)
@@ -735,7 +738,7 @@ OverlayCycleCounters(game_memory* GameMemory)
 {
 	char* NameTable[] = 
 	{
-		"GameUpdateRender",
+		"GameUpdateAndRender",
 		"RenderGroupOutput",
 		"DrawRectangleSlow",
 		"ProcessPixel",
@@ -781,7 +784,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DebugGlobalMemory = Memory;
 #endif
 	
-	BEGIN_TIMED_BLOCK(GameUpdateRender);
+	BEGIN_TIMED_BLOCK(GameUpdateAndRender);
 	
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)));
 
@@ -1048,7 +1051,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	if (DEBUGRenderGroup)
 	{
 		BeginRender(DEBUGRenderGroup);
-		DEBUGReset(Buffer->Width, Buffer->Height);
+		DEBUGReset(DEBUGRenderGroup->Assets, Buffer->Width, Buffer->Height);
 	}
 
 #if 0
@@ -1772,7 +1775,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
 
-	END_TIMED_BLOCK(GameUpdateRender);
+	END_TIMED_BLOCK(GameUpdateAndRender);
 
 	OverlayCycleCounters(Memory);
 
