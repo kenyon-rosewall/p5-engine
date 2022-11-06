@@ -140,17 +140,22 @@ struct p5a_sound
 	*/
 };
 
+struct p5a_font_glyph
+{
+	u32 UnicodeCodepoint;
+	bitmap_id BitmapID;
+};
+
 struct p5a_font
 {
-	u32 CodepointCount;
+	u32 GlyphCount;
 	f32 AscenderHeight;
 	f32 DescenderHeight;
 	f32 ExternalLeading;
 	/* NOTE: Data is: 
 	
-		p5a_font_header Header;
-		bitmap_id Codepoints[CodepointCount];
-		f32 HorizontalAdvance[CodepointCount];
+		p5a_font_glyph Codepoints[GlyphCount];
+		f32 HorizontalAdvance[GlyphCount][GlyphCount];
 	*/
 };
 

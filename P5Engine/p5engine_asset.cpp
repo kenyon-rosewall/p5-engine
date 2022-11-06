@@ -377,8 +377,8 @@ LoadFont(game_assets* Assets, font_id ID, b32 Immediate)
 			{
 				p5a_font* Info = &Asset->P5A.Font;
 
-				u32 HorizontalAdvanceSize = sizeof(f32) * Info->CodepointCount * Info->CodepointCount;
-				u32 CodepointsSize = Info->CodepointCount * sizeof(bitmap_id);
+				u32 HorizontalAdvanceSize = sizeof(f32) * Info->GlyphCount * Info->GlyphCount;
+				u32 CodepointsSize = Info->GlyphCount * sizeof(bitmap_id);
 				u32 SizeData = CodepointsSize + HorizontalAdvanceSize;
 				u32 SizeTotal = SizeData + sizeof(asset_memory_header);
 
@@ -770,7 +770,7 @@ inline u32
 GetClampedCodepoint(p5a_font* Info, u32 Codepoint)
 {
 	u32 Result = 0;
-	if (Codepoint < Info->CodepointCount)
+	if (Codepoint < Info->GlyphCount)
 	{
 		Result = Codepoint;
 	}
@@ -784,7 +784,7 @@ GetHorizontalAdvanceForPair(p5a_font* Info, loaded_font* Font, u32 DesiredPrevCo
 	u32 PrevCodepoint = GetClampedCodepoint(Info, DesiredPrevCodepoint);
 	u32 Codepoint = GetClampedCodepoint(Info, DesiredCodepoint);
 
-	f32 Result = Font->HorizontalAdvance[PrevCodepoint * Info->CodepointCount + Codepoint];
+	f32 Result = Font->HorizontalAdvance[PrevCodepoint * Info->GlyphCount + Codepoint];
 
 	return(Result);
 }

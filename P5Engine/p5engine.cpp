@@ -717,9 +717,7 @@ DEBUGTextLine(char* String)
 					if (Codepoint != ' ')
 					{
 						bitmap_id BitmapID = GetBitmapForGlyph(RenderGroup->Assets, Info, Font, Codepoint);
-
 						p5a_bitmap* Info = GetBitmapInfo(RenderGroup->Assets, BitmapID);
-
 						PushBitmap(RenderGroup, BitmapID, V3(AtX, AtY, 0), CharScale * (f32)Info->Dim[1], Color);
 					}
 
