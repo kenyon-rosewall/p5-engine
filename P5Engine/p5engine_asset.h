@@ -17,9 +17,10 @@ struct loaded_sound
 
 struct loaded_font
 {
-	bitmap_id* Codepoints;
+	p5a_font_glyph* Glyphs;
 	f32* HorizontalAdvance;
 	u32 BitmapIDOffset;
+	u16* UnicodeMap;
 };
 
 // TODO: Streamline this, by using header pointer as an indicator of 

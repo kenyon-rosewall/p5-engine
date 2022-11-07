@@ -13,10 +13,11 @@
 
 #define USE_FONTS_FROM_WINDOWS 1
 
+#define ONE_PAST_MAX_FONT_CODEPOINT (0x10ffff + 1)
+
 #if USE_FONTS_FROM_WINDOWS
 #include <Windows.h>
 
-#define ONE_PAST_MAX_FONT_CODEPOINT (0x10ffff + 1)
 #define MAX_FONT_WIDTH 1024
 #define MAX_FONT_HEIGHT 1024
 
@@ -53,6 +54,7 @@ struct loaded_font
 	u32 MaxGlyphCount;
 	u32 GlyphCount;
 
+	u32 OnePastHighestCodepoint;
 	u32 *GlyphIndexFromCodepoint;
 };
 

@@ -148,6 +148,7 @@ struct p5a_font_glyph
 
 struct p5a_font
 {
+	u32 OnePastHighestCodepoint;
 	u32 GlyphCount;
 	f32 AscenderHeight;
 	f32 DescenderHeight;

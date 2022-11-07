@@ -1,4 +1,9 @@
 
+enum class finalize_asset_operation
+{
+	None,
+	Font,
+};
 
 struct load_asset_work
 {
@@ -10,6 +15,7 @@ struct load_asset_work
 	u64 Size;
 	void* Destination;
 
+	finalize_asset_operation FinalizeOperation;
 	u32 FinalState;
 };
 
@@ -17,6 +23,33 @@ internal void
 LoadAssetWorkDirectly(load_asset_work* Work)
 {
 	Platform.ReadDataFromFile(Work->Handle, Work->Offset, Work->Size, Work->Destination);
+	if (PlatformNoFileErrors(Work->Handle))
+	{
+		switch (Work->FinalizeOperation)
+		{
+		case finalize_asset_operation::None:
+		{
+			// NOTE: Do nothing
+		} break;
+
+		case finalize_asset_operation::Font:
+		{
+			loaded_font* Font = &Work->Asset->Header->Font;
+			p5a_font* P5A = &Work->Asset->P5A.Font;
+			for (u32 GlyphIndex = 1;
+				 GlyphIndex < P5A->GlyphCount;
+				 ++GlyphIndex)
+			{
+				p5a_font_glyph* Glyph = Font->Glyphs + GlyphIndex;
+
+				Assert(Glyph->UnicodeCodepoint < P5A->OnePastHighestCodepoint);
+				Assert((u16)GlyphIndex == GlyphIndex);
+
+				Font->UnicodeMap[Glyph->UnicodeCodepoint] = (u16)GlyphIndex;
+			}
+		} break;
+		}
+	}
 
 	CompletePreviousWritesBeforeFutureWrites;
 
@@ -273,6 +306,7 @@ LoadBitmap(game_assets* Assets, bitmap_id ID, b32 Immediate)
 				Work.Offset = Asset->P5A.DataOffset;
 				Work.Size = Size.Data;
 				Work.Destination = Bitmap->Memory;
+				Work.FinalizeOperation = finalize_asset_operation::None;
 				Work.FinalState = AssetState_Loaded;
 
 				if (Task)
@@ -346,6 +380,7 @@ LoadSound(game_assets* Assets, sound_id ID)
 			Work->Offset = Asset->P5A.DataOffset;
 			Work->Size = Size.Data;
 			Work->Destination = Memory;
+			Work->FinalizeOperation = finalize_asset_operation::None;
 			Work->FinalState = AssetState_Loaded;
 
 			Platform.AddEntry(Assets->TransientState->LowPriorityQueue, LoadAssetWork, Work);
@@ -378,16 +413,20 @@ LoadFont(game_assets* Assets, font_id ID, b32 Immediate)
 				p5a_font* Info = &Asset->P5A.Font;
 
 				u32 HorizontalAdvanceSize = sizeof(f32) * Info->GlyphCount * Info->GlyphCount;
-				u32 CodepointsSize = Info->GlyphCount * sizeof(bitmap_id);
-				u32 SizeData = CodepointsSize + HorizontalAdvanceSize;
-				u32 SizeTotal = SizeData + sizeof(asset_memory_header);
+				u32 GlyphsSize = Info->GlyphCount * sizeof(p5a_font_glyph);
+				u32 UnicodeMapSize = sizeof(u16) * Info->OnePastHighestCodepoint;
+				u32 SizeData = GlyphsSize + HorizontalAdvanceSize;
+				u32 SizeTotal = SizeData + sizeof(asset_memory_header) + UnicodeMapSize;
 
 				Asset->Header = AcquireAssetMemory(Assets, SizeTotal, ID.Value);
 
 				loaded_font* Font = &Asset->Header->Font;
 				Font->BitmapIDOffset = GetFile(Assets, Asset->FileIndex)->FontBitmapIDOffset;
-				Font->Codepoints = (bitmap_id*)(Asset->Header + 1);
-				Font->HorizontalAdvance = (f32*)((u8*)Font->Codepoints + CodepointsSize);
+				Font->Glyphs = (p5a_font_glyph*)(Asset->Header + 1);
+				Font->HorizontalAdvance = (f32*)((u8*)Font->Glyphs + GlyphsSize);
+				Font->UnicodeMap = (u16*)((u8*)Font->HorizontalAdvance + HorizontalAdvanceSize);
+
+				ZeroSize(UnicodeMapSize, Font->UnicodeMap);
 
 				load_asset_work Work;
 				Work.Task = Task;
@@ -395,7 +434,8 @@ LoadFont(game_assets* Assets, font_id ID, b32 Immediate)
 				Work.Handle = GetFileHandleFor(Assets, Asset->FileIndex);
 				Work.Offset = Asset->P5A.DataOffset;
 				Work.Size = SizeData;
-				Work.Destination = Font->Codepoints;
+				Work.Destination = Font->Glyphs;
+				Work.FinalizeOperation = finalize_asset_operation::Font;
 				Work.FinalState = AssetState_Loaded;
 
 				if (Task)
@@ -767,12 +807,13 @@ AllocateGameAssets(memory_arena* Arena, memory_index Size, transient_state* Tran
 }
 
 inline u32
-GetClampedCodepoint(p5a_font* Info, u32 Codepoint)
+GetGlyphFromCodepoint(p5a_font* Info, loaded_font* Font, u32 Codepoint)
 {
 	u32 Result = 0;
-	if (Codepoint < Info->GlyphCount)
+	if (Codepoint < Info->OnePastHighestCodepoint)
 	{
-		Result = Codepoint;
+		Result = Font->UnicodeMap[Codepoint];
+		Assert(Result < Info->GlyphCount);
 	}
 
 	return(Result);
@@ -781,10 +822,10 @@ GetClampedCodepoint(p5a_font* Info, u32 Codepoint)
 internal f32
 GetHorizontalAdvanceForPair(p5a_font* Info, loaded_font* Font, u32 DesiredPrevCodepoint, u32 DesiredCodepoint)
 {
-	u32 PrevCodepoint = GetClampedCodepoint(Info, DesiredPrevCodepoint);
-	u32 Codepoint = GetClampedCodepoint(Info, DesiredCodepoint);
+	u32 PrevGlyph = GetGlyphFromCodepoint(Info, Font, DesiredPrevCodepoint);
+	u32 Glyph = GetGlyphFromCodepoint(Info, Font, DesiredCodepoint);
 
-	f32 Result = Font->HorizontalAdvance[PrevCodepoint * Info->GlyphCount + Codepoint];
+	f32 Result = Font->HorizontalAdvance[PrevGlyph * Info->GlyphCount + Glyph];
 
 	return(Result);
 }
@@ -792,9 +833,9 @@ GetHorizontalAdvanceForPair(p5a_font* Info, loaded_font* Font, u32 DesiredPrevCo
 internal bitmap_id
 GetBitmapForGlyph(game_assets* Assets, p5a_font* Info, loaded_font* Font, u32 DesiredCodepoint)
 {
-	u32 Codepoint = GetClampedCodepoint(Info, DesiredCodepoint);
+	u32 Glyph = GetGlyphFromCodepoint(Info, Font, DesiredCodepoint);
 
-	bitmap_id Result = Font->Codepoints[Codepoint];
+	bitmap_id Result = Font->Glyphs[Glyph].BitmapID;
 	Result.Value += Font->BitmapIDOffset;
 	
 	return(Result);
