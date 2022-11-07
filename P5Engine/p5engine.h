@@ -255,6 +255,7 @@ Copy(memory_index Size, void* SourceInit, void* DestInit)
 #include "p5engine_render_group.h"
 #include "p5engine_asset.h"
 #include "p5engine_audio.h"
+#include "p5engine_debug.h"
 
 struct low_entity
 {

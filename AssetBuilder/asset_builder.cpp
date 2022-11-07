@@ -185,7 +185,7 @@ LoadFont(char* Filename, wchar_t* FontName)
 
 	AddFontResourceExA(Filename, FR_PRIVATE, 0);
 	i32 Height = 128; // TODO: Figure out how to specify pixels properly here
-	Font->Win32Handle = CreateFont(Height, 0, 0, 0,
+	Font->Win32Handle = CreateFontW(Height, 0, 0, 0,
 		FW_NORMAL, // NOTE: Weight
 		FALSE, // NOTE: Italic
 		FALSE, // NOTE: Underline
@@ -776,7 +776,7 @@ AddFontAsset(game_assets* Assets, loaded_font* Font)
 	added_asset Asset = AddAsset(Assets);
 
 	Asset.P5A->Font.GlyphCount = Font->GlyphCount;
-	Asset.P5A->Font.OnePastHighestCodepoint = (f32)Font->OnePastHighestCodepoint;
+	Asset.P5A->Font.OnePastHighestCodepoint = Font->OnePastHighestCodepoint;
 	Asset.P5A->Font.AscenderHeight = (f32)Font->TextMetric.tmAscent;
 	Asset.P5A->Font.DescenderHeight = (f32)Font->TextMetric.tmDescent;
 	Asset.P5A->Font.ExternalLeading = (f32)Font->TextMetric.tmExternalLeading;

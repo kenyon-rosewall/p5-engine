@@ -756,7 +756,7 @@ CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, l
 internal void
 RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rectangle2i ClipRect, b32 Even)
 {
-	BEGIN_TIMED_BLOCK(RenderGroupOutput);
+	TIMED_BLOCK(RenderGroupOutput);
 
 	f32 NullPixelsToMeters = 1.0f;
 
@@ -863,7 +863,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rect
 		}
 	}
 
-	END_TIMED_BLOCK(RenderGroupOutput);
+	// END_TIMED_BLOCK(RenderGroupOutput);
 }
 
 struct tile_render_work
