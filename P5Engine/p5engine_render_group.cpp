@@ -171,7 +171,7 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	loaded_bitmap* Texture, loaded_bitmap* NormalMap, environment_map* Top, environment_map* Middle, environment_map* Bottom,
 	f32 PixelsToMeters)
 {
-	BEGIN_TIMED_BLOCK(DrawRectangleSlow);
+	TIMED_BLOCK();
 
 	// NOTE: Premultiply color up front
 	Color.rgb *= Color.a;
@@ -233,14 +233,12 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 
 	u8* Row = ((u8*)Buffer->Memory + XMin * BITMAP_BYTES_PER_PIXEL + YMin * Buffer->Pitch);
 
-	BEGIN_TIMED_BLOCK(ProcessPixel);
+	TIMED_BLOCK(((XMax - XMin - 1) * (YMax - YMin - 1)));
 	for (int Y = YMin; Y < YMax; ++Y)
 	{
 		u32* Pixel = (u32*)Row;
 		for (int X = XMin; X < XMax; ++X)
 		{
-			BEGIN_TIMED_BLOCK(TestPixel);
-
 #if 1
 			v2 PixelPos = V2i(X, Y);
 			v2 d = PixelPos - Origin;
@@ -252,8 +250,6 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 
 			if ((Edge0 < 0) && (Edge1 < 0) && (Edge2 < 0) && (Edge3 < 0))
 			{
-				BEGIN_TIMED_BLOCK(FillPixel);
-
 #if 1
 				v2 ScreenSpaceUV = V2(InvWidthMax * (f32)X, FixedCastY);
 				f32 ZDiff = PixelsToMeters * ((f32)Y - OriginY);
@@ -376,10 +372,6 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 
 		Row += Buffer->Pitch;
 	}
-
-	END_TIMED_BLOCK_COUNTED(ProcessPixel, (XMax - XMin - 1) * (YMax - YMin - 1));
-
-	END_TIMED_BLOCK(DrawRectangleSlow);
 }
 
 internal void
@@ -756,7 +748,7 @@ CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, l
 internal void
 RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rectangle2i ClipRect, b32 Even)
 {
-	TIMED_BLOCK(RenderGroupOutput);
+	// TIMED_BLOCK(RenderGroupToOutput);
 
 	f32 NullPixelsToMeters = 1.0f;
 

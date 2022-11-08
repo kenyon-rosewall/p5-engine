@@ -6,19 +6,7 @@
 #include "p5engine_asset.cpp"
 #include "p5engine_audio.cpp"
 
-internal void
-DrawRectangleOutline_(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v3 Color, f32 r = 2.0f)
-{
-#if 0 
-	// NOTE: Rop and boRRom
-	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMax.x + r, vMin.y + r), ToV4(Color, 1));
-	DrawRectangle(Buffer, V2(vMin.x - r, vMax.y - r), V2(vMax.x + r, vMax.y + r), ToV4(Color, 1));
-
-	// NOTE: Left and righte
-	DrawRectangle(Buffer, V2(vMin.x - r, vMin.y - r), V2(vMin.x + r, vMax.y + r), ToV4(Color, 1));
-	DrawRectangle(Buffer, V2(vMax.x - r, vMin.y - r), V2(vMax.x + r, vMax.y + r), ToV4(Color, 1));
-#endif
-}
+internal void OverlayCycleCounters(void);
 
 struct add_low_entity_result
 {
@@ -652,6 +640,8 @@ global_variable font_id FontID;
 internal void
 DEBUGReset(game_assets* Assets, u32 Width, u32 Height)
 {
+	TIMED_BLOCK();
+
 	asset_vector MatchVector = {};
 	asset_vector WeightVector = {};
 	FontID = GetBestMatchFontFrom(Assets, asset_type_id::Font, &MatchVector, &WeightVector);
@@ -772,47 +762,6 @@ DEBUGTextLine(char* String)
 	}
 }
 
-internal void
-OverlayCycleCounters(game_memory* GameMemory)
-{
-	char* NameTable[] = 
-	{
-		"GameUpdateAndRender",
-		"RenderGroupOutput",
-		"DrawRectangleSlow",
-		"ProcessPixel",
-		"DrawRectangleQuick",
-	};
-
-	DEBUGTextLine("\\5C0F\\8033\\6728\\514E");
-
-#if P5ENGINE_INTERNAL
-	DEBUGTextLine("\\#900DEBUG \\#090CYCLE \\#990\\^5COUNTS:");
-	for (int CounterIndex = 0;
-		 CounterIndex < ArrayCount(GameMemory->Counters);
-		 ++CounterIndex)
-	{
-		debug_cycle_counter* Counter = GameMemory->Counters + CounterIndex;
-
-		if (Counter->HitCount)
-		{
-#if 0
-			char TextBuffer[256];
-			_snprintf_s(TextBuffer, sizeof(TextBuffer),
-				"  %d: %I64ucy %uh %I64ucy/h\n",
-				CounterIndex,
-				Counter->CycleCount,
-				Counter->HitCount,
-				Counter->CycleCount / Counter->HitCount
-			);
-#else
-			DEBUGTextLine(NameTable[CounterIndex]);
-#endif
-		}
-	}
-#endif
-}
-
 #if P5ENGINE_INTERNAL
 game_memory* DebugGlobalMemory;
 #endif
@@ -825,7 +774,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	DebugGlobalMemory = Memory;
 #endif
 	
-	BEGIN_TIMED_BLOCK(GameUpdateAndRender);
+	TIMED_BLOCK();
 	
 	Assert((&Input->Controllers[0].Terminator - &Input->Controllers[0].Buttons[0]) == (ArrayCount(Input->Controllers[0].Buttons)));
 
@@ -1816,9 +1765,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
 
-	END_TIMED_BLOCK(GameUpdateAndRender);
-
-	OverlayCycleCounters(Memory);
+	OverlayCycleCounters();
 
 	if (DEBUGRenderGroup)
 	{
@@ -1835,24 +1782,36 @@ extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)
 	OutputPlayingSounds(&GameState->AudioState, SoundBuffer, TransientState->Assets, &TransientState->TransientArena);
 }
 
-/*
+debug_record DebugRecordArray[__COUNTER__];
+
 internal void
-RenderWeirdGradient(game_offscreen_buffer* DrawBuffer, int BlueOffset, int GreenOffset)
+OverlayCycleCounters()
 {
-	uint8* Row = (uint8*)DrawBuffer->Memory;
-	for (int DimY = 0; DimY < DrawBuffer->Height; ++DimY)
+	// DEBUGTextLine("\\5C0F\\8033\\6728\\514E");
+
+#if P5ENGINE_INTERNAL
+	DEBUGTextLine("\\#900DEBUG \\#090CYCLE \\#990\\^5COUNTS:");
+	for (int CounterIndex = 0;
+		CounterIndex < ArrayCount(DebugRecords_Main);
+		++CounterIndex)
 	{
-		uint32* Pixel = (uint32*)Row;
-		for (int DimX = 0; DimX < DrawBuffer->Width; ++DimX)
+		debug_record* Counter = DebugRecords_Main + CounterIndex;
+
+		if (Counter->HitCount)
 		{
-			uint8 Blue = (uint8)(DimX + BlueOffset);
-			uint8 Green = (uint8)(DimY + GreenOffset);
-			uint8 Red = 0;
-
-			*Pixel++ = ((Red << 16) | (Green << 8) | Blue);
+#if 0
+			char TextBuffer[256];
+			_snprintf_s(TextBuffer, sizeof(TextBuffer),
+				"  %d: %I64ucy %uh %I64ucy/h\n",
+				CounterIndex,
+				Counter->CycleCount,
+				Counter->HitCount,
+				Counter->CycleCount / Counter->HitCount
+			);
+#else
+			DEBUGTextLine(Counter->Filename);
+#endif
 		}
-
-		Row += DrawBuffer->Pitch;
 	}
+#endif
 }
-*/

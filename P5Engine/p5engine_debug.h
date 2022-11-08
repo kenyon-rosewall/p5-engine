@@ -3,22 +3,41 @@
 #ifndef P5ENGINE_DEBUG_H
 #define P5ENGINE_DEBUG_H
 
-#define TIMED_BLOCK(ID) timed_block TimedBlock##ID((u32)debug_cycle_counter_id::##ID)
+#define TIMED_BLOCK__(Number, ...) timed_block TimedBlock_##Number(__COUNTER__, __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+#define TIMED_BLOCK_(Number, ...) TIMED_BLOCK__(Number, ## __VA_ARGS__)
+#define TIMED_BLOCK(...) TIMED_BLOCK_(__LINE__, ## __VA_ARGS__)
+
+struct debug_record
+{
+	u64 Clocks;
+
+	char* Filename;
+	char* FunctionName;
+
+	i32 LineNumber;
+	u32 HitCount;
+};
+
+debug_record DebugRecordArray[];
 
 struct timed_block
 {
-	i64 StartCycleCount;
-	u32 ID;
+	debug_record* Record;
 
-	timed_block(u32 IDInit)
+	timed_block(i32 Counter, char* Filename, i32 LineNumber, char* FunctionName, i32 HitCount = 1)
 	{
-		ID = IDInit;
-		BEGIN_TIMED_BLOCK_(StartCycleCount);
+		// TODO: Thread safety
+		Record = DebugRecordArray + Counter;
+		Record->Filename = Filename;
+		Record->LineNumber = LineNumber;
+		Record->FunctionName = FunctionName;
+		Record->Clocks -= __rdtsc();
+		++Record->HitCount;
 	}
 
 	~timed_block()
 	{
-		END_TIMED_BLOCK_(StartCycleCount, ID);
+		Record->Clocks += __rdtsc();
 	}
 };
 
