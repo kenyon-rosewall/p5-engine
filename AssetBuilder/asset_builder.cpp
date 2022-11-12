@@ -179,13 +179,12 @@ LoadBMP(char* Filename)
 }
 
 internal loaded_font*
-LoadFont(char* Filename, wchar_t* FontName)
+LoadFont(char* Filename, wchar_t* FontName, i32 PixelHeight)
 {
 	loaded_font* Font = (loaded_font*)malloc(sizeof(loaded_font));
 
 	AddFontResourceExA(Filename, FR_PRIVATE, 0);
-	i32 Height = 128; // TODO: Figure out how to specify pixels properly here
-	Font->Win32Handle = CreateFontW(Height, 0, 0, 0,
+	Font->Win32Handle = CreateFontW(PixelHeight, 0, 0, 0,
 		FW_NORMAL, // NOTE: Weight
 		FALSE, // NOTE: Italic
 		FALSE, // NOTE: Underline
@@ -928,30 +927,42 @@ WriteFonts(void)
 	game_assets* Assets = &Assets_;
 	Initialize(Assets);
 
-	loaded_font* DebugFont = LoadFont("c:/Windows/Fonts/arial.ttf", L"Arial");
-	// loaded_font* Font = LoadFont("c:/Windows/Fonts/cour.ttf", L"Courier New");
+	loaded_font* Fonts[] =
+	{
+		LoadFont("c:/Windows/Fonts/arial.ttf", L"Arial", 30),
+		LoadFont("c:/Windows/Fonts/cour.ttf", L"Courier", 30),
+	};
 
 	BeginAssetType(Assets, asset_type_id::FontGlyph);
-	AddCharacterAsset(Assets, DebugFont, ' ');
-	for (u32 Character = '!';
-		 Character <= '~';
-		 ++Character)
+	for (u32 FontIndex = 0;
+		 FontIndex < ArrayCount(Fonts);
+		 ++FontIndex)
 	{
-		AddCharacterAsset(Assets, DebugFont, Character);
+		loaded_font* Font = Fonts[FontIndex];
+
+		AddCharacterAsset(Assets, Font, ' ');
+		for (u32 Character = '!';
+			 Character <= '~';
+			 ++Character)
+		{
+			AddCharacterAsset(Assets, Font, Character);
+		}
+
+		// NOTE: Kanji OWL
+		AddCharacterAsset(Assets, Font, 0x5c0f);
+		AddCharacterAsset(Assets, Font, 0x8033);
+		AddCharacterAsset(Assets, Font, 0x6728);
+		AddCharacterAsset(Assets, Font, 0x514e);
 	}
-
-	// NOTE: Kanji OWL
-	AddCharacterAsset(Assets, DebugFont, 0x5c0f);
-	AddCharacterAsset(Assets, DebugFont, 0x8033);
-	AddCharacterAsset(Assets, DebugFont, 0x6728);
-	AddCharacterAsset(Assets, DebugFont, 0x514e);
-
 	EndAssetType(Assets);
 
 	// TODO: This is kinda janky, because it means you have to get this
 	// order right always.
 	BeginAssetType(Assets, asset_type_id::Font);
-	AddFontAsset(Assets, DebugFont);
+	AddFontAsset(Assets, Fonts[0]);
+	AddTag(Assets, asset_tag_id::FontType, (f32)asset_font_type::Default);
+	AddFontAsset(Assets, Fonts[1]);
+	AddTag(Assets, asset_tag_id::FontType, (f32)asset_font_type::Debug);
 	EndAssetType(Assets);
 
 	WriteP5A(Assets, "data/assetsfonts.p5a");

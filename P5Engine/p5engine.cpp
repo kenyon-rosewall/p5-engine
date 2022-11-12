@@ -6,8 +6,6 @@
 #include "p5engine_asset.cpp"
 #include "p5engine_audio.cpp"
 
-internal void OverlayCycleCounters(void);
-
 struct add_low_entity_result
 {
 	low_entity* Low;
@@ -333,6 +331,8 @@ struct fill_ground_chunk_work
 };
 internal PLATFORM_WORK_QUEUE_CALLBACK(FillGroundChunkWork)
 {
+	TIMED_BLOCK();
+
 	fill_ground_chunk_work* Work = (fill_ground_chunk_work*)FindData;
 
 	loaded_bitmap* Buffer = &Work->GroundBuffer->Bitmap;
@@ -644,9 +644,11 @@ DEBUGReset(game_assets* Assets, u32 Width, u32 Height)
 
 	asset_vector MatchVector = {};
 	asset_vector WeightVector = {};
+	MatchVector.E[(u32)asset_tag_id::FontType] = (f32)asset_font_type::Debug;
+	WeightVector.E[(u32)asset_tag_id::FontType] = 1.0f;
 	FontID = GetBestMatchFontFrom(Assets, asset_type_id::Font, &MatchVector, &WeightVector);
 
-	FontScale = 0.5f;
+	FontScale = 1.0f;
 	Orthographic(DEBUGRenderGroup, Width, Height, 1.0f);
 	LeftEdge = -0.5f * Width;
 	
@@ -691,13 +693,14 @@ DEBUGTextLine(char* String)
 		if (Font)
 		{
 			p5a_font* Info = GetFontInfo(RenderGroup->Assets, FontID);
+
 			u32 PreviousCodePoint = 0;
 			f32 CharScale = FontScale;
 			v4 Color = V4(1, 1, 1, 1);
 			f32 AtX = LeftEdge;
 			for (char* At = String;
-				*At;
-				)
+				 *At;
+				 )
 			{
 				if ((At[0] == '\\') &&
 					(At[1] == '#') &&
@@ -759,6 +762,115 @@ DEBUGTextLine(char* String)
 
 			AtY -= GetLineAdvanceFor(Info) * FontScale;
 		}
+	}
+}
+
+// TODO: Stop using stdio
+#include <stdio.h>
+
+struct debug_statistic
+{
+	f64 Min;
+	f64 Max;
+	f64 Avg;
+	u32 Count;
+};
+
+inline void
+BeginDebugStatistic(debug_statistic* Stat)
+{
+	Stat->Min = Real32Maximum;
+	Stat->Max = -Real32Maximum;
+	Stat->Avg = 0.0f;
+	Stat->Count = 0;
+}
+
+inline void
+AccumDebugStatistic(debug_statistic* Stat, f64 Value)
+{
+	++Stat->Count;
+
+	if (Stat->Min > Value)
+	{
+		Stat->Min = Value;
+	}
+
+	if (Stat->Max < Value)
+	{
+		Stat->Max = Value;
+	}
+
+	Stat->Avg += Value;
+}
+
+inline void
+EndDebugStatistic(debug_statistic* Stat)
+{
+	if (Stat->Count != 0)
+	{
+		Stat->Avg /= (f64)Stat->Count;
+	}
+	else
+	{
+		Stat->Min = 0.0f;
+		Stat->Max = 0.0f;
+	}
+}
+
+internal void
+OverlayCycleCounters(game_memory* Memory)
+{
+	debug_state* DebugState = (debug_state*)Memory->DebugStorage;
+	if (DebugState)
+	{
+		for (u32 CounterIndex = 0;
+			 CounterIndex < DebugState->CounterCount;
+			 ++CounterIndex)
+		{
+			debug_counter_state* Counter = DebugState->CounterStates + CounterIndex;
+
+			debug_statistic HitCount, CycleCount, CycleOverHit;
+			BeginDebugStatistic(&HitCount);
+			BeginDebugStatistic(&CycleCount);
+			BeginDebugStatistic(&CycleOverHit);
+			for (u32 SnapshotIndex = 0;
+				 SnapshotIndex < DEBUG_SNAPSHOT_COUNT;
+				 ++SnapshotIndex)
+			{
+				AccumDebugStatistic(&HitCount, Counter->Snapshots[SnapshotIndex].HitCount);
+				AccumDebugStatistic(&CycleCount, Counter->Snapshots[SnapshotIndex].CycleCount);
+
+				f64 HOC = 0.0f;
+				if (Counter->Snapshots[SnapshotIndex].HitCount)
+				{
+					HOC = ((f64)Counter->Snapshots[SnapshotIndex].CycleCount / (f64)Counter->Snapshots[SnapshotIndex].HitCount);
+				}
+				AccumDebugStatistic(&CycleOverHit, HOC);
+			}
+			EndDebugStatistic(&HitCount);
+			EndDebugStatistic(&CycleCount);
+			EndDebugStatistic(&CycleOverHit);
+
+			if (HitCount.Count > 0.0f)
+			{
+#if 1
+				char TextBuffer[256];
+				_snprintf_s(
+					TextBuffer, sizeof(TextBuffer),
+					"%24s(%4d): %10ucy %8uh %10ucy/h",
+					Counter->FunctionName,
+					Counter->LineNumber,
+					(u32)CycleCount.Avg,
+					(u32)HitCount.Avg,
+					(u32)(CycleOverHit.Avg)
+				);
+
+				DEBUGTextLine(TextBuffer);
+#endif
+			}
+		}
+
+		// DEBUGTextLine("\\5C0F\\8033\\6728\\514E");
 	}
 }
 
@@ -1765,7 +1877,7 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
 
-	OverlayCycleCounters();
+	OverlayCycleCounters(Memory);
 
 	if (DEBUGRenderGroup)
 	{
@@ -1785,33 +1897,44 @@ extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)
 debug_record DebugRecordArray[__COUNTER__];
 
 internal void
-OverlayCycleCounters()
+UpdateDebugRecords(debug_state* DebugState, u32 CounterCount, debug_record* Counters)
 {
-	// DEBUGTextLine("\\5C0F\\8033\\6728\\514E");
-
-#if P5ENGINE_INTERNAL
-	DEBUGTextLine("\\#900DEBUG \\#090CYCLE \\#990\\^5COUNTS:");
-	for (int CounterIndex = 0;
-		CounterIndex < ArrayCount(DebugRecords_Main);
-		++CounterIndex)
+	for (u32 CounterIndex = 0;
+		 CounterIndex < CounterCount;
+		 ++CounterIndex)
 	{
-		debug_record* Counter = DebugRecords_Main + CounterIndex;
+		debug_record* Source = Counters + CounterIndex;
+		debug_counter_state* Dest = DebugState->CounterStates + DebugState->CounterCount++;
 
-		if (Counter->HitCount)
+		if (Source->LineNumber != 0)
 		{
-#if 0
-			char TextBuffer[256];
-			_snprintf_s(TextBuffer, sizeof(TextBuffer),
-				"  %d: %I64ucy %uh %I64ucy/h\n",
-				CounterIndex,
-				Counter->CycleCount,
-				Counter->HitCount,
-				Counter->CycleCount / Counter->HitCount
-			);
-#else
-			DEBUGTextLine(Counter->Filename);
-#endif
+			u64 HitCount_CycleCount = AtomicExchangeU64(&Source->HitCount_CycleCount, 0);
+			Dest->Filename = Source->Filename;
+			Dest->FunctionName = Source->FunctionName;
+			Dest->LineNumber = Source->LineNumber;
+			Dest->Snapshots[DebugState->SnapshotIndex].HitCount = (u32)(HitCount_CycleCount >> 32);
+			Dest->Snapshots[DebugState->SnapshotIndex].CycleCount = (u32)(HitCount_CycleCount & 0xFFFFFFFF);
 		}
 	}
-#endif
+}
+
+extern u32 const DebugRecords_Optimized_Count;
+debug_record DebugRecords_Optimized[];
+
+extern "C" GAME_DEBUG_FRAME_END(GameDEBUGFrameEnd)
+{
+	debug_state* DebugState = (debug_state*)Memory->DebugStorage;
+	if (DebugState)
+	{
+		DebugState->CounterCount = 0;
+
+		UpdateDebugRecords(DebugState, DebugRecords_Optimized_Count, DebugRecords_Optimized);
+		UpdateDebugRecords(DebugState, ArrayCount(DebugRecords_Main), DebugRecords_Main);
+
+		++DebugState->SnapshotIndex;
+		if (DebugState->SnapshotIndex >= DEBUG_SNAPSHOT_COUNT)
+		{
+			DebugState->SnapshotIndex = 0;
+		}
+	}
 }

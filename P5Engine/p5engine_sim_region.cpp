@@ -79,6 +79,8 @@ StoreEntityReference(entity_reference* Ref)
 internal sim_entity*
 AddEntityRaw(game_state* GameState, sim_region* SimRegion, u32 StorageIndex, low_entity* Source)
 {
+	TIMED_BLOCK();
+
 	Assert(StorageIndex);
 	sim_entity* Entity = 0;
 
@@ -149,6 +151,8 @@ AddEntity(game_state* GameState, sim_region* SimRegion, u32 StorageIndex, low_en
 internal sim_region*
 BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_position Origin, rectangle3 Bounds, f32 dt)
 {
+	TIMED_BLOCK();
+
 	// TODO: If entities were stored in the world, we wouldn't need the game state 
 
 	sim_region* SimRegion = PushStruct(SimArena, sim_region);
@@ -213,6 +217,8 @@ BeginSim(memory_arena* SimArena, game_state* GameState, world* World, world_posi
 internal void
 EndSim(sim_region* SimRegion, game_state* GameState)
 {
+	TIMED_BLOCK();
+
 	// TODO: Maybe don't take a game state here, low entities should be stored
 	// in the world?? 
 
@@ -409,6 +415,8 @@ HandleOverlap(game_state* GameState, sim_entity* Mover, sim_entity* Region, f32 
 internal b32
 SpeculativeCollide(sim_entity* Mover, sim_entity* Region, v3 TestPos)
 {
+	// TIMED_BLOCK();
+
 	b32 Result = true;
 
 	if (Region->Type == entity_type::Stairs)
@@ -429,6 +437,8 @@ SpeculativeCollide(sim_entity* Mover, sim_entity* Region, v3 TestPos)
 internal b32
 EntitiesOverlap(sim_entity* Entity, sim_entity* TestEntity, v3 Epsilon = V3(0, 0, 0))
 {
+	TIMED_BLOCK();
+
 	b32 Result = false;
 
 	for (u32 VolumeIndex = 0; !Result && (VolumeIndex < Entity->Collision->VolumeCount); ++VolumeIndex)
@@ -451,6 +461,8 @@ EntitiesOverlap(sim_entity* Entity, sim_entity* TestEntity, v3 Epsilon = V3(0, 0
 internal void
 MoveEntity(game_state* GameState, sim_region* SimRegion, sim_entity* Entity, f32 dt, move_spec* MoveSpec, v3 ddP)
 {
+	TIMED_BLOCK();
+
 	Assert(!HasFlag(Entity, (u32)entity_flag::Nonspatial));
 
 	world* World = SimRegion->World;

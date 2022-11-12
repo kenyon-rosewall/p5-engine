@@ -9,13 +9,13 @@
 
 struct debug_record
 {
-	u64 Clocks;
-
 	char* Filename;
 	char* FunctionName;
 
-	i32 LineNumber;
-	u32 HitCount;
+	u32 LineNumber;
+	u32 Reserved;
+
+	u64 HitCount_CycleCount;
 };
 
 debug_record DebugRecordArray[];
@@ -23,22 +23,49 @@ debug_record DebugRecordArray[];
 struct timed_block
 {
 	debug_record* Record;
+	u64 StartCycles;
+	u32 HitCount;
 
-	timed_block(i32 Counter, char* Filename, i32 LineNumber, char* FunctionName, i32 HitCount = 1)
+	timed_block(i32 Counter, char* Filename, i32 LineNumber, char* FunctionName, i32 HitCountInit = 1)
 	{
-		// TODO: Thread safety
+		HitCount = HitCountInit;
 		Record = DebugRecordArray + Counter;
 		Record->Filename = Filename;
 		Record->LineNumber = LineNumber;
 		Record->FunctionName = FunctionName;
-		Record->Clocks -= __rdtsc();
-		++Record->HitCount;
+
+		StartCycles = __rdtsc();
 	}
 
 	~timed_block()
 	{
-		Record->Clocks += __rdtsc();
+		u64 Delta = (__rdtsc() - StartCycles) | ((u64)HitCount << 32);
+		AtomicAddU64(&Record->HitCount_CycleCount, Delta);
 	}
+};
+
+struct debug_counter_snapshot
+{
+	u32 HitCount;
+	u32 CycleCount;
+};
+
+#define DEBUG_SNAPSHOT_COUNT 120
+struct debug_counter_state
+{
+	char* Filename;
+	char* FunctionName;
+
+	u32 LineNumber;
+
+	debug_counter_snapshot Snapshots[DEBUG_SNAPSHOT_COUNT];
+};
+
+struct debug_state
+{
+	u32 SnapshotIndex;
+	u32 CounterCount;
+	debug_counter_state CounterStates[512];
 };
 
 #endif // P5ENGINE_DEBUG_H

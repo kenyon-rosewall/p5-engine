@@ -128,7 +128,7 @@ BeginAssetLock(game_assets* Assets)
 {
 	for (;;)
 	{
-		if (AtomicCompareExchangeUInt32(&Assets->OperationLock, 1, 0) == 0)
+		if (AtomicCompareExchangeU32(&Assets->OperationLock, 1, 0) == 0)
 		{
 			break;
 		}

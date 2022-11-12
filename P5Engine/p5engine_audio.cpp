@@ -31,6 +31,8 @@ OutputTestSineWave(game_state* GameState, game_sound_output_buffer* SoundBuffer,
 internal playing_sound*
 PlaySound(audio_state* AudioState, sound_id SoundID)
 {
+	TIMED_BLOCK();
+
 	if (!AudioState->FirstFreePlayingSound)
 	{
 		AudioState->FirstFreePlayingSound = PushStruct(AudioState->PermArena, playing_sound);
@@ -82,6 +84,8 @@ ChangePitch(audio_state* AudioSats, playing_sound* Sound, f32 dSample)
 internal void
 OutputPlayingSounds(audio_state* AudioState, game_sound_output_buffer* SoundBuffer, game_assets* Assets, memory_arena* TempArena)
 {
+	TIMED_BLOCK();
+
 	temporary_memory MixerMemory = BeginTemporaryMemory(TempArena);
 
 	u32 GenerationID = BeginGeneration(Assets);

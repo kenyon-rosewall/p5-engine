@@ -303,6 +303,9 @@ typedef struct game_memory
 	u64 TransientStorageSize;
 	void* TransientStorage; // NOTE: REQUIRED to be cleared to zero at startup
 
+	u64 DebugStorageSize;
+	void* DebugStorage; // NOTE: REQUIRED to be cleared to zero at startup
+
 	platform_work_queue* HighPriorityQueue;
 	platform_work_queue* LowPriorityQueue;
 
@@ -318,6 +321,19 @@ typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 // or asking about it, etc.
 #define GAME_GET_SOUND_SAMPLES(name) P5ENGINE_API void name(game_memory* Memory, game_sound_output_buffer* SoundBuffer)
 typedef GAME_GET_SOUND_SAMPLES(game_get_sound_samples);
+
+struct debug_frame_end_info
+{
+	f32 ExecutableReady;
+	f32 InputProcessed;
+	f32 GameUpdated;
+	f32 AudioUpdated;
+	f32 FramerateWaitComplete;
+	f32 EndOfFrame;
+};
+
+#define GAME_DEBUG_FRAME_END(name) P5ENGINE_API void name(game_memory* Memory, debug_frame_end_info* Info)
+typedef GAME_DEBUG_FRAME_END(game_debug_frame_end);
 
 inline game_controller_input* GetController(game_input* Input, unsigned int ControllerIndex)
 {

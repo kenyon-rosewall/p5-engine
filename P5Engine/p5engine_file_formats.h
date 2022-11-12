@@ -3,12 +3,19 @@
 #ifndef P5ENGINE_FILE_FORMATS_H
 #define P5ENGINE_FILE_FORMATS_H
 
+enum class asset_font_type
+{
+	Default = 0,
+	Debug = 10,
+};
+
 enum class asset_tag_id
 {
 	Smoothness,
 	Flatness,
 	FacingDirection,
 	UnicodeCodepoint,
+	FontType, // NOTE: 0 - Default Game Font, 10 - Debug Font?
 
 	Count,
 };
