@@ -66,6 +66,13 @@ struct debug_state
 	u32 SnapshotIndex;
 	u32 CounterCount;
 	debug_counter_state CounterStates[512];
+	debug_frame_end_info FrameEndInfos[DEBUG_SNAPSHOT_COUNT];
 };
+
+// TODO: Fix this for looped live code editing
+global_variable render_group* DEBUGRenderGroup;
+
+internal void DEBUGReset(game_assets* Assets, u32 Width, u32 Height);
+internal void DEBUGOverlay(game_memory* Memory);
 
 #endif // P5ENGINE_DEBUG_H

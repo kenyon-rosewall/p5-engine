@@ -30,7 +30,7 @@ UnscaleAndBiasNormal(v4 Normal)
 internal void
 DrawRectangle(loaded_bitmap* Buffer, v2 vMin, v2 vMax, v4 Color, rectangle2i ClipRect, b32 Even)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	f32 R = Color.r;
 	f32 G = Color.g;
@@ -173,7 +173,7 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 	loaded_bitmap* Texture, loaded_bitmap* NormalMap, environment_map* Top, environment_map* Middle, environment_map* Bottom,
 	f32 PixelsToMeters)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	// NOTE: Premultiply color up front
 	Color.rgb *= Color.a;
@@ -379,7 +379,7 @@ DrawRectangleSlowly(loaded_bitmap* Buffer, v2 Origin, v2 XAxis, v2 YAxis, v4 Col
 internal void
 ChangeSaturation(loaded_bitmap* Buffer, f32 Level)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	u8* DestRow = (u8*)Buffer->Memory;
 	for (i32 y = 0; y < Buffer->Height; ++y)
@@ -412,7 +412,7 @@ ChangeSaturation(loaded_bitmap* Buffer, f32 Level)
 internal void
 DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f32 CAlpha = 1.0f)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	i32 MinX = RoundReal32ToInt32(RealX);
 	i32 MinY = RoundReal32ToInt32(RealY);
@@ -478,7 +478,7 @@ DrawBitmap(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f
 internal void
 DrawMatte(loaded_bitmap* Buffer, loaded_bitmap* Bitmap, f32 RealX, f32 RealY, f32 CAlpha = 1.0f)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	i32 MinX = RoundReal32ToInt32(RealX);
 	i32 MinY = RoundReal32ToInt32(RealY);
@@ -559,7 +559,7 @@ struct entity_basis_p_result
 inline entity_basis_p_result
 GetRenderEntityBasisPos(render_transform* Transform, v3 OriginalPos)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	entity_basis_p_result Result = {};
 	v3 Pos = OriginalPos + Transform->OffsetPos;
@@ -603,7 +603,7 @@ GetRenderEntityBasisPos(render_transform* Transform, v3 OriginalPos)
 inline void*
 PushRenderElement_(render_group* Group, u32 Size, render_group_entry_type Type)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	Assert(Group->InsideRender);
 
@@ -760,7 +760,7 @@ CoordinateSystem(render_group* Group, v2 Origin, v2 XAxis, v2 YAxis, v4 Color, l
 internal void
 RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget, rectangle2i ClipRect, b32 Even)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	f32 NullPixelsToMeters = 1.0f;
 
@@ -886,7 +886,7 @@ internal PLATFORM_WORK_QUEUE_CALLBACK(DoTiledRenderWork)
 internal void
 RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	Assert(RenderGroup->InsideRender);
 	Assert(((uintptr)OutputTarget->Memory & 15) == 0);
@@ -908,7 +908,7 @@ RenderGroupToOutput(render_group* RenderGroup, loaded_bitmap* OutputTarget)
 internal void
 TiledRenderGroupToOutput(platform_work_queue* RenderQueue, render_group* RenderGroup, loaded_bitmap* OutputTarget)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	Assert(RenderGroup->InsideRender);
 
@@ -1007,7 +1007,7 @@ AllocateRenderGroup(game_assets* Assets, memory_arena* Arena, u32 MaxPushBufferS
 internal void
 BeginRender(render_group* Group)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	if (Group)
 	{
@@ -1021,7 +1021,7 @@ BeginRender(render_group* Group)
 internal void
 EndRender(render_group* Group)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	if (Group)
 	{

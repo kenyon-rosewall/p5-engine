@@ -1202,6 +1202,16 @@ PLATFORM_DEALLOCATE_MEMORY(Win32DeallocateMemory)
 	}
 }
 
+inline void
+Win32RecordTimestamp(debug_frame_end_info* Info, char* Name, f32 Seconds)
+{
+	Assert(Info->TimestampCount < ArrayCount(Info->Timestamps));
+
+	debug_frame_timestamp* Timestamp = Info->Timestamps + Info->TimestampCount++;
+	Timestamp->Name = Name;
+	Timestamp->Seconds = Seconds;
+}
+
 int CALLBACK
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCode)
 {
@@ -1402,7 +1412,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						NewInput->ExecutableReloaded = true;
 					}
 
-					FrameEndInfo.ExecutableReady = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+					Win32RecordTimestamp(&FrameEndInfo, "ExecutableReady", 
+						Win32GetSecondsElapsed(LastCounter, Win32GetWallClock()));
 
 					// TODO: Zeroing macro
 					// TODO: We can't zero everything because the up/down state will
@@ -1522,7 +1533,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 					}
 
-					FrameEndInfo.InputProcessed = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+					Win32RecordTimestamp(&FrameEndInfo, "InputProcessed",
+						Win32GetSecondsElapsed(LastCounter, Win32GetWallClock()));
 
 					if (!GlobalPause)
 					{
@@ -1549,7 +1561,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 					}
 
-					FrameEndInfo.GameUpdated = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+					Win32RecordTimestamp(&FrameEndInfo, "GameUpdated", 
+						Win32GetSecondsElapsed(LastCounter, Win32GetWallClock()));
 
 					if (!GlobalPause)
 					{
@@ -1661,7 +1674,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 					}
 
-					FrameEndInfo.AudioUpdated = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+					Win32RecordTimestamp(&FrameEndInfo, "AudioUpdated", 
+						Win32GetSecondsElapsed(LastCounter, Win32GetWallClock()));
 
 					if (!GlobalPause)
 					{
@@ -1699,7 +1713,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 						}
 					}
 
-					FrameEndInfo.FramerateWaitComplete = Win32GetSecondsElapsed(LastCounter, Win32GetWallClock());
+					Win32RecordTimestamp(&FrameEndInfo, "FramerateWaitComplete", 
+						Win32GetSecondsElapsed(LastCounter, Win32GetWallClock()));
+
 					win32_window_dimension Dim = Win32GetWindowDimension(Window);
 					HDC DeviceContext = GetDC(Window);
 					Win32DisplayBufferInWindow(DeviceContext, &GlobalBackbuffer, Dim.Width, Dim.Height);
@@ -1716,7 +1732,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, PSTR CommandLine, int ShowCo
 					LastCounter = EndCounter;
 
 #if P5ENGINE_INTERNAL
-					FrameEndInfo.EndOfFrame = Win32GetSecondsElapsed(LastCounter, EndCounter);
+					Win32RecordTimestamp(&FrameEndInfo, "EndOfFrame",
+						Win32GetSecondsElapsed(LastCounter, EndCounter));
 
 					u64 EndCycleCount = __rdtsc();
 					u64 CyclesElapsed = EndCycleCount - LastCycleCount;

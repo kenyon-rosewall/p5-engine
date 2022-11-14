@@ -322,14 +322,17 @@ typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 #define GAME_GET_SOUND_SAMPLES(name) P5ENGINE_API void name(game_memory* Memory, game_sound_output_buffer* SoundBuffer)
 typedef GAME_GET_SOUND_SAMPLES(game_get_sound_samples);
 
+struct debug_frame_timestamp
+{
+	char* Name;
+	f32 Seconds;
+};
+
 struct debug_frame_end_info
 {
-	f32 ExecutableReady;
-	f32 InputProcessed;
-	f32 GameUpdated;
-	f32 AudioUpdated;
-	f32 FramerateWaitComplete;
-	f32 EndOfFrame;
+	f32 TotalSeconds;
+	u32 TimestampCount;
+	debug_frame_timestamp Timestamps[64];
 };
 
 #define GAME_DEBUG_FRAME_END(name) P5ENGINE_API void name(game_memory* Memory, debug_frame_end_info* Info)

@@ -415,7 +415,7 @@ HandleOverlap(game_state* GameState, sim_entity* Mover, sim_entity* Region, f32 
 internal b32
 SpeculativeCollide(sim_entity* Mover, sim_entity* Region, v3 TestPos)
 {
-	// TIMED_BLOCK();
+	TIMED_BLOCK();
 
 	b32 Result = true;
 
