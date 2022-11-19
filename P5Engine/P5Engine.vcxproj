@@ -136,7 +136,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>P5ENGINE_WIN32=1;P5ENGINE_INTERNAL=1;P5ENGINE_SLOW=1;DebugRecordArray=DebugRecords_Main;DebugRecordArrayIndexConstant=0;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>P5ENGINE_WIN32=1;P5ENGINE_INTERNAL=1;P5ENGINE_SLOW=1;TRANSLATION_UNIT_INDEX=0;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -233,7 +233,7 @@
     <ClCompile Include="p5engine_optimized.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\pguru\source\repos\p5-engine\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">P5ENGINE_WIN32=1;P5ENGINE_INTERNAL=1;P5ENGINE_SLOW=1;DebugRecordArray=DebugRecords_Optimized;DebugRecordArrayIndexConstant=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">P5ENGINE_WIN32=1;P5ENGINE_INTERNAL=1;P5ENGINE_SLOW=1;TRANSLATION_UNIT_INDEX=1</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="p5engine_render_group.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
