@@ -1633,7 +1633,6 @@ extern "C" GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 	CheckArena(&GameState->WorldArena);
 	CheckArena(&TransientState->TransientArena);
 
-
 	if (DEBUGRenderGroup)
 	{
 		DEBUGOverlay(Memory);

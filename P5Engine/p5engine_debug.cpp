@@ -7,24 +7,8 @@ global_variable f32 AtY;
 global_variable f32 FontScale;
 global_variable font_id FontID;
 
-internal void
-UpdateDebugRecords(debug_state* DebugState, u32 CounterCount, debug_record* Counters)
-{
-	for (u32 CounterIndex = 0;
-		CounterIndex < CounterCount;
-		++CounterIndex)
-	{
-		debug_record* Source = Counters + CounterIndex;
-		debug_counter_state* Dest = DebugState->CounterStates + DebugState->CounterCount++;
-
-		u64 HitCount_CycleCount = AtomicExchangeU64(&Source->HitCount_CycleCount, 0);
-		Dest->Filename = Source->Filename;
-		Dest->FunctionName = Source->FunctionName;
-		Dest->LineNumber = Source->LineNumber;
-		Dest->Snapshots[DebugState->SnapshotIndex].HitCount = (u32)(HitCount_CycleCount >> 32);
-		Dest->Snapshots[DebugState->SnapshotIndex].CycleCount = (u32)(HitCount_CycleCount & 0xFFFFFFFF);
-	}
-}
+u64 Global_DebugEventArrayIndex_DebugEventIndex = 0;
+debug_event GlobalDebugEventArray[2][MAX_DEBUG_EVENT_COUNT];
 
 internal void
 DEBUGReset(game_assets* Assets, u32 Width, u32 Height)
@@ -232,7 +216,7 @@ DEBUGOverlay(game_memory* Memory)
 					++SnapshotIndex)
 				{
 					AccumDebugStatistic(&HitCount, Counter->Snapshots[SnapshotIndex].HitCount);
-					AccumDebugStatistic(&CycleCount, Counter->Snapshots[SnapshotIndex].CycleCount);
+					AccumDebugStatistic(&CycleCount, (u32)Counter->Snapshots[SnapshotIndex].CycleCount);
 
 					f64 HOC = 0.0f;
 					if (Counter->Snapshots[SnapshotIndex].HitCount)
@@ -294,8 +278,8 @@ DEBUGOverlay(game_memory* Memory)
 			f32 BarSpacing = 10.0f;
 			f32 ChartLeft = LeftEdge + 10.0f;
 			f32 ChartHeight = 300.0f;
-			f32 ChartWidth = BarSpacing * 300.0f;
-			f32 ChartMinY = AtY - (0.5f * ChartHeight + 10.0f);
+			f32 ChartWidth = BarSpacing * (f32)DEBUG_SNAPSHOT_COUNT;
+			f32 ChartMinY = AtY - (ChartHeight + 80.0f);
 			f32 Scale = 1.0f / 0.03333f;
 
 			v3 Colors[] =
@@ -307,7 +291,7 @@ DEBUGOverlay(game_memory* Memory)
 				{0, 1, 1},
 				{1, 0, 1},
 				{1, 0.5f, 0},
-				{1, 0, 0.05f},
+				{1, 0, 0.5f},
 				{0.5f, 1, 0},
 				{0, 1, 0.5f},
 				{0.5f, 0, 1},
@@ -320,6 +304,7 @@ DEBUGOverlay(game_memory* Memory)
 				++SnapshotIndex)
 			{
 				debug_frame_end_info* Info = DebugState->FrameEndInfos + SnapshotIndex;
+
 				f32 StackY = ChartMinY;
 				f32 PrevTimestampSeconds = 0.0f;
 				for (u32 TimestampIndex = 0;
@@ -327,16 +312,13 @@ DEBUGOverlay(game_memory* Memory)
 					++TimestampIndex)
 				{
 					debug_frame_timestamp* Timestamp = Info->Timestamps + TimestampIndex;
+
 					f32 ThisSecondsElapsed = Timestamp->Seconds - PrevTimestampSeconds;
 					PrevTimestampSeconds = Timestamp->Seconds;
-
 					v3 Color = Colors[TimestampIndex % ArrayCount(Colors)]; 
+
 					f32 ThisProportion = Scale * ThisSecondsElapsed;
 					f32 ThisHeight = ChartHeight * ThisProportion;
-					if (TimestampIndex == 3)
-					{
-						ExampleNumber = ThisHeight;
-					}
 					
 					PushRect(
 						RenderGroup,
@@ -358,18 +340,101 @@ DEBUGOverlay(game_memory* Memory)
 
 debug_record DebugRecordArray[__COUNTER__];
 
+extern u32 GlobalCurrentEventArrayIndex = 0;
 extern u32 const DebugRecords_Optimized_Count;
 debug_record DebugRecords_Optimized[];
 
+internal void
+UpdateDebugRecords(debug_state* DebugState, u32 CounterCount, debug_record* Counters)
+{
+	for (u32 CounterIndex = 0;
+		CounterIndex < CounterCount;
+		++CounterIndex)
+	{
+		debug_record* Source = Counters + CounterIndex;
+		debug_counter_state* Dest = DebugState->CounterStates + DebugState->CounterCount++;
+
+		u64 HitCount_CycleCount = AtomicExchangeU64(&Source->HitCount_CycleCount, 0);
+		Dest->Filename = Source->Filename;
+		Dest->FunctionName = Source->FunctionName;
+		Dest->LineNumber = Source->LineNumber;
+		Dest->Snapshots[DebugState->SnapshotIndex].HitCount = (u32)(HitCount_CycleCount >> 32);
+		Dest->Snapshots[DebugState->SnapshotIndex].CycleCount = (u32)(HitCount_CycleCount & 0xFFFFFFFF);
+	}
+}
+
+internal void
+CollateDebugRecords(debug_state* DebugState, u32 EventCount, debug_event* Events)
+{
+	DebugState->CounterCount = DebugRecords_Optimized_Count + ArrayCount(DebugRecords_Main);
+	
+	for (u32 CounterIndex = 0;
+		CounterIndex < DebugState->CounterCount;
+		++CounterIndex)
+	{
+		debug_counter_state* Dest = DebugState->CounterStates + CounterIndex;
+		Dest->Snapshots[DebugState->SnapshotIndex].HitCount = 0;
+		Dest->Snapshots[DebugState->SnapshotIndex].CycleCount = 0;
+	}
+
+	debug_counter_state* CounterArray[2] =
+	{
+		DebugState->CounterStates,
+		DebugState->CounterStates + ArrayCount(DebugRecords_Main),
+	};
+	debug_record* DebugRecords[2] =
+	{
+		DebugRecords_Main,
+		DebugRecords_Optimized,
+	};
+
+	for (u32 EventIndex = 0;
+		EventIndex < EventCount;
+		++EventIndex)
+	{
+		debug_event* Event = Events + EventIndex;
+
+		debug_counter_state* Dest = CounterArray[Event->DebugRecordArrayIndex] + Event->DebugRecordIndex;
+
+		debug_record* Source = DebugRecords[Event->DebugRecordArrayIndex] + Event->DebugRecordIndex;
+		Dest->Filename = Source->Filename;
+		Dest->FunctionName = Source->FunctionName;
+		Dest->LineNumber = Source->LineNumber;
+
+		if (Event->Type == (u8)debug_event_type::BeginBlock)
+		{
+			++Dest->Snapshots[DebugState->SnapshotIndex].HitCount;
+			Dest->Snapshots[DebugState->SnapshotIndex].CycleCount -= Event->Clock;
+		}
+		else
+		{
+			Assert(Event->Type == (u8)debug_event_type::EndBlock);
+
+			Dest->Snapshots[DebugState->SnapshotIndex].CycleCount += Event->Clock;
+		}
+	}
+}
+
 extern "C" GAME_DEBUG_FRAME_END(GameDEBUGFrameEnd)
 {
+	GlobalCurrentEventArrayIndex = !GlobalCurrentEventArrayIndex;
+	u64 ArrayIndex_EventIndex = AtomicExchangeU64(&Global_DebugEventArrayIndex_DebugEventIndex, 
+		(u64)GlobalCurrentEventArrayIndex << 32);
+
+	u32 EventArrayIndex = ArrayIndex_EventIndex >> 32;
+	u32 EventCount = ArrayIndex_EventIndex & 0xFFFFFFFF;
+
 	debug_state* DebugState = (debug_state*)Memory->DebugStorage;
 	if (DebugState)
 	{
 		DebugState->CounterCount = 0;
 
+#if 0
 		UpdateDebugRecords(DebugState, DebugRecords_Optimized_Count, DebugRecords_Optimized);
 		UpdateDebugRecords(DebugState, ArrayCount(DebugRecords_Main), DebugRecords_Main);
+#else
+		CollateDebugRecords(DebugState, EventCount, GlobalDebugEventArray[EventArrayIndex]);
+#endif
 
 		DebugState->FrameEndInfos[DebugState->SnapshotIndex] = *Info;
 
