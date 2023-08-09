@@ -13,7 +13,7 @@ struct debug_counter_snapshot
 struct debug_counter_state
 {
 	char* Filename;
-	char* FunctionName;
+	char* BlockName;
 
 	u32 LineNumber;
 
@@ -25,7 +25,6 @@ struct debug_state
 	u32 SnapshotIndex;
 	u32 CounterCount;
 	debug_counter_state CounterStates[512];
-	debug_frame_end_info FrameEndInfos[DEBUG_SNAPSHOT_COUNT];
 };
 
 // TODO: Fix this for looped live code editing

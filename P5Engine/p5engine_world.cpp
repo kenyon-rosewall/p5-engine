@@ -59,7 +59,7 @@ AreInSameChunk(world* World, world_position* A, world_position* b)
 inline world_chunk*
 GetWorldChunk(world* World, i32 x, i32 y, i32 z, memory_arena* Arena = 0)
 {
-	TIMED_BLOCK();
+	TIMED_FUNCTION();
 
 	Assert(x > -TILE_CHUNK_SAFE_MARGIN);
 	Assert(y > -TILE_CHUNK_SAFE_MARGIN);
@@ -203,7 +203,7 @@ inline void
 ChangeEntityLocationRaw(memory_arena* Arena, world* World, u32 LowEntityIndex, 
 	world_position* OldPos, world_position* NewPos)
 {
-	TIMED_BLOCK();
+	TIMED_FUNCTION();
 
 	// TODO: If this moves an entity into the camera bound, should it automatically
 	// go into the high set immediately?
@@ -294,7 +294,7 @@ ChangeEntityLocationRaw(memory_arena* Arena, world* World, u32 LowEntityIndex,
 internal void
 ChangeEntityLocation(memory_arena* Arena, world* World, u32 LowEntityIndex, low_entity* LowEntity, world_position NewPosInit)
 {
-	TIMED_BLOCK();
+	TIMED_FUNCTION();
 
 	world_position* OldPos = 0;
 	world_position* NewPos = 0;
